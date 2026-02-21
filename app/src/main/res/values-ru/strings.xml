@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bird Song Analyzer</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_detection">Определение</string>
+    <string name="nav_history">История</string>
+    <string name="nav_settings">Настройки</string>
+
+    <!-- Live Detection -->
+    <string name="detection_title">Определение</string>
+    <string name="detection_idle">Нажмите Start для начала</string>
+    <string name="detection_analyzing">Анализ…</string>
+    <string name="detection_paused">Пауза</string>
+    <string name="detection_stopped">Сессия завершена</string>
+    <string name="detection_detected_count">Обнаружено (%1$d)</string>
+    <string name="detection_no_results">Птицы ещё не обнаружены</string>
+    <string name="btn_start">Старт</string>
+    <string name="btn_pause">Пауза</string>
+    <string name="btn_resume">Продолжить</string>
+    <string name="btn_stop">Стоп</string>
+    <string name="btn_reset">Сброс</string>
+
+    <!-- Detail -->
+    <string name="detail_confidence">Уверенность: %1$d%%</string>
+    <string name="detail_detected_at">Обнаружен: %1$s</string>
+    <string name="detail_duration">Длительность: %1$s сек</string>
+    <string name="detail_location">Локация: %1$s</string>
+    <string name="detail_no_location">Локация: недоступна</string>
+    <string name="detail_description_placeholder">Описание вида появится в будущем обновлении</string>
+
+    <!-- History -->
+    <string name="history_title">История</string>
+    <string name="history_empty">Наблюдений пока нет</string>
+    <string name="history_delete_confirm">Удалить это наблюдение?</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_theme">Тема</string>
+    <string name="settings_theme_system">Системная</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_permissions">Разрешения</string>
+    <string name="settings_about">О приложении</string>
+</resources>

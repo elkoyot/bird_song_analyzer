@@ -1,0 +1,30 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+/app/build
+/app/release
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# ML models (large binaries)
+/models/
+*.tflite
+
+# Audio samples and benchmark assets
+/sample/
+/app/src/androidTest/assets/
+
+# Claude Code local settings
+/.claude/
+
+# Nested git repo (empty)
+/bird_song_analyzer/

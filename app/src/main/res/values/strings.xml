@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bird Song Analyzer</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_detection">Detection</string>
+    <string name="nav_history">History</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Live Detection -->
+    <string name="detection_title">Live Detection</string>
+    <string name="detection_idle">Press Start to begin</string>
+    <string name="detection_analyzing">Analyzing…</string>
+    <string name="detection_paused">Paused</string>
+    <string name="detection_stopped">Session ended</string>
+    <string name="detection_detected_count">Detected (%1$d)</string>
+    <string name="detection_no_results">No birds detected yet</string>
+    <string name="btn_start">Start</string>
+    <string name="btn_pause">Pause</string>
+    <string name="btn_resume">Resume</string>
+    <string name="btn_stop">Stop</string>
+    <string name="btn_reset">Reset</string>
+
+    <!-- Detail -->
+    <string name="detail_confidence">Confidence: %1$d%%</string>
+    <string name="detail_detected_at">Detected at: %1$s</string>
+    <string name="detail_duration">Duration: %1$s sec</string>
+    <string name="detail_location">Location: %1$s</string>
+    <string name="detail_no_location">Location: not available</string>
+    <string name="detail_description_placeholder">Species description coming soon</string>
+
+    <!-- History -->
+    <string name="history_title">History</string>
+    <string name="history_empty">No observations yet</string>
+    <string name="history_delete_confirm">Delete this observation?</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_permissions">Permissions</string>
+    <string name="settings_about">About</string>
+</resources>
