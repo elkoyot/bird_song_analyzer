@@ -391,4 +391,35 @@ Parus major_Большая синица
 
 **Файл:** `androidTest/ml/BirdNetBenchmarkTest.kt`
 
-Прогоняет 16-минутный аудиофайл с 44 аннотированными видами через полный pipeline. Два варианта: без пре-обработки (эталон) и с `AudioChunkProcessor`. Сравнивает recall, precision и ложные срабатывания.
+Прогоняет 16-минутный аудиофайл с 44 аннотированными видами через параллельный pipeline с AudioChunkProcessor. Shared infrastructure (config, data classes, logging, parsing, matching, reporting) вынесена в `BenchmarkTestInfra.kt`.
+
+#### `benchmark_sample1_withProcessor_parallel` — параллельный pipeline
+
+```
+Producer (IO):  decodeChunked → AudioChunkProcessor → chunksChannel
+Workers (×N):   chunksChannel → BirdNetV24Classifier → resultsChannel
+Collector:      resultsChannel → allDetections
+```
+
+N воркеров (по умолчанию 2), каждый со своим экземпляром `BirdNetV24Classifier` (2 TFLite-потока на воркер). Перед pipeline — warmup-проход для JIT-компиляции TFLite. Тишина и шум пропускаются AudioChunkProcessor. Результат: 100% recall на 44 видах.
+
+**Что делает каждый классификатор** (`BirdNetV24Classifier`):
+
+| Шаг | Что происходит | Где |
+|-----|----------------|-----|
+| 1. Audio model | `FloatArray[144000]` → TFLite (CNN) → `FloatArray[6521]` logits | `audioInterpreter.run()` |
+| 2. Sigmoid | logit → probability: `1 / (1 + exp(-x))` | `BirdNetV24Classifier.kt:48` |
+| 3. Meta model | `[lat, lon, week]` → `FloatArray[6521]` × scores (опционально, GPS не передаётся в benchmark) | `metaInterpreter.run()` |
+| 4. Фильтрация | виды с confidence ≥ 0.1, top-10 по убыванию | `buildDetections()` |
+
+Каждый воркер делает **все 4 шага** для своего chunk-а независимо.
+
+**Потокобезопасность:**
+
+| Объект | Sharing | Почему |
+|--------|---------|--------|
+| `MappedByteBuffer` (audio/meta модели) | Shared между всеми N | READ_ONLY mmap |
+| `labels: List<Pair>` | Shared | Immutable |
+| `audioInterpreter` / `metaInterpreter` | По одному на воркер | Mutable state внутри TFLite |
+| `AudioChunkProcessor` | Только Producer | Bottleneck в inference, не в preprocessing |
+| `totalChunks` / `skippedChunks` | `AtomicInteger` | Producer пишет из IO-корутины |
