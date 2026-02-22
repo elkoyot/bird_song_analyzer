@@ -1,6 +1,5 @@
 package com.birdsong.analyzer.ml
 
-import android.util.Log
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sqrt
@@ -40,22 +39,13 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
         val rms = sqrt(sumSq / chunk.size).toFloat()
 
         // 1a. Silence check
-        if (rms < SILENCE_RMS_THRESHOLD) {
-            Log.d(TAG, "SKIP: silence (RMS=%.6f < %.4f)".format(rms, SILENCE_RMS_THRESHOLD))
-            return null
-        }
+        if (rms < SILENCE_RMS_THRESHOLD) return null
 
         // 2. Clipping check
-        if (peak > CLIPPING_PEAK_THRESHOLD && rms > CLIPPING_RMS_THRESHOLD) {
-            Log.d(TAG, "SKIP: clipping (peak=%.4f rms=%.4f)".format(peak, rms))
-            return null
-        }
+        if (peak > CLIPPING_PEAK_THRESHOLD && rms > CLIPPING_RMS_THRESHOLD) return null
 
         // 3. Spectral check via Goertzel at 4 bands
-        if (!passesSpectralCheck(chunk)) {
-            Log.d(TAG, "SKIP: spectral reject (>80%% energy outside bird range)")
-            return null
-        }
+        if (!passesSpectralCheck(chunk)) return null
 
         // 4. Bandpass filter
         val filtered = bandpass.apply(chunk)
@@ -66,10 +56,7 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
             val a = abs(s)
             if (a > postPeak) postPeak = a
         }
-        if (postPeak < POST_FILTER_SILENCE_THRESHOLD) {
-            Log.d(TAG, "SKIP: post-filter silence (peak=%.6f)".format(postPeak))
-            return null
-        }
+        if (postPeak < POST_FILTER_SILENCE_THRESHOLD) return null
 
         // 6. Peak normalization
         val normalized = if (postPeak in POST_FILTER_SILENCE_THRESHOLD..NORM_TARGET) {
@@ -88,10 +75,6 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
             if (a > outPeak) outPeak = a
         }
         val outRms = sqrt(outSumSq / normalized.size).toFloat()
-
-        Log.d(TAG, "PASS: rms=%.4f peak=%.4f → postBP_peak=%.4f → outRms=%.4f outPeak=%.4f".format(
-            rms, peak, postPeak, outRms, outPeak,
-        ))
 
         return Result(normalized, outRms, outPeak)
     }
@@ -145,8 +128,6 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
     }
 
     companion object {
-        private const val TAG = "AudioChunkProcessor"
-
         const val SILENCE_RMS_THRESHOLD = 0.005f
         const val CLIPPING_PEAK_THRESHOLD = 0.99f
         const val CLIPPING_RMS_THRESHOLD = 0.3f

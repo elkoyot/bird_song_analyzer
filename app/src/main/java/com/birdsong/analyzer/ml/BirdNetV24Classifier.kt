@@ -14,11 +14,12 @@ class BirdNetV24Classifier(
     private val labels: List<Pair<String, String>>,
     private val confidenceThreshold: Float = DEFAULT_THRESHOLD,
     private val topK: Int = DEFAULT_TOP_K,
+    tfliteThreads: Int = DEFAULT_NUM_THREADS,
 ) : BirdClassifier {
 
     override val modelId: String = MODEL_ID
 
-    private val options = Interpreter.Options().apply { numThreads = 2 }
+    private val options = Interpreter.Options().apply { numThreads = tfliteThreads }
     private val audioInterpreter = Interpreter(audioModel, options)
     private val metaInterpreter = Interpreter(metaModel, options)
 
@@ -101,6 +102,7 @@ class BirdNetV24Classifier(
         const val ASSET_BASE = "birdnet/v24"
         const val AUDIO_MODEL_PATH = "$ASSET_BASE/audio-model-fp16.tflite"
         const val META_MODEL_PATH = "$ASSET_BASE/meta-model.tflite"
+        const val DEFAULT_NUM_THREADS = 2
         const val DEFAULT_THRESHOLD = 0.1f
         const val DEFAULT_TOP_K = 10
 

@@ -70,8 +70,8 @@ object AudioFileDecoder {
 
         Log.i(TAG, "decodeChunked: $mime, ${sampleRate}Hz, ${channels}ch → " +
             "${targetRate}Hz mono, chunk=$chunkSize, hop=$hopSize, resample=$needsResample")
-        Log.i(TAG, "Input format: $format")
-        Log.i(TAG, "Expected duration: ${expectedDurationUs / 1_000_000.0}s")
+        Log.d(TAG, "Input format: $format")
+        Log.d(TAG, "Expected duration: ${expectedDurationUs / 1_000_000.0}s")
 
         // Sliding window buffer at target sample rate
         val buffer = FloatArray(chunkSize)
@@ -149,7 +149,7 @@ object AudioFileDecoder {
                     val outFormat = codec.outputFormat
                     val pcmEnc = if (outFormat.containsKey(MediaFormat.KEY_PCM_ENCODING))
                         outFormat.getInteger(MediaFormat.KEY_PCM_ENCODING) else -1
-                    Log.i(TAG, "Output format: $outFormat (pcmEncoding=$pcmEnc)")
+                    Log.d(TAG, "Output format: $outFormat (pcmEncoding=$pcmEnc)")
                 } else if (outIdx >= 0) {
                     if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
                         outputDone = true
@@ -182,7 +182,7 @@ object AudioFileDecoder {
 
                     // Log first output buffer diagnostics
                     if (outputBufferCount == 1) {
-                        Log.i(TAG, "First output buffer: ${bufferInfo.size} bytes, " +
+                        Log.d(TAG, "First output buffer: ${bufferInfo.size} bytes, " +
                             "offset=${bufferInfo.offset}, shorts=${bufferInfo.size / 2}, " +
                             "monoSamples=$totalMonoSamples")
                     }
