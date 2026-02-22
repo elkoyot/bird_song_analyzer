@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.birdsong.analyzer.ml.AudioFileDecoder
 import com.birdsong.analyzer.ml.BirdClassifier
 import com.birdsong.analyzer.ml.BirdDetectionPipeline
-import com.birdsong.analyzer.ml.DetectionAggregator
 import com.birdsong.analyzer.service.AudioRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,8 +21,6 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -43,12 +40,9 @@ class LiveDetectionViewModel @Inject constructor(
     private var levelJob: Job? = null
     private var sessionStartMs: Long = 0L
 
-    private var liveAggregator = DetectionAggregator.forLiveDetection()
-
     fun onStart() {
         val state = _uiState.value.state
         if (state != DetectionState.IDLE && state != DetectionState.STOPPED) return
-        liveAggregator.reset()
         _uiState.update { it.copy(state = DetectionState.ANALYZING, detectedBirds = emptyList()) }
         sessionStartMs = System.currentTimeMillis()
         startTimerLoop()
@@ -82,7 +76,6 @@ class LiveDetectionViewModel @Inject constructor(
     }
 
     fun onReset() {
-        liveAggregator.reset()
         _uiState.update { it.copy(detectedBirds = emptyList()) }
     }
 
@@ -172,56 +165,53 @@ class LiveDetectionViewModel @Inject constructor(
                         Log.d(TAG, "Chunk received: ${chunk.size} samples")
 
                         val result = pipeline.processChunk(chunk)
-                        if (!result.processed) {
-                            liveAggregator.addChunkResults(null)
-                            updateUiFromAggregator()
-                            return@collect
-                        }
+                        if (!result.processed) return@collect
 
-                        Log.d(TAG, "Detections above classifier threshold: ${result.detections.size}")
-                        liveAggregator.addChunkResults(result.detections)
-                        updateUiFromAggregator()
+                        val elapsedMs = System.currentTimeMillis() - sessionStartMs
+                        val elapsedSec = elapsedMs / 1_000
+                        val detectedAt = formatMmSs(elapsedSec)
+                        val windowStart = formatMmSs((elapsedSec - CHUNK_DURATION_SEC).coerceAtLeast(0))
+                        val durationSec = "$windowStart – $detectedAt"
+
+                        val newBirds = result.detections
+                            .filter { it.confidence >= LIVE_CONFIDENCE_THRESHOLD }
+                            .map { det ->
+                                DetectedBirdUi(
+                                    id = UUID.randomUUID().toString(),
+                                    commonName = det.commonName,
+                                    scientificName = det.scientificName,
+                                    confidence = (det.confidence * 100).roundToInt(),
+                                    detectedAt = detectedAt,
+                                    durationSec = durationSec,
+                                )
+                            }
+
+                        if (newBirds.isNotEmpty()) {
+                            Log.d(TAG, "Appending ${newBirds.size} detections at $detectedAt")
+                            _uiState.update { s ->
+                                var birds = s.detectedBirds
+                                for (bird in newBirds) {
+                                    val top = birds.firstOrNull()
+                                    if (top != null && top.scientificName == bird.scientificName) {
+                                        // Same species as previous — extend time window
+                                        birds = listOf(
+                                            top.copy(
+                                                detectedAt = bird.detectedAt,
+                                                durationSec = "${top.durationSec.substringBefore(" – ")} – ${bird.detectedAt}",
+                                                confidence = maxOf(top.confidence, bird.confidence),
+                                            ),
+                                        ) + birds.drop(1)
+                                    } else {
+                                        birds = listOf(bird) + birds
+                                    }
+                                }
+                                s.copy(detectedBirds = birds.take(MAX_DETECTIONS))
+                            }
+                        }
                     } catch (e: Exception) {
                         Log.e(TAG, "Classification failed", e)
                     }
                 }
-        }
-    }
-
-    private fun updateUiFromAggregator() {
-        val confirmed = liveAggregator.getConfirmedDetections()
-        Log.d(TAG, "Confirmed species: ${confirmed.size}")
-
-        val newBirds = confirmed.map { det ->
-            DetectedBirdUi(
-                id = UUID.randomUUID().toString(),
-                commonName = det.commonName,
-                scientificName = det.scientificName,
-                confidence = (det.confidence * 100).roundToInt(),
-                detectedAt = LocalTime.now().format(TIME_FORMATTER),
-                durationSec = CHUNK_DURATION_LABEL,
-            )
-        }
-
-        _uiState.update { s ->
-            // Merge: update existing species or add new
-            val existing = s.detectedBirds.associateBy { it.scientificName }.toMutableMap()
-            for (bird in newBirds) {
-                val prev = existing[bird.scientificName]
-                if (prev == null || bird.confidence > prev.confidence) {
-                    existing[bird.scientificName] = bird
-                }
-            }
-            // Remove species no longer confirmed
-            val confirmedNames = newBirds.map { it.scientificName }.toSet()
-            existing.keys.retainAll(confirmedNames)
-
-            s.copy(
-                detectedBirds = existing.values
-                    .sortedByDescending { it.confidence }
-                    .take(MAX_DETECTIONS)
-                    .toList(),
-            )
         }
     }
 
@@ -248,6 +238,9 @@ class LiveDetectionViewModel @Inject constructor(
         return "%02d:%02d:%02d".format(s / 3_600, s % 3_600 / 60, s % 60)
     }
 
+    private fun formatMmSs(totalSec: Long): String =
+        "%02d:%02d".format(totalSec / 60, totalSec % 60)
+
     override fun onCleared() {
         onStop()
     }
@@ -255,9 +248,9 @@ class LiveDetectionViewModel @Inject constructor(
     companion object {
         private const val TAG = "LiveDetectionVM"
         private const val MAX_DETECTIONS = 200
-        private const val CHUNK_DURATION_LABEL = "3.0"
+        private const val LIVE_CONFIDENCE_THRESHOLD = 0.5f
+        private const val CHUNK_DURATION_SEC = 3L
         private const val SAMPLE_ASSET = "birdnet/v24/sample.wav"
         private const val SAMPLE_MIN_CONFIDENCE = 0.5f
-        private val TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
     }
 }

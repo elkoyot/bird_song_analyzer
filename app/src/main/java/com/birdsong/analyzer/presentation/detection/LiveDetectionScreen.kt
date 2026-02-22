@@ -374,7 +374,7 @@ private fun DetectedBirdCard(bird: DetectedBirdUi, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${bird.detectedAt} • ${bird.durationSec} sec",
+                    text = "${bird.detectedAt} • ${bird.durationSec}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -392,9 +392,9 @@ private fun DetectedBirdCard(bird: DetectedBirdUi, onClick: () -> Unit) {
 // --- Previews ---
 
 private val previewBirds = listOf(
-    DetectedBirdUi("1", "Great Tit", "Parus major", 92, "14:32", "8.5"),
-    DetectedBirdUi("2", "Chaffinch", "Fringilla coelebs", 85, "14:30", "5.2"),
-    DetectedBirdUi("3", "Song Thrush", "Turdus philomelos", 88, "14:28", "6.1"),
+    DetectedBirdUi("1", "Great Tit", "Parus major", 92, "05:32", "05:29 – 05:32"),
+    DetectedBirdUi("2", "Chaffinch", "Fringilla coelebs", 85, "04:18", "04:15 – 04:18"),
+    DetectedBirdUi("3", "Song Thrush", "Turdus philomelos", 88, "02:45", "02:42 – 02:45"),
 )
 
 @Preview(showBackground = true, showSystemUi = true, name = "Idle")
