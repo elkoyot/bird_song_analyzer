@@ -16,6 +16,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -131,7 +134,37 @@ fun BirdSongNavHost() {
             }
 
             composable<SettingsRoute> {
-                SettingsScreen()
+                val context = LocalContext.current
+
+                fun checkAudio() = ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.RECORD_AUDIO,
+                ) == PackageManager.PERMISSION_GRANTED
+
+                fun checkLocation() = ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.ACCESS_COARSE_LOCATION,
+                ) == PackageManager.PERMISSION_GRANTED
+
+                var audioGranted by remember { mutableStateOf(checkAudio()) }
+                var locationGranted by remember { mutableStateOf(checkLocation()) }
+
+                val audioLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission(),
+                ) { audioGranted = checkAudio() }
+
+                val locationLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission(),
+                ) { locationGranted = checkLocation() }
+
+                SettingsScreen(
+                    audioPermissionGranted = audioGranted,
+                    locationPermissionGranted = locationGranted,
+                    onRequestAudioPermission = {
+                        audioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    },
+                    onRequestLocationPermission = {
+                        locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    },
+                )
             }
 
             composable<DetailRoute> {

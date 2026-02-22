@@ -78,7 +78,7 @@ class BirdNetBenchmarkTest {
         val classifiers = createClassifiers(BenchmarkConfig.PARALLEL_WORKERS)
         try {
             runner.run("С AudioChunkProcessor (ПАРАЛЛЕЛЬНЫЙ)", "benchmark_1_par.mp3") { context, uri ->
-                runParallelInference(context, uri, classifiers, AudioChunkProcessor())
+                runParallelInference(context, uri, classifiers, AudioChunkProcessor(), BenchmarkConfig.LOCATION)
             }
         } finally {
             classifiers.forEach { it.close() }
@@ -99,6 +99,7 @@ class BirdNetBenchmarkTest {
         uri: Uri,
         classifiers: List<BirdNetV24Classifier>,
         processor: AudioChunkProcessor,
+        location: LocationMeta? = null,
     ): InferenceResult {
         val numWorkers = classifiers.size
         val allDetections = mutableListOf<TimedDetection>()
@@ -109,29 +110,28 @@ class BirdNetBenchmarkTest {
         val workerChunkCounts = IntArray(numWorkers)
         val workerTotalMs = LongArray(numWorkers)
 
+        val locationLabel = if (location != null)
+            "lat=%.4f lon=%.4f неделя=${location.weekOfYear}".format(location.latitude, location.longitude)
+        else "нет"
         val t = BenchmarkLogger.logBegin(
             "Параллельный pipeline ($numWorkers воркера)",
-            "chunk: ${BirdClassifier.CHUNK_DURATION_SECONDS} с, порог: ${BenchmarkConfig.CONFIDENCE_THRESHOLD}",
+            "chunk: ${BirdClassifier.CHUNK_DURATION_SECONDS} с, порог: ${BenchmarkConfig.CONFIDENCE_THRESHOLD}, локация: $locationLabel",
         )
 
         runBlocking {
             val chunksChannel = Channel<IndexedChunk>(capacity = BenchmarkConfig.CHANNEL_CAPACITY)
             val resultsChannel = Channel<List<TimedDetection>>(capacity = BenchmarkConfig.CHANNEL_CAPACITY)
 
-            // Producer: decode → process → send to chunksChannel
+            // Producer: decode → send raw chunks to channel (no processing)
             launch(Dispatchers.IO) {
                 try {
-                    AudioFileDecoder.decodeChunked(context, uri) { chunkIndex, startTimeSec, chunk ->
+                    AudioFileDecoder.decodeChunked(
+                        context, uri,
+                        hopSize = BirdClassifier.SAMPLES_PER_CHUNK, // 0% overlap for benchmark
+                    ) { chunkIndex, startTimeSec, chunk ->
                         totalChunks.incrementAndGet()
-
-                        val processed = processor.process(chunk)
-                        if (processed == null) {
-                            skippedChunks.incrementAndGet()
-                            return@decodeChunked
-                        }
-
                         chunksChannel.trySendBlocking(
-                            IndexedChunk(chunkIndex, startTimeSec, processed.samples),
+                            IndexedChunk(chunkIndex, startTimeSec, chunk),
                         ).getOrThrow()
                     }
                 } finally {
@@ -139,14 +139,20 @@ class BirdNetBenchmarkTest {
                 }
             }
 
-            // Workers: read from chunksChannel → classify → send to resultsChannel
+            // Workers: process + classify in parallel
             val workers = classifiers.mapIndexed { wIdx, clf ->
                 val workerId = wIdx + 1
                 launch(Dispatchers.Default) {
                     for (ic in chunksChannel) {
+                        val processed = processor.process(ic.samples)
+                        if (processed == null) {
+                            skippedChunks.incrementAndGet()
+                            continue
+                        }
+
                         val endTimeSec = ic.startTimeSec + BirdClassifier.CHUNK_DURATION_SECONDS
                         val classifyStart = System.currentTimeMillis()
-                        val detections = clf.classify(ic.samples)
+                        val detections = clf.classify(processed.samples, location)
                         val classifyMs = System.currentTimeMillis() - classifyStart
                         workerChunkCounts[wIdx]++
                         workerTotalMs[wIdx] += classifyMs
@@ -226,6 +232,7 @@ class BirdNetBenchmarkTest {
                 audioModelBuffer, metaModelBuffer, labels,
                 confidenceThreshold = BenchmarkConfig.CONFIDENCE_THRESHOLD,
                 tfliteThreads = BenchmarkConfig.TFLITE_THREADS_PER_WORKER,
+                metaAlpha = BenchmarkConfig.META_ALPHA,
             ).also { BenchmarkLogger.log("  Классификатор #$i создан") }
         }
         BenchmarkLogger.logEnd("Создание параллельных классификаторов", t)

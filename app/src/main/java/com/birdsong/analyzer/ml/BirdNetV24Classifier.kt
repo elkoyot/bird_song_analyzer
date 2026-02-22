@@ -15,6 +15,7 @@ class BirdNetV24Classifier(
     private val confidenceThreshold: Float = DEFAULT_THRESHOLD,
     private val topK: Int = DEFAULT_TOP_K,
     tfliteThreads: Int = DEFAULT_NUM_THREADS,
+    private val metaAlpha: Float = DEFAULT_META_ALPHA,
 ) : BirdClassifier {
 
     override val modelId: String = MODEL_ID
@@ -70,19 +71,37 @@ class BirdNetV24Classifier(
     }
 
     private fun applyMetaModel(location: LocationMeta, scores: FloatArray) {
-        val metaInput = arrayOf(
-            floatArrayOf(
-                location.latitude.toFloat(),
-                location.longitude.toFloat(),
-                location.weekOfYear.toFloat(),
-            )
-        )
+        val metaInput = arrayOf(FloatArray(3))
         val metaOutput = Array(1) { FloatArray(labels.size) }
-        metaInterpreter.run(metaInput, metaOutput)
+        metaInput[0][0] = location.latitude.toFloat()
+        metaInput[0][1] = location.longitude.toFloat()
 
-        val metaScores = metaOutput[0]
+        val weeks = location.weekRange ?: (location.weekOfYear..location.weekOfYear)
+
+        // Collect raw meta scores: single week or max over range
+        val rawMeta = FloatArray(labels.size)
+        if (weeks.first == weeks.last) {
+            metaInput[0][2] = weeks.first.toFloat()
+            metaInterpreter.run(metaInput, metaOutput)
+            metaOutput[0].copyInto(rawMeta)
+        } else {
+            // Run meta-model for each week, keep max score per species.
+            // Semantics: "has this species ever been expected here?" rather than "is it here now?"
+            for (week in weeks) {
+                metaInput[0][2] = week.toFloat()
+                metaInterpreter.run(metaInput, metaOutput)
+                val weekScores = metaOutput[0]
+                for (i in rawMeta.indices) {
+                    if (weekScores[i] > rawMeta[i]) rawMeta[i] = weekScores[i]
+                }
+            }
+        }
+
+        // Blended meta: alpha + (1 - alpha) * rawMeta
+        // alpha > 0 prevents complete suppression of low-eBird edge-case species
+        // while still significantly downweighting continental outliers
         for (i in scores.indices) {
-            scores[i] *= metaScores[i]
+            scores[i] *= metaAlpha + (1f - metaAlpha) * rawMeta[i]
         }
     }
 
@@ -105,6 +124,7 @@ class BirdNetV24Classifier(
         const val DEFAULT_NUM_THREADS = 2
         const val DEFAULT_THRESHOLD = 0.1f
         const val DEFAULT_TOP_K = 10
+        const val DEFAULT_META_ALPHA = 0.15f
 
         internal fun buildDetections(
             scores: FloatArray,

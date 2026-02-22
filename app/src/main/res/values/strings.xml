@@ -42,5 +42,10 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_permissions">Permissions</string>
+    <string name="settings_permission_microphone">Microphone</string>
+    <string name="settings_permission_location">Location</string>
+    <string name="settings_permission_granted">Granted</string>
+    <string name="settings_permission_not_granted">Not granted — tap to request</string>
+    <string name="settings_permission_location_hint">Improves species detection accuracy</string>
     <string name="settings_about">About</string>
 </resources>

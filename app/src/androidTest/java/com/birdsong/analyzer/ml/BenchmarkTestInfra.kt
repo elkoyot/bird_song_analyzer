@@ -12,12 +12,26 @@ object BenchmarkConfig {
     const val CONFIDENCE_THRESHOLD = 0.1f
     const val FALSE_POSITIVE_THRESHOLD = 0.5f
     const val TIMELINE_THRESHOLD = 0.3f
-    const val PARALLEL_WORKERS = 2
-    const val TFLITE_THREADS_PER_WORKER = 2
+    const val PARALLEL_WORKERS = 4
+    const val TFLITE_THREADS_PER_WORKER = 1
     const val CHANNEL_CAPACITY = 8
     const val PROGRESS_INTERVAL = 50
     const val AUDIO_ASSET_PATH = "benchmark/1/1.mp3"
     const val GT_ASSET_PATH = "benchmark/1/1.txt"
+
+    // Recording location for meta-model geo-filtering.
+    // weekRange = full year: pure geographic filter, no temporal assumption.
+    // Continental outliers (Africa, Americas) score ~0 across all weeks.
+    val LOCATION: LocationMeta = LocationMeta(
+        latitude = 53.9,
+        longitude = 27.6,
+        weekOfYear = 1,  // unused: weekRange takes precedence
+        weekRange = 1..52,
+    )
+
+    // Blended meta-model alpha: score = alpha + (1 - alpha) * meta_score
+    // Prevents complete suppression of low-eBird edge-case species (irruptive visitors, range edges).
+    val META_ALPHA: Float = BirdNetV24Classifier.DEFAULT_META_ALPHA
 }
 
 // ── Data classes ──

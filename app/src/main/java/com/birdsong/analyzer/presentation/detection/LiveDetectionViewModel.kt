@@ -1,6 +1,9 @@
 package com.birdsong.analyzer.presentation.detection
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -8,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.birdsong.analyzer.ml.AudioFileDecoder
 import com.birdsong.analyzer.ml.BirdClassifier
 import com.birdsong.analyzer.ml.BirdDetectionPipeline
+import com.birdsong.analyzer.ml.LocationMeta
 import com.birdsong.analyzer.service.AudioRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,6 +25,8 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.temporal.WeekFields
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -39,11 +45,19 @@ class LiveDetectionViewModel @Inject constructor(
     private var timerJob: Job? = null
     private var levelJob: Job? = null
     private var sessionStartMs: Long = 0L
+    private var sessionLocation: LocationMeta? = null
 
     fun onStart() {
         val state = _uiState.value.state
         if (state != DetectionState.IDLE && state != DetectionState.STOPPED) return
-        _uiState.update { it.copy(state = DetectionState.ANALYZING, detectedBirds = emptyList()) }
+        sessionLocation = resolveLocation()
+        _uiState.update {
+            it.copy(
+                state = DetectionState.ANALYZING,
+                detectedBirds = emptyList(),
+                hasGps = sessionLocation != null,
+            )
+        }
         sessionStartMs = System.currentTimeMillis()
         startTimerLoop()
         startLevelCollection()
@@ -164,7 +178,7 @@ class LiveDetectionViewModel @Inject constructor(
                     try {
                         Log.d(TAG, "Chunk received: ${chunk.size} samples")
 
-                        val result = pipeline.processChunk(chunk)
+                        val result = pipeline.processChunk(chunk, sessionLocation)
                         if (!result.processed) return@collect
 
                         val elapsedMs = System.currentTimeMillis() - sessionStartMs
@@ -174,7 +188,6 @@ class LiveDetectionViewModel @Inject constructor(
                         val durationSec = "$windowStart – $detectedAt"
 
                         val newBirds = result.detections
-                            .filter { it.confidence >= LIVE_CONFIDENCE_THRESHOLD }
                             .map { det ->
                                 DetectedBirdUi(
                                     id = UUID.randomUUID().toString(),
@@ -215,6 +228,27 @@ class LiveDetectionViewModel @Inject constructor(
         }
     }
 
+    private fun resolveLocation(): LocationMeta? {
+        val hasPermission = context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+        if (!hasPermission) {
+            Log.d(TAG, "Location permission not granted, meta-model will run without geo-filter")
+            return null
+        }
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            ?: return null
+        val week = LocalDate.now().get(WeekFields.ISO.weekOfWeekBasedYear())
+        // ±LIVE_WEEK_WINDOW so recently returned migrants aren't suppressed.
+        // At year boundary (wrap-around) fall back to full year — geographic filter only.
+        val lo = week - LIVE_WEEK_WINDOW
+        val hi = week + LIVE_WEEK_WINDOW
+        val weekRange = if (lo < 1 || hi > 52) 1..52 else lo..hi
+        Log.d(TAG, "Session location: lat=${loc.latitude}, lon=${loc.longitude}, weekRange=$weekRange")
+        return LocationMeta(latitude = loc.latitude, longitude = loc.longitude, weekOfYear = week, weekRange = weekRange)
+    }
+
     private fun startLevelCollection() {
         levelJob = viewModelScope.launch {
             audioRecorder.audioLevel.collect { level ->
@@ -248,8 +282,8 @@ class LiveDetectionViewModel @Inject constructor(
     companion object {
         private const val TAG = "LiveDetectionVM"
         private const val MAX_DETECTIONS = 200
-        private const val LIVE_CONFIDENCE_THRESHOLD = 0.5f
         private const val CHUNK_DURATION_SEC = 3L
+        private const val LIVE_WEEK_WINDOW = 4  // ±4 weeks around current date
         private const val SAMPLE_ASSET = "birdnet/v24/sample.wav"
         private const val SAMPLE_MIN_CONFIDENCE = 0.5f
     }
