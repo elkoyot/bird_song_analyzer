@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -77,6 +78,7 @@ class StandardBenchmarkTest {
         val chunkCount: Int,
         val skippedChunks: Int,
         val speciesInLabels: Boolean,
+        val stopReason: String,   // "confirmed" | "wrong_species" | "max_chunks" | "error"
     )
 
     // ── Taxonomy synonyms: filename → BirdNET label ──
@@ -128,10 +130,12 @@ class StandardBenchmarkTest {
         log("CPU: ${Runtime.getRuntime().availableProcessors()} ядер, " +
             "воркеров: $WORKER_COUNT, TFLite потоков: $TFLITE_THREADS/interpreter")
 
-        // Создаём WORKER_COUNT воркеров, каждый со своим TFLite interpreter
+        // Модели загружаем один раз — один MappedByteBuffer shared across all workers.
+        // TFLite создаёт свою копию весов при Interpreter(buffer), buffer только для чтения.
+        val audioModel = loadModel(context, BirdNetV24Classifier.AUDIO_MODEL_PATH)
+        val metaModel = loadModel(context, BirdNetV24Classifier.META_MODEL_PATH)
+
         workers = (1..WORKER_COUNT).map { id ->
-            val audioModel = loadModel(context, BirdNetV24Classifier.AUDIO_MODEL_PATH)
-            val metaModel = loadModel(context, BirdNetV24Classifier.META_MODEL_PATH)
             Worker(
                 id = id,
                 classifier = BirdNetV24Classifier(
@@ -146,8 +150,22 @@ class StandardBenchmarkTest {
         workers.forEach { workerPool.put(it) }
         workerSemaphore = Semaphore(WORKER_COUNT)
 
+        // TFLite warmup: первый инференс всегда медленнее из-за JIT-компиляции ops.
+        // Прогреваем все классификаторы параллельно — сокращает setUp с N×warmup до 1×warmup.
+        log("Warmup: прогрев $WORKER_COUNT классификаторов параллельно...")
+        val warmupChunk = FloatArray(BirdClassifier.SAMPLES_PER_CHUNK)
+        runBlocking {
+            workers.map { worker ->
+                async(Dispatchers.Default) {
+                    val ms = System.currentTimeMillis()
+                    worker.classifier.classify(warmupChunk)
+                    log("  [W${worker.id}] прогрет: ${System.currentTimeMillis() - ms} мс")
+                }
+            }.awaitAll()
+        }
+
         modelLoadTimeMs = System.currentTimeMillis() - start
-        log("Модель загружена: ${labels.size} видов, $WORKER_COUNT воркеров, $modelLoadTimeMs мс")
+        log("Модель загружена + прогрета: ${labels.size} видов, $WORKER_COUNT воркеров, $modelLoadTimeMs мс")
     }
 
     @After
@@ -201,7 +219,7 @@ class StandardBenchmarkTest {
                             else -> "НЕТ -> ${result.detectedSpecies}"
                         }
                         log("[${done}/${total}] ${file.name} => $mark " +
-                            "(${result.chunkCount}ч, ${result.inferenceTimeMs}мс)")
+                            "(${result.chunkCount}ч, ${result.inferenceTimeMs}мс, ${result.stopReason})")
 
                         if (done % 50 == 0) {
                             val elapsed = System.currentTimeMillis() - testStartMs
@@ -255,6 +273,7 @@ class StandardBenchmarkTest {
         val stopSignal = AtomicBoolean(false)
 
         val channel = Channel<FloatArray>(PIPELINE_BUFFER)
+        var stopReason = "max_chunks"
 
         try {
             coroutineScope {
@@ -281,7 +300,7 @@ class StandardBenchmarkTest {
                             }
 
                             try {
-                                runBlocking { channel.send(processed.samples) }
+                                channel.trySendBlocking(processed.samples).getOrThrow()
                             } catch (_: Exception) {
                                 throw StopDecodingException("send_failed")
                             }
@@ -298,18 +317,45 @@ class StandardBenchmarkTest {
                 }
 
                 // Consumer: classify на Default dispatcher (через withContext внутри classify)
+                var chunksClassified = 0
                 for (samples in channel) {
                     val detections = worker.classifier.classify(samples)
+                    chunksClassified++
                     for (d in detections) {
                         val cur = speciesMaxConf[d.scientificName] ?: 0f
                         if (d.confidence > cur) speciesMaxConf[d.scientificName] = d.confidence
                     }
+
+                    // Стоп: ожидаемый вид подтверждён
                     if (speciesMaxConf.any { (sp, conf) ->
                             conf >= EARLY_STOP_CONFIDENCE && matchesName(mappedSpecies, sp)
                         }) {
+                        stopReason = "confirmed"
                         stopSignal.set(true)
                         channel.cancel()
                         break
+                    }
+
+                    // Стоп: другой вид уверенно найден, ожидаемый не появлялся совсем.
+                    // Гарды: минимум MIN_CHUNKS_BEFORE_WRONG_STOP чанков обработано +
+                    //        ожидаемый ниже EXPECTED_ABSENT_THRESHOLD (нет даже слабого сигнала).
+                    if (chunksClassified >= MIN_CHUNKS_BEFORE_WRONG_STOP) {
+                        val expectedMaxConf = speciesMaxConf.entries
+                            .filter { (sp, _) -> matchesName(mappedSpecies, sp) }
+                            .maxOfOrNull { it.value } ?: 0f
+                        val hasWrongSpecies = speciesMaxConf.any { (sp, conf) ->
+                            conf >= WRONG_SPECIES_CONFIDENCE
+                                && !matchesName(mappedSpecies, sp)
+                                && BirdClassifier.NON_BIRD_LABELS.none { nb ->
+                                    sp.equals(nb, ignoreCase = true)
+                                }
+                        }
+                        if (hasWrongSpecies && expectedMaxConf < EXPECTED_ABSENT_THRESHOLD) {
+                            stopReason = "wrong_species"
+                            stopSignal.set(true)
+                            channel.cancel()
+                            break
+                        }
                     }
                 }
 
@@ -326,6 +372,7 @@ class StandardBenchmarkTest {
                 inferenceTimeMs = System.currentTimeMillis() - startMs,
                 chunkCount = totalChunks, skippedChunks = skippedChunks,
                 speciesInLabels = inLabels,
+                stopReason = "error",
             )
         }
 
@@ -342,6 +389,7 @@ class StandardBenchmarkTest {
                 inferenceTimeMs = inferenceTimeMs,
                 chunkCount = totalChunks, skippedChunks = skippedChunks,
                 speciesInLabels = inLabels,
+                stopReason = "error",
             )
         }
 
@@ -365,6 +413,7 @@ class StandardBenchmarkTest {
                 inferenceTimeMs = inferenceTimeMs,
                 chunkCount = totalChunks, skippedChunks = skippedChunks,
                 speciesInLabels = inLabels,
+                stopReason = stopReason,
             )
         } else {
             FileResult(
@@ -376,6 +425,7 @@ class StandardBenchmarkTest {
                 inferenceTimeMs = inferenceTimeMs,
                 chunkCount = totalChunks, skippedChunks = skippedChunks,
                 speciesInLabels = inLabels,
+                stopReason = stopReason,
             )
         }
     }
@@ -466,40 +516,89 @@ class StandardBenchmarkTest {
     // ── Output: Summary ──
 
     private fun printSummary(results: List<FileResult>, totalTestMs: Long) {
-        val sep = "═".repeat(80)
+        val sep  = "═".repeat(80)
+        val thin = "─".repeat(80)
+
+        // ── Базовые счётчики ──
+
+        val total        = results.size
+        val inModelList  = results.filter { it.speciesInLabels || it.expectedSpecies !in missingFromModel }
+        val inModel      = inModelList.size
+        val notInModelList = results.filter { !it.speciesInLabels && it.expectedSpecies in missingFromModel }
+        val notInModel   = notInModelList.size
+        val errors       = results.count { it.detectedSpecies.startsWith("ОШИБКА") }
+
+        val detectedInModel = inModelList.count { it.detected }
+
+        // Определилось что-то, но не тот вид (только среди файлов с видами в модели)
+        val wrongDetectionList = inModelList.filter {
+            !it.detected && it.detectedSpecies != "—" && !it.detectedSpecies.startsWith("ОШИБКА")
+        }
+        val wrongDetection = wrongDetectionList.size
+
+        // Вообще ничего не определилось (только среди файлов с видами в модели, без ошибок)
+        val trulyMissedList = inModelList.filter {
+            !it.detected && it.detectedSpecies == "—"
+        }
+        val trulyMissed = trulyMissedList.size
+
+        log("")
         log(sep)
         log("ИТОГО")
         log(sep)
         log("")
 
-        val total = results.size
-        val inModel = results.count { it.speciesInLabels || it.expectedSpecies !in missingFromModel }
-        val notInModel = results.count { !it.speciesInLabels && it.expectedSpecies in missingFromModel }
-        val detectedCount = results.count { it.detected }
-        val detectedInModel = results.count {
-            it.detected && (it.speciesInLabels || it.expectedSpecies !in missingFromModel)
+        // ── Файлы и виды ──
+
+        log("  ФАЙЛЫ И ВИДЫ:")
+        log("  $thin")
+        log("  Всего файлов:                   $total")
+        log("  Видов ЕСТЬ в модели BirdNET:    $inModel  (по ним считается Recall)")
+        log("  Видов НЕТ в модели BirdNET:     $notInModel  " +
+            "(уникальных: ${notInModelList.map { it.expectedSpecies }.toSet().size})")
+        if (errors > 0) log("  Ошибки декодирования:           $errors")
+        log("  Воркеры / TFLite потоков:       $WORKER_COUNT / $TFLITE_THREADS")
+        log("")
+
+        // ── Результаты определения ──
+
+        log("  ОПРЕДЕЛЕНИЕ  (виды в модели, $inModel файлов):")
+        log("  $thin")
+        log("  Верно определено:               $detectedInModel / $inModel" +
+            "  (%.1f%%)".format(detectedInModel * 100.0 / inModel.coerceAtLeast(1)))
+        log("  Определилось НЕ ТО:             $wrongDetection" +
+            "  (%.1f%%)".format(wrongDetection * 100.0 / inModel.coerceAtLeast(1)))
+        log("  Ничего не определилось:         $trulyMissed" +
+            "  (%.1f%%)".format(trulyMissed * 100.0 / inModel.coerceAtLeast(1)))
+        log("")
+
+        // ── Причины остановки ──
+
+        log("  ПРИЧИНЫ ОСТАНОВКИ:")
+        log("  $thin")
+        val stopReasonOrder = listOf("confirmed", "wrong_species", "max_chunks", "error")
+        val stopReasonLabels = mapOf(
+            "confirmed"     to "Ожидаемый вид найден (confirmed)  ",
+            "wrong_species" to "Найден другой вид  (wrong_species)",
+            "max_chunks"    to "Лимит чанков ($MAX_CHUNKS_PER_FILE)       (max_chunks)  ",
+            "error"         to "Ошибка декодирования   (error)      ",
+        )
+        val bySR = results.groupBy { it.stopReason }
+        for (reason in stopReasonOrder) {
+            val count = bySR[reason]?.size ?: 0
+            if (count > 0 || reason in listOf("confirmed", "wrong_species", "max_chunks")) {
+                log("  ${stopReasonLabels[reason] ?: reason.padEnd(40)}  $count файлов")
+            }
         }
-        val errors = results.count { it.detectedSpecies.startsWith("ОШИБКА") }
-
-        log("  Всего файлов:                    $total")
-        log("  Видов в модели BirdNET:           $inModel")
-        log("  Видов НЕТ в модели:               $notInModel")
-        log("  Ошибки декодирования:             $errors")
-        log("  Воркеры (параллельность):         $WORKER_COUNT")
-        log("  Pipeline буфер:                   $PIPELINE_BUFFER чанков")
-        log("")
-        log("  Корректно определено (все):       $detectedCount / $total (%.1f%%)".format(
-            detectedCount * 100.0 / total))
-        log("  Корректно определено (в модели):  $detectedInModel / $inModel (%.1f%%)".format(
-            detectedInModel * 100.0 / inModel))
         log("")
 
-        // ── By recording type ──
+        // ── По типу записи ──
+
         val byType = results.groupBy { extractType(it.filename) }
         log("  РЕЗУЛЬТАТЫ ПО ТИПУ ЗАПИСИ:")
-        log("  " + "─".repeat(50))
+        log("  $thin")
         log(String.format("  %-20s │ %-8s │ %-8s │ %-10s", "Тип", "Всего", "Найдено", "Recall"))
-        log("  " + "─".repeat(50))
+        log("  $thin")
         for ((type, typeResults) in byType.entries.sortedByDescending { it.value.size }) {
             val t = typeResults.size
             val d = typeResults.count { it.detected }
@@ -508,31 +607,32 @@ class StandardBenchmarkTest {
         }
         log("")
 
-        // ── Performance ──
+        // ── Производительность ──
+
         val totalInferenceMs = results.sumOf { it.inferenceTimeMs }
-        val avgFileMs = if (results.isNotEmpty()) totalInferenceMs / results.size else 0
-        val totalChunks = results.sumOf { it.chunkCount }
+        val avgFileMs = if (results.isNotEmpty()) totalInferenceMs / results.size else 0L
+        val totalChunks  = results.sumOf { it.chunkCount }
         val totalSkipped = results.sumOf { it.skippedChunks }
 
         log("  ПРОИЗВОДИТЕЛЬНОСТЬ:")
-        log("  " + "─".repeat(50))
-        log("  CPU ядер:                         ${Runtime.getRuntime().availableProcessors()}")
-        log("  TFLite потоков/interpreter:        $TFLITE_THREADS")
-        log("  Загрузка модели:                  ${modelLoadTimeMs} мс")
-        log("  Wall time:                        ${formatDuration(totalTestMs)}")
-        log("  Суммарный инференс (все потоки):  ${formatDuration(totalInferenceMs)}")
-        log("  Среднее время на файл:            $avgFileMs мс")
-        log("  Всего чанков:                     $totalChunks")
-        log("  Пропущено (процессором):          $totalSkipped (%.1f%%)".format(
-            if (totalChunks > 0) totalSkipped * 100.0 / totalChunks else 0.0))
+        log("  $thin")
+        log("  CPU ядер:                       ${Runtime.getRuntime().availableProcessors()}")
+        log("  TFLite потоков/interpreter:     $TFLITE_THREADS")
+        log("  Загрузка + warmup:              ${modelLoadTimeMs} мс")
+        log("  Wall time:                      ${formatDuration(totalTestMs)}")
+        log("  Суммарный инференс (все потоки):${formatDuration(totalInferenceMs)}")
+        log("  Среднее время на файл:          $avgFileMs мс")
+        log("  Всего чанков / пропущено:       $totalChunks / $totalSkipped" +
+            " (%.1f%%)".format(if (totalChunks > 0) totalSkipped * 100.0 / totalChunks else 0.0))
         log("")
 
-        // ── Confidence stats ──
+        // ── Уверенность (корректно определённые) ──
+
         val detectedResults = results.filter { it.detected }
         if (detectedResults.isNotEmpty()) {
             val vals = detectedResults.map { it.confidence }.sorted()
-            log("  УВЕРЕННОСТЬ (корректно определённые):")
-            log("  " + "─".repeat(50))
+            log("  УВЕРЕННОСТЬ (верно определённые, $detectedInModel файлов):")
+            log("  $thin")
             log("  Минимум:   %.3f".format(vals.first()))
             log("  Медиана:   %.3f".format(vals[vals.size / 2]))
             log("  Среднее:   %.3f".format(vals.average()))
@@ -540,26 +640,52 @@ class StandardBenchmarkTest {
             log("")
         }
 
-        // ── Missed species list ──
-        val missed = results.filter {
-            !it.detected && (it.speciesInLabels || it.expectedSpecies !in missingFromModel)
-        }
-        if (missed.isNotEmpty()) {
-            log("  НЕ ОПРЕДЕЛЁННЫЕ ВИДЫ (в модели, ${missed.size} файлов):")
-            log("  " + "─".repeat(80))
-            for (m in missed.take(50)) {
-                val ruStr = if (m.expectedRussianName.isNotBlank()) " (${m.expectedRussianName})" else ""
-                val topStr = if (m.detectedSpecies != "—") {
-                    val topRu = m.detectedRussianName
-                    " -> ${m.detectedSpecies}${if (topRu.isNotBlank()) " ($topRu)" else ""} [%.3f]".format(m.confidence)
-                } else " -> ничего не определено"
-                log("  * ${m.filename}: ${m.expectedSpecies}$ruStr$topStr")
+        // ── Определилось НЕ ТО ──
+
+        if (wrongDetectionList.isNotEmpty()) {
+            log("  ОПРЕДЕЛИЛОСЬ НЕ ТО ($wrongDetection файлов)  — модель нашла вид, но не тот:")
+            log("  $thin")
+            for (r in wrongDetectionList.sortedBy { it.filename }) {
+                val expRu = if (r.expectedRussianName.isNotBlank()) " (${r.expectedRussianName})" else ""
+                val detRu = if (r.detectedRussianName.isNotBlank()) " (${r.detectedRussianName})" else ""
+                log("  * ${r.filename}")
+                log("      ожидалось: ${r.expectedSpecies}$expRu")
+                log("      найдено:   ${r.detectedSpecies}$detRu  [%.3f]".format(r.confidence))
             }
-            if (missed.size > 50) log("  ... и ещё ${missed.size - 50} файлов")
             log("")
         }
 
-        log("=== Общее время теста: ${formatDuration(totalTestMs)} ===")
+        // ── Ничего не определилось ──
+
+        if (trulyMissedList.isNotEmpty()) {
+            log("  НИЧЕГО НЕ ОПРЕДЕЛИЛОСЬ ($trulyMissed файлов):")
+            log("  $thin")
+            for (r in trulyMissedList.take(50).sortedBy { it.filename }) {
+                val ruStr = if (r.expectedRussianName.isNotBlank()) " (${r.expectedRussianName})" else ""
+                log("  * ${r.filename}: ${r.expectedSpecies}$ruStr")
+            }
+            if (trulyMissedList.size > 50) log("  ... и ещё ${trulyMissedList.size - 50} файлов")
+            log("")
+        }
+
+        // ── Виды не в модели ──
+
+        if (notInModelList.isNotEmpty()) {
+            val uniqueSpecies = notInModelList
+                .groupBy { it.expectedSpecies }
+                .entries.sortedBy { it.key }
+            log("  ВИДЫ НЕ В МОДЕЛИ BirdNET (${uniqueSpecies.size} уникальных видов, $notInModel файлов):")
+            log("  $thin")
+            for ((species, files) in uniqueSpecies) {
+                val ruStr = files.first().expectedRussianName.let { if (it.isNotBlank()) " ($it)" else "" }
+                log("  * $species$ruStr  — ${files.size} файл(ов)")
+            }
+            log("")
+        }
+
+        log(sep)
+        log("  Общее время теста: ${formatDuration(totalTestMs)}")
+        log(sep)
         log("")
     }
 
@@ -612,15 +738,19 @@ class StandardBenchmarkTest {
     companion object {
         private const val TAG = "StandardBenchmark"
         private const val STANDARD_DIR = "/data/local/tmp/standard"
-        private const val FILE_TIMEOUT_MS = 15_000L
-        private const val EARLY_STOP_CONFIDENCE = 0.80f
-        private const val MAX_CHUNKS_PER_FILE = 10
-        private const val PIPELINE_BUFFER = 2
-        private const val TFLITE_THREADS = 2
+        private const val FILE_TIMEOUT_MS = 25_000L       // страховочный таймаут (MAX_CHUNKS × ~3с ≈ 18с)
+        private const val EARLY_STOP_CONFIDENCE = 0.80f   // ожидаемый вид найден → стоп
+        private const val WRONG_SPECIES_CONFIDENCE = 0.89f // чужой вид найден уверенно → стоп
+        private const val MIN_CHUNKS_BEFORE_WRONG_STOP = 2 // гард: ожидаемый не успел появиться в 1-м чанке
+        private const val EXPECTED_ABSENT_THRESHOLD = 0.1f // гард: у ожидаемого нет даже слабого сигнала
+        private const val MAX_CHUNKS_PER_FILE = 6          // было 10: 6 × 3с = 18с достаточно
+        private const val PIPELINE_BUFFER = 8  // было 2: малый буфер вызывал частые stall-ы producer-а
+        private const val TFLITE_THREADS = 1  // было 2: 1 поток на interpreter → больше воркеров при том же CPU
 
-        // Динамический подсчёт воркеров: cores / tflite_threads, [2..6]
+        // Динамический подсчёт воркеров: cores / tflite_threads, [2..8]
+        // TFLITE_THREADS=1: для 8-ядерного устройства → 8 воркеров вместо 4 (было cores/2, cap 6)
         private val WORKER_COUNT = (Runtime.getRuntime().availableProcessors() / TFLITE_THREADS)
-            .coerceIn(2, 6)
+            .coerceIn(2, 8)
 
         private fun log(message: String) { Log.i(TAG, message) }
     }
