@@ -1,6 +1,6 @@
 # Audio Analysis Pipeline
 
-Документация реального pipeline распознавания птиц по аудио.
+Документация реального pipeline распознавания птиц по аудио в live-режиме.
 
 ## Общая схема
 
@@ -8,28 +8,30 @@
 Микрофон (48 kHz, mono, PCM16)
     │
     ▼
-AudioRecorder — непрерывный захват, chunking
+AudioRecorder — непрерывный захват, chunking (3 сек, 50% overlap)
     │
     │  FloatArray[144000] каждые ~1.5 сек
     ▼
-AudioChunkProcessor — пре-фильтрация + bandpass + нормализация
+AudioChunkProcessor — 6-этапная пре-фильтрация + bandpass + нормализация
     │
     │  FloatArray[144000] или null (skip)
     ▼
-BirdNetV24Classifier — TFLite inference + sigmoid + meta-model
+BirdNetV24Classifier — TFLite inference + sigmoid + мета-модель (geo-aware)
     │
-    │  List<BirdDetection> (вид, confidence 0..1)
+    │  List<BirdDetection> (вид, confidence 0..1), до 10 видов
     ▼
-DetectionAggregator — sliding window, подтверждение, фильтрация не-птиц
+DetectionAggregator — sliding window, подтверждение ≥2 chunk-ов, фильтрация не-птиц
     │
-    │  List<AggregatedDetection> (вид, confidence, кол-во подтверждений)
+    │  Map<scientificName, AggregatedDetection>
     ▼
-LiveDetectionViewModel — маппинг в UI-состояние
+filterDetections() — 2-path фильтр (anchor + aggregator) + family dedup
     │
-    │  List<DetectedBirdUi> (вид, confidence %, время)
+    │  List<BirdDetection> (финальный набор видов для UI)
     ▼
-LiveDetectionScreen — лента обнаруженных видов
+LiveDetectionScreen — лента обнаруженных видов (prepend, dedup consecutive)
 ```
+
+---
 
 ## 1. Захват аудио — AudioRecorder
 
@@ -37,15 +39,16 @@ LiveDetectionScreen — лента обнаруженных видов
 
 | Параметр | Значение |
 |----------|----------|
-| AudioSource | VOICE_RECOGNITION (повышенный gain, без шумоподавления) |
+| AudioSource | VOICE_RECOGNITION (приоритет), UNPROCESSED (fallback) |
 | Sample rate | 48 000 Hz |
 | Формат | PCM 16-bit, mono |
 | Chunk | 144 000 сэмплов = 3 секунды |
 | Hop | 72 000 сэмплов = 1.5 секунды (50% overlap) |
+| Read buffer | ~4 800 сэмплов = 100 мс (SAMPLE_RATE / 10) |
 
 ### Как работает chunking
 
-AudioRecorder читает аудио блоками по 4 800 сэмплов (100 мс) и копирует в аккумулятор. Когда аккумулятор заполняется (144 000 сэмплов = 3 секунды), chunk emit-ится во Flow.
+AudioRecorder читает аудио блоками по ~4 800 сэмплов (100 мс) и копирует в аккумулятор. Когда аккумулятор заполняется (144 000 сэмплов = 3 секунды), chunk emit-ится во Flow.
 
 После emit-а вторая половина аккумулятора копируется в начало — это даёт **50% перекрытие** между соседними chunk-ами:
 
@@ -60,21 +63,29 @@ AudioRecorder читает аудио блоками по 4 800 сэмплов (
 
 ### Почему VOICE_RECOGNITION
 
-`AudioSource.MIC` на многих устройствах применяет аппаратное шумоподавление и AGC, которые могут подавить тихие звуки птиц как «шум». `VOICE_RECOGNITION` отключает эти обработки и обеспечивает более высокий gain.
+`AudioSource.MIC` на многих устройствах применяет аппаратное шумоподавление и AGC, которые могут подавить тихие звуки птиц как «шум». `VOICE_RECOGNITION` отключает эти обработки и обеспечивает более высокий gain. Fallback на `UNPROCESSED` если `VOICE_RECOGNITION` недоступен.
+
+### Audio Level Meter
+
+Параллельно записи обновляется `audioLevel: StateFlow<Float>` ~10 раз в секунду (RMS сигнала). Используется для визуализации уровня аудио в UI.
+
+---
 
 ## 2. Пре-обработка — AudioChunkProcessor
 
 **Файл:** `ml/AudioChunkProcessor.kt`
 
-Stateless-процессор, применяемый до ML-инференса. Фильтрует тишину, клиппинг и не-птичий шум, применяет bandpass-фильтр и нормализует уровень. Возвращает обработанный chunk или `null` (пропуск).
+Stateless-процессор, применяемый **до** ML-инференса. Фильтрует тишину, клиппинг и не-птичий шум, применяет bandpass-фильтр и нормализует уровень. Возвращает обработанный chunk или `null` (пропуск).
+
+6 этапов в порядке выполнения:
 
 ### 2.1. Silence check
 
 ```
-RMS < 0.005 → пропуск (тишина)
+RMS < 0.001 → пропуск (тишина)
 ```
 
-RMS (Root Mean Square) — среднеквадратичная амплитуда. При RMS < 0.005 (~-46 dBFS) chunk содержит только фоновый шум без полезного сигнала.
+RMS (Root Mean Square) — среднеквадратичная амплитуда. При RMS < 0.001 (~-60 dBFS) chunk содержит только фоновый шум без полезного сигнала.
 
 ### 2.2. Clipping check
 
@@ -100,8 +111,9 @@ peak > 0.99 AND rms > 0.3 → пропуск (клиппинг)
 **Логика:**
 - `totalEnergy = low + birdLow + birdMid + high`
 - `lowRatio = low / total`, `highRatio = high / total`
-- Если `lowRatio > 0.80` или `highRatio > 0.80` → пропуск (>80% энергии вне диапазона птиц)
+- Если `lowRatio ≥ 0.95` или `highRatio ≥ 0.95` → пропуск (>95% энергии вне диапазона птиц)
 - Bird-low и bird-mid считаются «птичьей» энергией и не вызывают пропуск
+- Если `totalEnergy < 1e-12` → пропуск — negligible energy, silence check обработает
 
 **Почему 100 Гц, а не 300 Гц для low-band:**
 Ранняя версия использовала 300 Гц как границу «не-птичьего» шума. Это отсекало голубей (Columba livia, фундаментальная ~120 Гц с гармониками на 240/480 Гц) и сов (Asio otus, вокализация ~300-500 Гц). Перенос границы на 100 Гц решил проблему: гармоники голубей (480 Гц) попадают в bird-low полосу (500 Гц Goertzel), а совы вообще не попадают в low-band.
@@ -146,35 +158,30 @@ postFilterPeak < 0.001 → пропуск
 ### 2.6. Peak normalization
 
 ```
-peak 0.001–0.5 → gain = 0.5 / peak, каждый сэмпл *= gain (clamp к [-1, 1])
-peak > 0.5     → без изменений
+peak в [0.001, 0.9] → gain = 0.9 / peak, каждый сэмпл *= gain (clamp к [-1, 1])
+peak > 0.9          → без изменений
 ```
 
-Компенсирует тихие записи, приводя пиковую амплитуду к 0.5. Громкие сигналы (peak > 0.5) не трогаем — избыточное усиление может привести к клиппингу.
+Компенсирует тихие записи, приводя пиковую амплитуду к 0.9. Громкие сигналы (peak > 0.9) не трогаем — избыточное усиление может привести к клиппингу.
 
-### Параметры AudioChunkProcessor
+### Параметры AudioChunkProcessor (сводка)
 
 | Параметр | Значение | Константа |
 |----------|----------|-----------|
-| Порог тишины (RMS) | 0.005 | `SILENCE_RMS_THRESHOLD` |
+| Порог тишины (RMS) | 0.001 | `SILENCE_RMS_THRESHOLD` |
 | Порог клиппинга (peak) | 0.99 | `CLIPPING_PEAK_THRESHOLD` |
 | Порог клиппинга (RMS) | 0.3 | `CLIPPING_RMS_THRESHOLD` |
-| Порог спектрального отклонения | 80% | `SPECTRAL_REJECT_RATIO` |
+| Порог спектрального отклонения | 95% | `SPECTRAL_REJECT_RATIO` |
 | HP cutoff | 80 Гц | `LOW_CUTOFF` |
 | LP cutoff | 15 000 Гц | `HIGH_CUTOFF` |
-| Целевой peak | 0.5 | `NORM_TARGET` |
+| Целевой peak | 0.9 | `NORM_TARGET` |
 | Пост-фильтр тишина | 0.001 | `POST_FILTER_SILENCE_THRESHOLD` |
 
-### Эффект пре-обработки (benchmark 44 вида, 639 chunk-ов)
+### Диагностика
 
-| Метрика | Без процессора | С процессором |
-|---------|---------------|---------------|
-| Найдено видов | 43/44 (97.7%) | 44/44 (100%) |
-| Пропущено chunk-ов | 0 | 74 (11%) |
-| Ложных видов (≥0.5) | 22 | 19 |
-| Время инференса | ~2:12 | ~2:34 |
+AudioChunkProcessor ведёт счётчики: `totalChunks`, `passedChunks`, `silenceRejects`, `clippingRejects`, `spectralRejects`, `postFilterRejects`. Доступны через `statsLine()`.
 
-Процессор пропускает ~11% chunk-ов (тишина, шум), при этом повышая recall до 100%.
+---
 
 ## 3. Классификация — BirdNetV24Classifier
 
@@ -183,7 +190,8 @@ peak > 0.5     → без изменений
 ### Вход
 
 - `FloatArray[144 000]` — 3 секунды обработанного audio, `[-1, 1]` (после AudioChunkProcessor)
-- Опционально: `LocationMeta` (GPS + неделя года) для мета-модели
+- Опционально: `LocationMeta` (GPS + неделя года) для per-chunk мета-модели
+- Опционально: `MetaProfile` (предвычисленный региональный профиль) — приоритетнее LocationMeta
 
 ### Шаги обработки
 
@@ -217,17 +225,38 @@ probability = 1 / (1 + exp(-logit))
 | 2.0 | 0.881 | вероятно |
 | 5.0 | 0.993 | почти точно |
 
-#### 3.3. Meta-model (опционально)
+#### 3.3. Мета-модель (geo-aware фильтрация)
 
-Если передан `LocationMeta` (GPS-координаты + неделя года), мета-модель фильтрует виды по географической и временной вероятности:
+После sigmoid применяется географическая и сезонная коррекция. Есть два пути (взаимоисключающие, MetaProfile приоритетнее):
+
+**Путь А: MetaProfile (основной)**
+
+Если `metaProfile != null` — используется предвычисленный региональный профиль (см. раздел 5). Применяется tiered alpha:
+
+```kotlin
+for (i in scores.indices) {
+    val m = maxScores[i]
+    val effectiveAlpha = when {
+        m >= 0.30  → baseAlpha (0.10)  // обычный вид
+        m >= 0.05  → 0.50               // инвазионный
+        m >= 0.01  → 0.25               // редкий залётный
+        else       → 0.02               // континентальный выброс
+    }
+    scores[i] *= effectiveAlpha + (1 - effectiveAlpha) * m
+}
+```
+
+**Путь Б: Per-chunk LocationMeta (GPS)**
+
+Если MetaProfile нет, но есть GPS-координаты — мета-модель запускается «на лету» для конкретной точки и диапазона недель:
 
 ```
 [latitude, longitude, weekOfYear] → meta-model.tflite → FloatArray[6522]
 ```
 
-Scores audio-модели умножаются на scores мета-модели (element-wise). Это подавляет виды, невозможные в данной местности и сезоне, и усиливает вероятные.
+Blending: `scores[i] *= alpha + (1 - alpha) * rawMeta[i]`, где `alpha = 0.10`.
 
-**В текущей реализации GPS не передаётся — мета-модель не используется.**
+**Логика:** Оба пути выполняют одну функцию — подавляют виды, невозможные в данной местности/сезоне, и усиливают вероятные. MetaProfile работает лучше, т.к. учитывает весь регион (не одну точку) и весь год (с tiered alpha).
 
 #### 3.4. Фильтрация
 
@@ -239,10 +268,21 @@ Scores audio-модели умножаются на scores мета-модели
 List<BirdDetection>(
     scientificName = "Parus major",
     commonName = "Большая синица",
-    confidence = 0.987,  // после sigmoid
+    confidence = 0.987,     // после sigmoid + мета
     labelIndex = 3847,
 )
 ```
+
+### Параметры BirdNetV24Classifier
+
+| Константа | Значение | Описание |
+|-----------|----------|----------|
+| `DEFAULT_THRESHOLD` | 0.1 | Минимальный confidence для выдачи |
+| `DEFAULT_TOP_K` | 10 | Максимум видов на chunk |
+| `DEFAULT_NUM_THREADS` | 2 | Потоки TFLite |
+| `DEFAULT_META_ALPHA` | 0.10 | Базовый вес аудио-модели при blending |
+
+---
 
 ## 4. Агрегация — DetectionAggregator
 
@@ -264,16 +304,7 @@ NON_BIRD_LABELS = setOf(
 
 Фильтрация происходит в `DetectionAggregator` при вызове `addChunkResults()`.
 
-### 4.2. Два режима агрегации
-
-| Параметр | Live Detection | Анализ файла |
-|----------|---------------|--------------|
-| Размер окна | 8 chunk-ов | Int.MAX (все chunk-и) |
-| Подтверждение | ≥ 2 chunk-а в окне | ≥ 2 chunk-а всего |
-| Confidence | Среднее top-3 | Max из всех chunk-ов |
-| Factory | `forLiveDetection()` | `forFileAnalysis()` |
-
-### 4.3. Sliding window (live detection)
+### 4.2. Sliding window (live detection)
 
 Для каждого вида хранится `ArrayDeque<Float>` — последние N confidence-значений.
 
@@ -285,98 +316,351 @@ Window = 8 chunks (~12 секунд с 50% overlap)
 1. Для обнаруженных видов — добавляется confidence
 2. Для ранее отслеживаемых, но не обнаруженных — добавляется 0.0
 3. Если `deque.size > windowSize` — старейшее значение удаляется
+4. Виды с окном из нулей удаляются (только в windowed-режиме)
 
-### 4.4. Подтверждение
+### 4.3. Подтверждение
 
-Вид считается подтверждённым, если **≥ 2 из N** значений в окне превышают порог вида (по умолчанию 0.5). Одиночный chunk с высоким confidence — не достаточно для подтверждения. Это предотвращает ложные срабатывания.
+Вид считается **подтверждённым**, если:
 
-### 4.5. Confidence calculation
+```
+(количество scores >= threshold в окне) >= confirmationCount
+```
+
+В live-режиме: `threshold = 0.10`, `confirmationCount = 2`.
+
+Это означает: вид должен появиться **минимум в 2 chunk-ах** с confidence ≥ 10% в окне из 8 chunk-ов. Одиночный chunk с высоким confidence — не достаточно для подтверждения через агрегатор.
+
+### 4.4. Confidence calculation
 
 **Live mode — avg-top-3:**
+
 Из всех значений в окне берутся 3 наибольших, их среднее = итоговый confidence.
-Пример: окно `[0.9, 0.8, 0.7, 0.3, 0.2, 0, 0, 0]` → top-3: `[0.9, 0.8, 0.7]` → confidence = 0.8.
 
-**File mode — max:**
-Итоговый confidence = максимальный confidence из всех chunk-ов файла.
+Пример: окно `[0.9, 0.8, 0.7, 0.3, 0.2, 0, 0, 0]` → top-3: `[0.9, 0.8, 0.7]` → confidence = 0.80.
 
-### 4.6. Адаптивные пороги
+### 4.5. Параметры DetectionAggregator (live mode)
 
-Для отдельных видов можно задать порог выше/ниже дефолтного:
+| Параметр | Значение по умолчанию | Значение в LiveDetectionVM | Константа |
+|----------|-----------------------|---------------------------|-----------|
+| Window size | 8 chunks | 8 chunks | `DEFAULT_WINDOW_SIZE` |
+| Confirmation count | 2 chunks | 2 chunks | `AGGREGATOR_CONFIRMATION` |
+| Threshold | 0.50 | **0.10** | `AGGREGATOR_THRESHOLD` |
+| Confidence calc | avg-top-3 | avg-top-3 | `useAvgTop3 = true` |
+
+**Важно:** LiveDetectionViewModel создаёт агрегатор с `threshold = 0.10`, а не с дефолтным `0.50`. Это снижает порог подтверждения, позволяя агрегатору ловить виды, которые не достигают 75% anchor-порога, но стабильно появляются.
+
+---
+
+## 5. MetaProfile — предвычисленный региональный профиль
+
+**Файлы:** `ml/MetaProfile.kt`, `ml/MetaProfileBuilder.kt`, `ml/CountryConfig.kt`
+
+### 5.1. Что такое MetaProfile
+
+MetaProfile хранит **максимальный score мета-модели** для каждого из 6 522 видов по всему региону и за весь год. Вместо того чтобы запрашивать мета-модель для каждой конкретной GPS-точки и недели, один раз вычисляется: «Какова максимальная вероятность встретить этот вид где-либо в моём регионе в любое время года?»
+
+### 5.2. Как строится
+
+При старте сессии `LiveDetectionViewModel`:
+
+1. Загружает `countryCode` и `regionCode` из DataStore (выбранные в Settings)
+2. Находит `CountryConfig` с bounding box региона
+3. `MetaProfileBuilder` расширяет bbox на `bufferDeg = 2.5°` во все стороны
+4. Создаёт сетку точек с шагом `gridStepDeg = 3.0°`
+5. Для **каждой точки × каждой недели (1-52)** запускает мета-модель
+6. Сохраняет **максимум** per species
+
+**Пример для Беларуси:**
+- Bbox ≈ 51–56°N × 23–33°E + buffer → ~35 точек
+- 35 × 52 = 1 820 inference
+- Время: 2–3 секунды
+
+### 5.3. Tiered alpha
+
+Ключевая идея: **разный вес мета-модели для разных уровней «ожидаемости» вида**.
+
+| Тир | Score мета-модели (m) | Effective Alpha | Пример |
+|-----|-----------------------|-----------------|--------|
+| **COMMON** | m ≥ 0.30 | 0.10 (baseAlpha) | Большая синица в Минске |
+| **IRRUPTIVE** | 0.05 ≤ m < 0.30 | 0.50 | Кедровка (инвазия) |
+| **VAGRANT** | 0.01 ≤ m < 0.05 | 0.25 | Редкий залётный вид |
+| **OUTLIER** | m < 0.01 | 0.02 | Тукан в Беларуси |
+
+**Формула blending:**
+
+```
+scores[i] *= effectiveAlpha + (1 - effectiveAlpha) * m
+```
+
+**Как это работает на примерах:**
+
+| Вид | Audio score | Meta score (m) | Тир | Итоговый score |
+|-----|------------|----------------|-----|----------------|
+| Большая синица | 0.95 | 0.85 | COMMON | 0.95 × (0.10 + 0.90 × 0.85) = 0.95 × 0.865 = **0.82** |
+| Кедровка | 0.80 | 0.15 | IRRUPTIVE | 0.80 × (0.50 + 0.50 × 0.15) = 0.80 × 0.575 = **0.46** |
+| Редкий залётный | 0.70 | 0.03 | VAGRANT | 0.70 × (0.25 + 0.75 × 0.03) = 0.70 × 0.2725 = **0.19** |
+| Тукан | 0.60 | 0.001 | OUTLIER | 0.60 × (0.02 + 0.98 × 0.001) = 0.60 × 0.02098 = **0.013** |
+
+**Эффект:** обычные виды почти не теряют confidence, инвазионные умеренно снижаются, континентальные выбросы практически обнуляются (тукан: 60% → 1.3%).
+
+### 5.4. CountryConfig
+
+**Файл:** `assets/birdnet/v24/countries.json`
+
+Поддерживается ~42 страны (СНГ + Европа). Россия разделена на 8 регионов, Казахстан на 5. Каждая конфигурация включает bounding box и опциональный buffer.
+
+---
+
+## 6. Определение GPS-локации
+
+**Файл:** `presentation/detection/LiveDetectionViewModel.kt` → `resolveLocation()`
+
+При старте сессии:
+
+1. Проверяется разрешение `ACCESS_COARSE_LOCATION`
+2. Если есть — берётся последняя известная позиция (GPS_PROVIDER → NETWORK_PROVIDER)
+3. Текущая неделя года (ISO) ± 4 недели = `weekRange`
+4. При переходе через границу года (week < 5 или > 48) → `weekRange = 1..52` (весь год)
+
+**LocationMeta** используется как fallback, когда MetaProfile недоступен. Если есть и MetaProfile, и LocationMeta — MetaProfile имеет приоритет (проверка в `BirdNetV24Classifier.classify()`).
+
+---
+
+## 7. Финальная фильтрация — 2-path + family dedup
+
+**Файл:** `presentation/detection/LiveDetectionViewModel.kt` → `filterDetections()`
+
+Это самый важный этап — решает, какие виды из 10 кандидатов попадают на экран.
+
+### 7.1. Family Taxonomy
+
+**Файл:** `ml/FamilyTaxonomy.kt`, `assets/birdnet/v24/genus_families.json`
+
+Виды птиц группируются по таксономическим семействам (genus → family). Используется для подавления путаницы модели между близкими видами.
+
+```
+Parus major → Paridae
+Sylvia borin → Sylviidae
+Curruca nisoria → Sylviidae  ← одно семейство с Sylvia
+```
+
+### 7.2. Путь 1: Anchor (высокая уверенность)
+
+```
+confidence ≥ 0.75 → немедленный вывод на экран
+```
+
+Виды с confidence ≥ 75% считаются «якорями» — модель достаточно уверена. Их семейства запоминаются как `anchorFamilies`.
+
+### 7.3. Путь 2: Aggregator-confirmed (подтверждение агрегатором)
+
+Виды, не достигшие 75%, проверяются через агрегатор:
+
+```
+вид подтверждён (≥2 chunk-а) И семейство НЕ имеет anchor → вывод на экран
+```
+
+Confidence для таких видов берётся из агрегатора (avg-top-3), а не из текущего chunk-а.
+
+**Пример:** Славка-завирушка (Sylvia curruca) c confidence 0.60 — ниже anchor-порога 0.75. Но если она подтверждена агрегатором (появилась в ≥2 chunk-ах) и в текущем chunk-е нет более уверенного Sylviidae — она попадёт на экран.
+
+### 7.4. Подавление по семейству
+
+Если у семейства уже есть anchor (confidence ≥ 0.75), все остальные виды этого семейства **подавляются**, даже если подтверждены агрегатором. Логика: если модель уверена на 80% что это Parus major, то Parus caeruleus с 30% — это модельный шум.
+
+### 7.5. Family dedup
+
+Финальный шаг: из всех кандидатов, прошедших пути 1 и 2, оставляется **только один вид на семейство** — с максимальным confidence.
+
+### 7.6. Сводная таблица решений
+
+| Confidence | Подтверждён агрегатором? | Семейство имеет anchor? | Результат |
+|-----------|-------------------------|------------------------|-----------|
+| ≥ 0.75 | не важно | этот вид — anchor | **PASS** (anchor) |
+| < 0.75 | ДА | НЕТ | **PASS** (aggregator-confirmed) |
+| < 0.75 | ДА | ДА | **SUPPRESSED** (family has anchor) |
+| < 0.75 | НЕТ | не важно | **SUPPRESSED** (not confirmed) |
+
+---
+
+## 8. Вывод в UI — LiveDetectionScreen
+
+### 8.1. Append-логика
+
+Новые обнаружения добавляются **в начало списка** (newest first). Если последний добавленный вид = предыдущий верхний элемент (consecutive same species):
+- Временное окно расширяется: `"00:15 – 00:18"` → `"00:15 – 00:21"`
+- Confidence обновляется до максимума из старого и нового
+
+### 8.2. Buffer
 
 ```kotlin
-aggregator.setThresholdOverride("Parus major", 0.8f)
+.buffer(capacity = 1, onBufferOverflow = DROP_OLDEST)
 ```
 
-### 4.7. Выход
+Если inference не успевает за аудио-потоком — старые chunk-и дропаются. Приоритет: свежие данные.
 
-```kotlin
-List<AggregatedDetection>(
-    scientificName = "Parus major",
-    commonName = "Большая синица",
-    confidence = 0.85,       // avg-top-3 или max
-    confirmedChunks = 5,     // сколько chunk-ов подтвердили вид
-)
+### 8.3. Лимит
+
+Максимум `200` записей в UI-списке.
+
+---
+
+## 9. Подготовка сессии — lifecycle
+
+### 9.1. init {}
+
+При создании ViewModel запускается фоновая задача `buildMetaProfileAsync()`:
+- Загружает `countryCode`/`regionCode` из DataStore
+- Находит CountryConfig → строит MetaProfile
+- Присваивает результат в `pipeline.classifier.metaProfile`
+
+### 9.2. onStart()
+
+```
+IDLE/STOPPED → PREPARING → ждём MetaProfile → startDetection() → ANALYZING
 ```
 
-Список отсортирован по confidence descending.
+Состояние `PREPARING` отображается в UI (кнопка заблокирована). Типичная задержка: 2-3 сек.
 
-## 5. Labels
+### 9.3. startDetection()
 
-**Файл:** `assets/birdnet/v24/labels/ru.txt` (6 522 строки)
+1. `resolveLocation()` — GPS (если доступен)
+2. `aggregator.reset()` — очистка окна
+3. Старт таймера, сбора уровня аудио, recording loop
 
-Формат: `Scientific Name_Русское название`
+---
+
+## 10. Полная сводка параметров
+
+### Запись
+
+| Параметр | Значение |
+|----------|----------|
+| Sample Rate | 48 000 Hz |
+| Chunk Duration | 3 секунды |
+| Samples Per Chunk | 144 000 |
+| Hop Size | 72 000 (50% overlap) |
+| Audio Source | VOICE_RECOGNITION → UNPROCESSED |
+
+### Пре-обработка
+
+| Параметр | Значение |
+|----------|----------|
+| Silence RMS threshold | 0.001 |
+| Clipping: peak / RMS | 0.99 / 0.3 |
+| Spectral reject ratio | 95% |
+| Bandpass | 80 Hz – 15 kHz |
+| Post-filter silence | 0.001 (peak) |
+| Normalization target | 0.9 (peak) |
+
+### Классификация
+
+| Параметр | Значение |
+|----------|----------|
+| Inference threshold | 0.1 (10%) |
+| Top-K | 10 |
+| TFLite threads | 2 |
+| Meta-alpha (blending) | 0.10 |
+
+### Мета-модель
+
+| Параметр | Значение |
+|----------|----------|
+| Buffer distance | 2.5° |
+| Grid step | 3.0° |
+| Week range | 1–52 |
+| Tier COMMON | m ≥ 0.30 → alpha 0.10 |
+| Tier IRRUPTIVE | m ≥ 0.05 → alpha 0.50 |
+| Tier VAGRANT | m ≥ 0.01 → alpha 0.25 |
+| Tier OUTLIER | m < 0.01 → alpha 0.02 |
+
+### Агрегация (live)
+
+| Параметр | Значение |
+|----------|----------|
+| Window size | 8 chunks (~12 сек) |
+| Confirmation count | 2 chunks |
+| Threshold | 0.10 |
+| Confidence calc | avg top-3 |
+
+### Финальная фильтрация
+
+| Параметр | Значение |
+|----------|----------|
+| Anchor threshold | 0.75 (75%) |
+| Family dedup | лучший per family |
+| Max UI detections | 200 |
+
+### Локация
+
+| Параметр | Значение |
+|----------|----------|
+| Week window | ±4 недели |
+| Providers | GPS → Network |
+| Permission | ACCESS_COARSE_LOCATION |
+
+---
+
+## 11. Путь аудио-chunk-а: пример
+
+Допустим, пользователь в Минске, июнь, запись в парке.
 
 ```
-Acanthis flammea_Обыкновенная чечётка
-Parus major_Большая синица
-...
+1. Микрофон записывает 3 секунды (144k samples)
+   → Chunk #17, содержит пение синицы
+
+2. AudioChunkProcessor:
+   ✓ RMS = 0.032 (> 0.001, не тишина)
+   ✓ Peak = 0.45 (< 0.99, нет клиппинга)
+   ✓ Spectral: bird-mid(3kHz) = 65%, low(100Hz) = 5% (< 95%)
+   ✓ Bandpass 80Hz–15kHz applied
+   ✓ Post-peak = 0.38 (> 0.001)
+   ✓ Normalize: gain = 0.9 / 0.38 = 2.37×
+
+3. BirdNetV24Classifier:
+   Audio model → logits → sigmoid:
+     Parus major: logit=3.5 → sigmoid=0.97
+     Parus caeruleus: logit=1.2 → sigmoid=0.77
+     Sitta europaea: logit=0.4 → sigmoid=0.60
+     (ещё 7 видов с ≥0.1)
+
+   MetaProfile (BY, tiered alpha):
+     Parus major: m=0.91 (COMMON) → 0.97 × 0.919 = 0.89
+     Parus caeruleus: m=0.72 (COMMON) → 0.77 × 0.748 = 0.58
+     Sitta europaea: m=0.65 (COMMON) → 0.60 × 0.685 = 0.41
+
+   → Top-10 detections (≥ 0.1)
+
+4. DetectionAggregator:
+   Фильтрует NON_BIRD_LABELS
+   Добавляет scores в окна:
+     Parus major: [0, 0.85, 0.89, 0, ...] → 2 chunks ≥ 0.10 → CONFIRMED
+     Parus caeruleus: [0, 0.58, ...] → пока 1 chunk → NOT CONFIRMED
+     Sitta europaea: [0.35, 0.41, ...] → 2 chunks → CONFIRMED
+
+5. filterDetections():
+   Parus major: conf 0.89 ≥ 0.75 → ANCHOR (family: Paridae)
+   Parus caeruleus: conf 0.58, family Paridae → SUPPRESSED (family has anchor)
+   Sitta europaea: conf 0.41, aggregator-confirmed, family Sittidae (no anchor) → PASS
+     confidence = avg-top-3 from aggregator
+
+6. UI: [Большая синица 89%, Поползень 38%]
 ```
 
-Включает не только птиц, но и другие звуки:
-- `Engine` — двигатель
-- `Fireworks` — фейерверк
-- `Gun` — выстрел
-- `Human vocal` — голос человека
-- `Apis mellifera` — медоносная пчела
+---
 
-Эти классы помогают модели не путать техногенные/природные шумы с птицами. `DetectionAggregator` отфильтровывает их из результатов.
+## 12. Ограничения
 
-## 6. Пороги
+- **Близкие виды** — модель может присваивать высокий confidence нескольким близкородственным видам (напр. Горихвостка-чернушка 91% vs Сибирская горихвостка 85%). Family dedup решает это частично.
+- **MetaProfile vs GPS** — если выбран неправильный регион в настройках, MetaProfile может подавлять реально присутствующие виды. GPS-метод точнее, но MetaProfile доступен без разрешения на геолокацию.
+- **Bandpass и BirdNET** — bandpass-фильтр изменяет спектральный состав сигнала. HP cutoff 80 Гц — компромисс: убирает 50/60 Гц гул, но сохраняет фундаментальные частоты низкоголосых птиц.
+- **Goertzel = точечная оценка** — спектральная проверка оценивает энергию на 4 конкретных частотах, а не по всему спектру. Сигналы, не совпадающие с контрольными частотами, проходят проверку.
+- **50% overlap** — каждый момент аудио анализируется дважды (в двух соседних chunk-ах). Это обеспечивает лучший recall, но увеличивает нагрузку в 2×.
+- **Buffer DROP_OLDEST** — при медленном inference свежий chunk дропает предыдущий. На слабых устройствах могут быть пропуски.
 
-В pipeline используется несколько порогов на разных этапах:
+---
 
-| Этап | Порог | Значение | Назначение |
-|------|-------|----------|------------|
-| AudioChunkProcessor | Silence RMS | 0.005 | Пропуск тишины |
-| AudioChunkProcessor | Clipping peak/RMS | 0.99 / 0.3 | Пропуск насыщенного сигнала |
-| AudioChunkProcessor | Spectral reject | 80% | Пропуск не-птичьего шума |
-| AudioChunkProcessor | Post-filter silence | 0.001 | Пропуск после bandpass |
-| BirdNetV24Classifier | Classifier threshold | 0.1 | Отсечение шума модели |
-| DetectionAggregator | Confirmation threshold | 0.5 | Минимальный confidence для подтверждения |
-| DetectionAggregator | Confirmation count | ≥ 2 | Минимум chunk-ов для подтверждения |
-
-## 7. Характеристики производительности
-
-| Метрика | Значение |
-|---------|----------|
-| Первый chunk | ~3 сек после старта записи |
-| Последующие chunk-и | каждые ~1.5 сек (50% overlap) |
-| Пре-обработка (AudioChunkProcessor) | ~3-5 мс / chunk |
-| Inference на chunk (BirdNetV24Classifier) | ~100-300 мс (зависит от устройства) |
-| Задержка до первого результата | ~3.5 сек |
-| Потребление RAM | модели ~55 MB (audio 25 MB + meta 29 MB) |
-| Размер labels | ~200 KB |
-| Пропуск chunk-ов (типичный) | ~10-20% (тишина, шум) |
-
-## 8. Ограничения
-
-- **Нет Foreground Service** — при уходе в фон запись может быть остановлена системой
-- **Нет GPS** — мета-модель не используется, confidence ниже чем с геолокацией
-- **Близкие виды** — модель может присваивать высокий confidence нескольким близкородственным видам (напр. Горихвостка-чернушка 91% vs Сибирская горихвостка 85%) — это нормально для акустически похожих видов
-- **Bandpass и BirdNET** — bandpass-фильтр изменяет спектральный состав сигнала. HP cutoff 80 Гц выбран как компромисс: убирает 50/60 Гц гул, но сохраняет фундаментальные частоты низкоголосых птиц (голуби ~120 Гц, совы ~300 Гц)
-- **Goertzel = точечная оценка** — спектральная проверка оценивает энергию на 4 конкретных частотах, а не по всему спектру. Сигналы, не совпадающие с контрольными частотами, проходят проверку по fallback (totalEnergy < threshold)
-
-## 9. Тестирование
+## 13. Тестирование
 
 ### Unit-тесты
 
@@ -391,35 +675,4 @@ Parus major_Большая синица
 
 **Файл:** `androidTest/ml/BirdNetBenchmarkTest.kt`
 
-Прогоняет 16-минутный аудиофайл с 44 аннотированными видами через параллельный pipeline с AudioChunkProcessor. Shared infrastructure (config, data classes, logging, parsing, matching, reporting) вынесена в `BenchmarkTestInfra.kt`.
-
-#### `benchmark_sample1_withProcessor_parallel` — параллельный pipeline
-
-```
-Producer (IO):  decodeChunked → AudioChunkProcessor → chunksChannel
-Workers (×N):   chunksChannel → BirdNetV24Classifier → resultsChannel
-Collector:      resultsChannel → allDetections
-```
-
-N воркеров (по умолчанию 2), каждый со своим экземпляром `BirdNetV24Classifier` (2 TFLite-потока на воркер). Перед pipeline — warmup-проход для JIT-компиляции TFLite. Тишина и шум пропускаются AudioChunkProcessor. Результат: 100% recall на 44 видах.
-
-**Что делает каждый классификатор** (`BirdNetV24Classifier`):
-
-| Шаг | Что происходит | Где |
-|-----|----------------|-----|
-| 1. Audio model | `FloatArray[144000]` → TFLite (CNN) → `FloatArray[6521]` logits | `audioInterpreter.run()` |
-| 2. Sigmoid | logit → probability: `1 / (1 + exp(-x))` | `BirdNetV24Classifier.kt:48` |
-| 3. Meta model | `[lat, lon, week]` → `FloatArray[6521]` × scores (опционально, GPS не передаётся в benchmark) | `metaInterpreter.run()` |
-| 4. Фильтрация | виды с confidence ≥ 0.1, top-10 по убыванию | `buildDetections()` |
-
-Каждый воркер делает **все 4 шага** для своего chunk-а независимо.
-
-**Потокобезопасность:**
-
-| Объект | Sharing | Почему |
-|--------|---------|--------|
-| `MappedByteBuffer` (audio/meta модели) | Shared между всеми N | READ_ONLY mmap |
-| `labels: List<Pair>` | Shared | Immutable |
-| `audioInterpreter` / `metaInterpreter` | По одному на воркер | Mutable state внутри TFLite |
-| `AudioChunkProcessor` | Только Producer | Bottleneck в inference, не в preprocessing |
-| `totalChunks` / `skippedChunks` | `AtomicInteger` | Producer пишет из IO-корутины |
+Прогоняет 16-минутный аудиофайл с 44 аннотированными видами через параллельный pipeline с AudioChunkProcessor. Результат: 100% recall на 44 видах.
