@@ -3,6 +3,7 @@ package com.birdsong.analyzer.di
 import android.content.Context
 import com.birdsong.analyzer.ml.AudioChunkProcessor
 import com.birdsong.analyzer.ml.BirdClassifier
+import com.birdsong.analyzer.ml.PreprocessingMode
 import com.birdsong.analyzer.ml.BirdNetV24Classifier
 import com.birdsong.analyzer.ml.CountryConfig
 import com.birdsong.analyzer.ml.CountryConfigLoader
@@ -26,7 +27,7 @@ object MlModule {
 
     @Provides
     @Singleton
-    fun provideAudioChunkProcessor(): AudioChunkProcessor = AudioChunkProcessor()
+    fun provideAudioChunkProcessor(): AudioChunkProcessor = AudioChunkProcessor(mode = PreprocessingMode.PASSTHROUGH)
 
     @Provides
     @Singleton

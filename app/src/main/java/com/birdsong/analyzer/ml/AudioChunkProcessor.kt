@@ -16,7 +16,7 @@ import kotlin.math.sqrt
  * 5. Post-filter silence check
  * 6. Peak normalization to [NORM_TARGET]
  */
-enum class PreprocessingMode { FULL, LIGHT }
+enum class PreprocessingMode { FULL, LIGHT, PASSTHROUGH }
 
 class AudioChunkProcessor(
     private val sampleRate: Int = 48_000,
@@ -53,6 +53,7 @@ class AudioChunkProcessor(
      *
      * [PreprocessingMode.FULL] — silence + clipping + spectral + bandpass + normalization (BirdNET)
      * [PreprocessingMode.LIGHT] — silence + clipping + normalization (models with built-in STFT)
+     * [PreprocessingMode.PASSTHROUGH] — clipping + normalization (let the model decide)
      */
     fun process(chunk: FloatArray): Result? {
         totalChunks++
@@ -66,6 +67,16 @@ class AudioChunkProcessor(
             if (a > peak) peak = a
         }
         val rms = sqrt(sumSq / chunk.size).toFloat()
+
+        // PASSTHROUGH: skip silence/spectral, only clipping + normalization
+        if (mode == PreprocessingMode.PASSTHROUGH) {
+            if (peak > CLIPPING_PEAK_THRESHOLD && rms > CLIPPING_RMS_THRESHOLD) {
+                clippingRejects++
+                Log.d(TAG, "SKIP clipping: rms=%.4f peak=%.4f [%s]".format(rms, peak, statsLine()))
+                return null
+            }
+            return processLight(chunk, rms, peak)
+        }
 
         // 1a. Silence check
         if (rms < SILENCE_RMS_THRESHOLD) {

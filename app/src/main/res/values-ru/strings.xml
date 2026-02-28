@@ -43,4 +43,11 @@
     <string name="settings_theme_dark">Тёмная</string>
     <string name="settings_permissions">Разрешения</string>
     <string name="settings_about">О приложении</string>
+
+    <!-- File Analysis -->
+    <string name="file_analysis_title">Определение</string>
+    <string name="file_analysis_select">Выбрать аудиофайл</string>
+    <string name="file_analysis_idle">Выберите аудиофайл для анализа</string>
+    <string name="file_analysis_done">Анализ завершён</string>
+    <string name="file_analysis_error">Ошибка анализа: %1$s</string>
 </resources>

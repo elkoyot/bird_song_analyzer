@@ -356,7 +356,7 @@ internal fun AudioLevelBar(level: Float) {
 }
 
 @Composable
-private fun DetectedBirdCard(bird: DetectedBirdUi, onClick: () -> Unit) {
+internal fun DetectedBirdCard(bird: DetectedBirdUi, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

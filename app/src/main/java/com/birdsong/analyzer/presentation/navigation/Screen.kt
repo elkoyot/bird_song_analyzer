@@ -16,3 +16,6 @@ data class DetailRoute(val observationId: String)
 
 @Serializable
 object DualDetectionRoute
+
+@Serializable
+object FileAnalysisRoute

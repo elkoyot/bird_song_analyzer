@@ -68,8 +68,22 @@ class ClassifierFactory @Inject constructor(
         return result
     }
 
+    /**
+     * Create a worker copy of the given classifier (same model type, copies metaProfile).
+     * Caller is responsible for calling [BirdClassifier.close] on the returned classifier.
+     */
+    fun createWorkerClassifier(source: BirdClassifier): BirdClassifier {
+        val worker = when (source.modelId) {
+            BirdNetV24Classifier.MODEL_ID -> createBirdNet()
+            BirdNetV30Classifier.MODEL_ID -> createBirdNetV30()
+            else -> error("Unknown model: ${source.modelId}")
+        }
+        worker.metaProfile = source.metaProfile
+        return worker
+    }
+
     fun createProcessor(classifier: BirdClassifier): AudioChunkProcessor {
-        return AudioChunkProcessor(sampleRate = classifier.sampleRate, mode = PreprocessingMode.FULL)
+        return AudioChunkProcessor(sampleRate = classifier.sampleRate, mode = PreprocessingMode.PASSTHROUGH)
     }
 
     fun audioConfigFor(classifier: BirdClassifier): AudioConfig {

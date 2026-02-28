@@ -48,14 +48,17 @@ fun DualDetectionScreen(
     onResume: () -> Unit = {},
     onStop: () -> Unit = {},
     onReset: () -> Unit = {},
-    onBack: () -> Unit = {},
+    onBack: (() -> Unit)? = null,
+    onSelectFile: (() -> Unit)? = null,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text(stringResource(R.string.dual_detection_title)) },
             navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                if (onBack != null) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 }
             },
         )
@@ -73,6 +76,16 @@ fun DualDetectionScreen(
             onPause = onPause,
             onResume = onResume,
             onStop = onStop,
+            idleExtra = if (onSelectFile != null) {
+                {
+                    OutlinedButton(
+                        onClick = onSelectFile,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(stringResource(R.string.file_analysis_select))
+                    }
+                }
+            } else null,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -169,7 +182,7 @@ private fun DualBirdCard(bird: DualDetectedBirdUi) {
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                ConfidenceLabels(bird)
+                ConfidenceLabels(bird.v24Confidence, bird.v30Confidence)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -196,27 +209,27 @@ private fun DualBirdCard(bird: DualDetectedBirdUi) {
 }
 
 @Composable
-private fun ConfidenceLabels(bird: DualDetectedBirdUi) {
+internal fun ConfidenceLabels(v24: Int?, v30: Int?) {
     val style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
     val dash = MaterialTheme.colorScheme.onSurfaceVariant
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("v2.4: ", style = style, color = dash)
         Text(
-            text = bird.v24Confidence?.let { "$it%" } ?: "—",
+            text = v24?.let { "$it%" } ?: "—",
             style = style,
-            color = bird.v24Confidence?.let { confidenceColor(it) } ?: dash,
+            color = v24?.let { confidenceColor(it) } ?: dash,
         )
         Text("  |  ", style = style, color = dash)
         Text("v3.0: ", style = style, color = dash)
         Text(
-            text = bird.v30Confidence?.let { "$it%" } ?: "—",
+            text = v30?.let { "$it%" } ?: "—",
             style = style,
-            color = bird.v30Confidence?.let { confidenceColor(it) } ?: dash,
+            color = v30?.let { confidenceColor(it) } ?: dash,
         )
     }
 }
 
-private fun confidenceColor(percent: Int) = when {
+internal fun confidenceColor(percent: Int) = when {
     percent >= 80 -> ConfidenceHigh
     percent >= 40 -> ConfidenceMedium
     else -> ConfidenceLow

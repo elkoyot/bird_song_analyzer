@@ -64,4 +64,11 @@
     <string name="settings_model_birdnet">BirdNET V2.4 (6 522 species)</string>
     <string name="settings_model_v30">BirdNET V3.0 EUNA (972 species)</string>
     <string name="settings_model_not_available">Model not installed</string>
+
+    <!-- File Analysis -->
+    <string name="file_analysis_title">Detection</string>
+    <string name="file_analysis_select">Select audio file</string>
+    <string name="file_analysis_idle">Select an audio file to analyze</string>
+    <string name="file_analysis_done">Analysis complete</string>
+    <string name="file_analysis_error">Analysis error: %1$s</string>
 </resources>

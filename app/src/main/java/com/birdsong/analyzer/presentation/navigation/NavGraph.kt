@@ -2,6 +2,7 @@ package com.birdsong.analyzer.presentation.navigation
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
@@ -36,8 +37,8 @@ import com.birdsong.analyzer.R
 import com.birdsong.analyzer.presentation.detail.DetailScreen
 import com.birdsong.analyzer.presentation.detection.DualDetectionScreen
 import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
-import com.birdsong.analyzer.presentation.detection.LiveDetectionScreen
-import com.birdsong.analyzer.presentation.detection.LiveDetectionViewModel
+import com.birdsong.analyzer.presentation.detection.FileAnalysisScreen
+import com.birdsong.analyzer.presentation.detection.FileAnalysisViewModel
 import com.birdsong.analyzer.presentation.history.HistoryScreen
 import com.birdsong.analyzer.presentation.settings.SettingsScreen
 import com.birdsong.analyzer.presentation.settings.SettingsViewModel
@@ -95,7 +96,7 @@ fun BirdSongNavHost() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable<LiveDetectionRoute> {
-                val viewModel: LiveDetectionViewModel = hiltViewModel()
+                val viewModel: DualDetectionViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 val context = LocalContext.current
 
@@ -105,11 +106,8 @@ fun BirdSongNavHost() {
                     if (granted) viewModel.onStart()
                 }
 
-                LiveDetectionScreen(
+                DualDetectionScreen(
                     uiState = uiState,
-                    onBirdClick = { observationId ->
-                        navController.navigate(DetailRoute(observationId))
-                    },
                     onStart = {
                         if (ContextCompat.checkSelfPermission(
                                 context, Manifest.permission.RECORD_AUDIO,
@@ -124,7 +122,7 @@ fun BirdSongNavHost() {
                     onResume = viewModel::onResume,
                     onStop = viewModel::onStop,
                     onReset = viewModel::onReset,
-                    onCompareModels = { navController.navigate(DualDetectionRoute) },
+                    onSelectFile = { navController.navigate(FileAnalysisRoute) },
                 )
             }
 
@@ -182,33 +180,27 @@ fun BirdSongNavHost() {
                 )
             }
 
-            composable<DualDetectionRoute> {
-                val viewModel: DualDetectionViewModel = hiltViewModel()
+            composable<FileAnalysisRoute> {
+                val viewModel: FileAnalysisViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 val context = LocalContext.current
 
-                val permissionLauncher = rememberLauncherForActivityResult(
-                    ActivityResultContracts.RequestPermission(),
-                ) { granted ->
-                    if (granted) viewModel.onStart()
+                val filePickerLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.GetContent(),
+                ) { uri ->
+                    if (uri != null) {
+                        val name = context.contentResolver
+                            .query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                            ?.use { cursor ->
+                                if (cursor.moveToFirst()) cursor.getString(0) else null
+                            } ?: uri.lastPathSegment ?: "audio"
+                        viewModel.analyzeFile(uri, name)
+                    }
                 }
 
-                DualDetectionScreen(
+                FileAnalysisScreen(
                     uiState = uiState,
-                    onStart = {
-                        if (ContextCompat.checkSelfPermission(
-                                context, Manifest.permission.RECORD_AUDIO,
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            viewModel.onStart()
-                        } else {
-                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        }
-                    },
-                    onPause = viewModel::onPause,
-                    onResume = viewModel::onResume,
-                    onStop = viewModel::onStop,
-                    onReset = viewModel::onReset,
+                    onSelectFile = { filePickerLauncher.launch("audio/*") },
                     onBack = { navController.popBackStack() },
                 )
             }
