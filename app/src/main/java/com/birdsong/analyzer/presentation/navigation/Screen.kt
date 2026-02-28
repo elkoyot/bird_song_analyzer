@@ -13,3 +13,6 @@ object SettingsRoute
 
 @Serializable
 data class DetailRoute(val observationId: String)
+
+@Serializable
+object DualDetectionRoute

@@ -2,12 +2,27 @@ package com.birdsong.analyzer.ml
 
 interface BirdClassifier {
 
+    var metaProfile: MetaProfile?
+        get() = null
+        set(_) {}
+
     val modelId: String
+    val sampleRate: Int
+    val chunkDurationSeconds: Int
+    val samplesPerChunk: Int get() = sampleRate * chunkDurationSeconds
 
     /**
-     * Classifies a 3-second audio chunk.
+     * Returns the MetaProfile label index for a detection's label index.
+     * For V2.4, this is identity (same label space).
+     * For V3.0, this maps through birdnetLabelIndex.
+     * Returns -1 if no mapping exists.
+     */
+    fun metaProfileIndex(labelIndex: Int): Int = labelIndex
+
+    /**
+     * Classifies an audio chunk.
      *
-     * @param audioChunk float32 PCM, 144000 samples (48 kHz × 3 s), normalized to [-1, 1]
+     * @param audioChunk float32 PCM, [samplesPerChunk] samples, normalized to [-1, 1]
      * @param location optional GPS + week-of-year used by the meta-model filter
      * @return detections sorted by confidence descending, filtered by threshold
      */
@@ -19,10 +34,6 @@ interface BirdClassifier {
     fun close()
 
     companion object {
-        const val SAMPLE_RATE = 48_000
-        const val CHUNK_DURATION_SECONDS = 3
-        const val SAMPLES_PER_CHUNK = SAMPLE_RATE * CHUNK_DURATION_SECONDS  // 144 000
-
         val NON_BIRD_LABELS = setOf(
             "Engine", "Environmental", "Fireworks", "Gun",
             "Human vocal", "Noise", "Power tools", "Siren",

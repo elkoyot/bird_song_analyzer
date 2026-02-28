@@ -153,7 +153,7 @@ class StandardBenchmarkTest {
         // TFLite warmup: первый инференс всегда медленнее из-за JIT-компиляции ops.
         // Прогреваем все классификаторы параллельно — сокращает setUp с N×warmup до 1×warmup.
         log("Warmup: прогрев $WORKER_COUNT классификаторов параллельно...")
-        val warmupChunk = FloatArray(BirdClassifier.SAMPLES_PER_CHUNK)
+        val warmupChunk = FloatArray(workers.first().classifier.samplesPerChunk)
         runBlocking {
             workers.map { worker ->
                 async(Dispatchers.Default) {

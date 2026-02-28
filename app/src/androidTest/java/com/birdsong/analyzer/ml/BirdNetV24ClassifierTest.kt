@@ -64,8 +64,8 @@ class BirdNetV24ClassifierTest {
         val audioChunk = loadWavChunk(context, "sample.wav")
 
         log("--- classifySampleWav ---")
-        log("Input: sample.wav, ${BirdClassifier.SAMPLES_PER_CHUNK} samples " +
-            "(${BirdClassifier.CHUNK_DURATION_SECONDS}s @ ${BirdClassifier.SAMPLE_RATE} Hz)")
+        log("Input: sample.wav, ${classifier.samplesPerChunk} samples " +
+            "(${classifier.chunkDurationSeconds}s @ ${classifier.sampleRate} Hz)")
         log("Threshold: 0.1, model: ${classifier.modelId}")
         log("Expected: at least 1 bird species detected")
         log("")
@@ -97,10 +97,10 @@ class BirdNetV24ClassifierTest {
 
     @Test
     fun classifySilence_returnsNoDetections() = runTest {
-        val silence = FloatArray(BirdClassifier.SAMPLES_PER_CHUNK) { 0f }
+        val silence = FloatArray(classifier.samplesPerChunk) { 0f }
 
         log("--- classifySilence ---")
-        log("Input: silence (zeros), ${BirdClassifier.SAMPLES_PER_CHUNK} samples")
+        log("Input: silence (zeros), ${classifier.samplesPerChunk} samples")
         log("Expected: 0 detections (or very few false positives)")
         log("")
 
@@ -146,11 +146,11 @@ class BirdNetV24ClassifierTest {
         val shortBuffer = buffer.asShortBuffer()
 
         val totalSamples = shortBuffer.remaining()
-        val needed = BirdClassifier.SAMPLES_PER_CHUNK
-        val durationSec = totalSamples.toFloat() / BirdClassifier.SAMPLE_RATE
+        val needed = classifier.samplesPerChunk
+        val durationSec = totalSamples.toFloat() / classifier.sampleRate
 
         log("WAV loaded: $totalSamples samples (${"%.1f".format(durationSec)}s), " +
-            "using first ${needed} (${BirdClassifier.CHUNK_DURATION_SECONDS}s)")
+            "using first ${needed} (${classifier.chunkDurationSeconds}s)")
 
         val result = FloatArray(needed)
         val samplesToRead = minOf(totalSamples, needed)

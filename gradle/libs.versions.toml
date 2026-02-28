@@ -13,6 +13,7 @@ datastore = "1.1.1"
 serialization-json = "1.7.3"
 tensorflow-lite = "2.16.1"
 tensorflow-lite-support = "0.4.4"
+onnxruntime = "1.21.0"
 core-ktx = "1.15.0"
 activity-compose = "1.9.3"
 
@@ -72,6 +73,7 @@ coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 # TensorFlow Lite
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflow-lite" }
 tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflow-lite-support" }
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
 
 # Testing
 junit5-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }

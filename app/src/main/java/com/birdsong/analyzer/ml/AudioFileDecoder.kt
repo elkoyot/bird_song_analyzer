@@ -14,7 +14,7 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * Decodes audio files to raw float32 mono PCM at [BirdClassifier.SAMPLE_RATE].
+ * Decodes audio files to raw float32 mono PCM at a configurable target sample rate.
  */
 object AudioFileDecoder {
 
@@ -28,24 +28,25 @@ object AudioFileDecoder {
      * WARNING: loads the entire file into memory — not suitable for files longer than ~1 min.
      * For long files use [decodeChunked].
      */
-    fun decode(context: Context, uri: Uri): FloatArray {
+    fun decode(context: Context, uri: Uri, targetRate: Int = 48_000): FloatArray {
         val extractor = MediaExtractor()
         extractor.setDataSource(context, uri, null)
-        return decodeWithMediaCodec(extractor)
+        return decodeWithMediaCodec(extractor, targetRate)
     }
 
     /**
      * Decodes audio from URI in a streaming fashion, emitting fixed-size chunks
      * with configurable overlap. Memory-efficient: keeps only one chunk buffer (~576 KB).
      *
-     * @param chunkSize samples per chunk at target rate (default: [BirdClassifier.SAMPLES_PER_CHUNK])
+     * @param chunkSize samples per chunk at target rate (default: targetRate * 3)
      * @param hopSize samples to advance between chunks (default: chunkSize / 2 = 50% overlap)
      * @param onChunk callback invoked for each complete chunk (index, startTimeSec, samples)
      */
     fun decodeChunked(
         context: Context,
         uri: Uri,
-        chunkSize: Int = BirdClassifier.SAMPLES_PER_CHUNK,
+        targetRate: Int = 48_000,
+        chunkSize: Int = targetRate * 3,
         hopSize: Int = chunkSize / 2,
         onChunk: (chunkIndex: Int, startTimeSec: Float, chunk: FloatArray) -> Unit,
     ) {
@@ -62,7 +63,6 @@ object AudioFileDecoder {
         val sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
         val channels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
         val mime = format.getString(MediaFormat.KEY_MIME)!!
-        val targetRate = BirdClassifier.SAMPLE_RATE
         val needsResample = sampleRate != targetRate
         val expectedDurationUs = if (format.containsKey(MediaFormat.KEY_DURATION)) {
             format.getLong(MediaFormat.KEY_DURATION)
@@ -219,11 +219,11 @@ object AudioFileDecoder {
     /**
      * Reads a PCM WAV file from assets. Simple and reliable — no MediaCodec needed.
      */
-    fun decodeFromAssets(context: Context, assetPath: String): FloatArray {
-        return context.assets.open(assetPath).use { stream -> readPcmWav(stream) }
+    fun decodeFromAssets(context: Context, assetPath: String, targetRate: Int = 48_000): FloatArray {
+        return context.assets.open(assetPath).use { stream -> readPcmWav(stream, targetRate) }
     }
 
-    private fun readPcmWav(input: InputStream): FloatArray {
+    private fun readPcmWav(input: InputStream, targetRate: Int = 48_000): FloatArray {
         val header = ByteArray(44)
         var read = 0
         while (read < 44) {
@@ -270,14 +270,14 @@ object AudioFileDecoder {
 
         Log.d(TAG, "WAV decoded: ${mono.size} samples at ${sampleRate}Hz (%.1fs)".format(mono.size.toFloat() / sampleRate))
 
-        return if (sampleRate != BirdClassifier.SAMPLE_RATE) {
-            resample(mono, sampleRate, BirdClassifier.SAMPLE_RATE)
+        return if (sampleRate != targetRate) {
+            resample(mono, sampleRate, targetRate)
         } else {
             mono
         }
     }
 
-    private fun decodeWithMediaCodec(extractor: MediaExtractor): FloatArray {
+    private fun decodeWithMediaCodec(extractor: MediaExtractor, targetRate: Int = 48_000): FloatArray {
         val audioTrackIndex = (0 until extractor.trackCount).firstOrNull { i ->
             extractor.getTrackFormat(i).getString(MediaFormat.KEY_MIME)
                 ?.startsWith("audio/") == true
@@ -349,26 +349,13 @@ object AudioFileDecoder {
 
         Log.d(TAG, "Decoded ${mono.size} samples at ${sampleRate}Hz (%.1fs)".format(mono.size.toFloat() / sampleRate))
 
-        return if (sampleRate != BirdClassifier.SAMPLE_RATE) {
-            resample(mono, sampleRate, BirdClassifier.SAMPLE_RATE)
+        return if (sampleRate != targetRate) {
+            resample(mono, sampleRate, targetRate)
         } else {
             mono
         }
     }
 
-    private fun resample(input: FloatArray, fromRate: Int, toRate: Int): FloatArray {
-        val ratio = fromRate.toDouble() / toRate
-        val outSize = (input.size / ratio).toInt()
-        Log.d(TAG, "Resampling ${fromRate}Hz -> ${toRate}Hz ($outSize samples)")
-        return FloatArray(outSize) { i ->
-            val pos = i * ratio
-            val idx = pos.toInt()
-            val frac = (pos - idx).toFloat()
-            if (idx + 1 < input.size) {
-                input[idx] * (1 - frac) + input[idx + 1] * frac
-            } else {
-                input[idx.coerceIn(input.indices)]
-            }
-        }
-    }
+    private fun resample(input: FloatArray, fromRate: Int, toRate: Int): FloatArray =
+        AudioResampler.resample(input, fromRate, toRate)
 }

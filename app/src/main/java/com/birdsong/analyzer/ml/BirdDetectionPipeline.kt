@@ -19,9 +19,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class BirdDetectionPipeline @Inject constructor(
-    private val audioChunkProcessor: AudioChunkProcessor,
-    private val classifier: BirdClassifier,
+    private var audioChunkProcessor: AudioChunkProcessor,
+    private var _classifier: BirdClassifier,
 ) {
+    val classifier: BirdClassifier get() = _classifier
+
+    fun configure(processor: AudioChunkProcessor, classifier: BirdClassifier) {
+        _classifier.close()
+        audioChunkProcessor = processor
+        _classifier = classifier
+    }
+
     data class ChunkResult(
         val detections: List<BirdDetection>,
         val processed: Boolean,
@@ -30,7 +38,7 @@ class BirdDetectionPipeline @Inject constructor(
     /**
      * Process a single audio chunk: pre-filter → inference.
      *
-     * @param chunk raw float32 PCM samples (expected [BirdClassifier.SAMPLES_PER_CHUNK])
+     * @param chunk raw float32 PCM samples (expected [classifier.samplesPerChunk])
      * @param location optional GPS + week-of-year for meta-model filtering
      * @return [ChunkResult] with detections; [ChunkResult.processed] = false if chunk was skipped
      */
@@ -41,7 +49,7 @@ class BirdDetectionPipeline @Inject constructor(
         val processed = audioChunkProcessor.process(chunk)
             ?: return ChunkResult(detections = emptyList(), processed = false)
 
-        val detections = classifier.classify(processed.samples, location)
+        val detections = _classifier.classify(processed.samples, location)
         return ChunkResult(detections = detections, processed = true)
     }
 
@@ -66,7 +74,11 @@ class BirdDetectionPipeline @Inject constructor(
         var totalChunks = 0
         var skippedChunks = 0
 
-        AudioFileDecoder.decodeChunked(context, uri) { chunkIndex, startTimeSec, chunk ->
+        AudioFileDecoder.decodeChunked(
+            context, uri,
+            targetRate = _classifier.sampleRate,
+            chunkSize = _classifier.samplesPerChunk,
+        ) { chunkIndex, startTimeSec, chunk ->
             totalChunks++
 
             val processed = audioChunkProcessor.process(chunk)
@@ -78,7 +90,7 @@ class BirdDetectionPipeline @Inject constructor(
             }
 
             val detections = runBlocking {
-                classifier.classify(processed.samples, location)
+                _classifier.classify(processed.samples, location)
             }
             aggregator.addChunkResults(detections)
 

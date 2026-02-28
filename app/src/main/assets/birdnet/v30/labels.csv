@@ -1,0 +1,1226 @@
+﻿id;sci_name;com_name;gbif;class;order
+15;Acanthis cabaret;Acanthis cabaret;Acanthis flammea;Aves;Passeriformes
+16;Acanthis flammea;Redpoll;Acanthis flammea;Aves;Passeriformes
+18;Acanthis hornemanni;Acanthis hornemanni;Acanthis hornemanni;Aves;Passeriformes
+49;Astur atricapillus;American Goshawk;Falco atricapillus;Aves;Falconiformes
+50;Astur gentilis;Eurasian Goshawk;Accipiter gentilis;Aves;Accipitriformes
+51;Tachyspiza badia;Shikra;Accipiter badius;Aves;Accipitriformes
+60;Astur cooperii;Cooper's Hawk;Accipiter cooperii;Aves;Accipitriformes
+79;Accipiter nisus;Eurasian Sparrowhawk;Accipiter nisus;Aves;Accipitriformes
+88;Accipiter striatus;Sharp-shinned Hawk;Accipiter striatus;Aves;Accipitriformes
+110;Acheta domesticus;House Cricket;Acheta domesticus;Insecta;Orthoptera
+120;Acridotheres cristatellus;Crested Myna;Acridotheres cristatellus;Aves;Passeriformes
+127;Acridotheres tristis;Common Myna;Acridotheres tristis;Aves;Passeriformes
+130;Acris crepitans;Northern Cricket Frog;Acris crepitans;Amphibia;Anura
+138;Acrocephalus agricola;Paddyfield Warbler;Acrocephalus agricola;Aves;Passeriformes
+139;Acrocephalus arundinaceus;Great Reed Warbler;Acrocephalus arundinaceus;Aves;Passeriformes
+142;Acrocephalus baeticatus;Acrocephalus baeticatus;Acrocephalus baeticatus;Aves;Passeriformes
+147;Acrocephalus dumetorum;Blyth's Reed Warbler;Acrocephalus dumetorum;Aves;Passeriformes
+153;Acrocephalus melanopogon;Moustached Warbler;Acrocephalus melanopogon;Aves;Passeriformes
+158;Acrocephalus paludicola;Aquatic Warbler;Acrocephalus paludicola;Aves;Passeriformes
+159;Acrocephalus palustris;Marsh Warbler;Acrocephalus palustris;Aves;Passeriformes
+165;Acrocephalus schoenobaenus;Sedge Warbler;Acrocephalus schoenobaenus;Aves;Passeriformes
+166;Acrocephalus scirpaceus;Common Reed Warbler;Acrocephalus scirpaceus;Aves;Passeriformes
+183;Acryllium vulturinum;Vulturine Guineafowl;Acryllium vulturinum;Aves;Galliformes
+201;Actitis hypoleucos;Common Sandpiper;Actitis hypoleucos;Aves;Charadriiformes
+202;Actitis macularius;Spotted Sandpiper;Actitis macularius;Aves;Charadriiformes
+227;Aechmophorus clarkii;Clark's Grebe;Aechmophorus clarkii;Aves;Podicipediformes
+228;Aechmophorus occidentalis;Western Grebe;Aechmophorus occidentalis;Aves;Podicipediformes
+231;Aegithalos caudatus;Long-tailed Tit;Aegithalos caudatus;Aves;Passeriformes
+244;Aegolius acadicus;Northern Saw-whet Owl;Aegolius acadicus;Aves;Strigiformes
+245;Aegolius funereus;Boreal Owl;Aegolius funereus;Aves;Strigiformes
+368;Agapornis fischeri;Fischer's Lovebird;Agapornis fischeri;Aves;Psittaciformes
+371;Agapornis personatus;Yellow-collared Lovebird;Agapornis personatus;Aves;Psittaciformes
+381;Agelaius phoeniceus;Red-winged Blackbird;Agelaius phoeniceus;Aves;Passeriformes
+436;Aix galericulata;Mandarin Duck;Aix galericulata;Aves;Anseriformes
+437;Aix sponsa;Wood Duck;Aix sponsa;Aves;Anseriformes
+444;Alauda arvensis;Eurasian Skylark;Alauda arvensis;Aves;Passeriformes
+451;Alaudala rufescens;Mediterranean Short-toed Lark;Calandrella rufescens;Aves;Passeriformes
+459;Alca torda;Razorbill;Alca torda;Aves;Charadriiformes
+460;Alcedo atthis;Common Kingfisher;Alcedo atthis;Aves;Coraciiformes
+468;Alces alces;Alces alces;Alces alces;Mammalia;Artiodactyla
+493;Alectoris barbara;Barbary Partridge;Alectoris barbara;Aves;Galliformes
+494;Alectoris chukar;Chukar Partridge;Alectoris chukar;Aves;Galliformes
+495;Alectoris graeca;Rock Partridge;Alectoris graeca;Aves;Galliformes
+499;Alectoris rufa;Red-legged Partridge;Alectoris rufa;Aves;Galliformes
+514;Alle alle;Little Auk;Alle alle;Aves;Charadriiformes
+538;Allonemobius allardi;Allard's ground Cricket;Allonemobius allardi;Insecta;Orthoptera
+539;Allonemobius fasciatus;Striped Ground Cricket;Allonemobius fasciatus;Insecta;Orthoptera
+547;Allonemobius tinnulus;tinkling ground Cricket;Allonemobius tinnulus;Insecta;Orthoptera
+564;Alopochen aegyptiaca;Egyptian Goose;Alopochen aegyptiaca;Aves;Anseriformes
+584;Alytes obstetricans;Alytes obstetricans;Alytes obstetricans;Amphibia;Anura
+589;Amandava amandava;Red Avadavat;Amandava amandava;Aves;Passeriformes
+614;Amazona aestiva;Turquoise-fronted Amazon;Amazona aestiva;Aves;Psittaciformes
+636;Amazona oratrix;Yellow-headed Amazon;Amazona oratrix;Aves;Psittaciformes
+661;Amblycorypha longinicta;Common Virtuoso Katydid;Amblycorypha longinicta;Insecta;Orthoptera
+662;Amblycorypha oblongifolia;Oblong-winged Katydid;Amblycorypha oblongifolia;Insecta;Orthoptera
+665;Amblycorypha rotundifolia;Rattler Round-winged katydid;Amblycorypha rotundifolia;Insecta;Orthoptera
+707;Ammodramus savannarum;Grasshopper Sparrow;Ammodramus savannarum;Aves;Passeriformes
+709;Ammomanes deserti;Desert Lark;Ammomanes deserti;Aves;Passeriformes
+719;Ammospiza caudacuta;Saltmarsh Sparrow;Ammospiza caudacuta;Aves;Passeriformes
+720;Ammospiza leconteii;LeConte's Sparrow;Ammospiza leconteii;Aves;Passeriformes
+721;Ammospiza maritima;Seaside Sparrow;Ammospiza maritima;Aves;Passeriformes
+722;Ammospiza nelsoni;Nelson's Sparrow;Ammospiza nelsoni;Aves;Passeriformes
+793;Anarhynchus alexandrinus;Kentish Plover;Charadrius alexandrinus;Aves;Charadriiformes
+805;Anarhynchus leschenaultii;Greater Sand Plover;Charadrius leschenaultii;Aves;Charadriiformes
+816;Anas acuta;Northern Pintail;Anas acuta;Aves;Anseriformes
+819;Anas bahamensis;White-cheeked Pintail;Anas bahamensis;Aves;Anseriformes
+822;Anas carolinensis;Green-winged Teal;Anas carolinensis;Aves;Anseriformes
+825;Spatula clypeata;Northern Shoveler;Spatula clypeata;Aves;Anseriformes
+827;Anas crecca;Eurasian Teal;Anas crecca;Aves;Anseriformes
+828;Spatula cyanoptera;Cinnamon Teal;Spatula cyanoptera;Aves;Anseriformes
+838;Anas fulvigula;Mottled Duck;Anas fulvigula;Aves;Anseriformes
+848;Mareca penelope;Eurasian Wigeon;Mareca penelope;Aves;Anseriformes
+852;Anas platyrhynchos;Mallard;Anas platyrhynchos;Aves;Anseriformes
+854;Spatula querquedula;Garganey;Spatula querquedula;Aves;Anseriformes
+856;Anas rubripes;American Black Duck;Anas rubripes;Aves;Anseriformes
+862;Mareca strepera;Gadwall;Mareca strepera;Aves;Anseriformes
+874;Anaxipha exigua;Say's Trig;Anaxipha exigua;Insecta;Orthoptera
+887;Anaxipha vernalis;Spring trig;Anaxipha vernalis;Insecta;Orthoptera
+889;Anaxyrus americanus;American Toad;Anaxyrus americanus;Amphibia;Anura
+897;Anaxyrus fowleri;Fowler's Toad;Anaxyrus fowleri;Amphibia;Anura
+945;Anhinga anhinga;Anhinga;Anhinga anhinga;Aves;Suliformes
+988;Anser albifrons;Greater White-fronted Goose;Anser albifrons;Aves;Anseriformes
+989;Anser anser;Greylag Goose;Anser anser;Aves;Anseriformes
+991;Anser brachyrhynchus;Pink-footed Goose;Anser brachyrhynchus;Aves;Anseriformes
+992;Anser caerulescens;Snow Goose;Anser caerulescens;Aves;Anseriformes
+996;Anser cygnoides;Swan Goose;Anser cygnoides;Aves;Anseriformes
+998;Anser erythropus;Lesser White-fronted Goose;Anser erythropus;Aves;Anseriformes
+999;Anser fabalis;Taiga Bean Goose;Anser fabalis;Aves;Anseriformes
+1000;Anser indicus;Bar-headed Goose;Anser indicus;Aves;Anseriformes
+1001;Anser rossii;Ross's Goose;Anser rossii;Aves;Anseriformes
+1003;Anser serrirostris;Tundra Bean Goose;Anser serrirostris;Aves;Anseriformes
+1078;Grus virgo;Demoiselle Crane;Anthropoides virgo;Aves;Gruiformes
+1083;Anthus berthelotii;Berthelot's Pipit;Anthus berthelotii;Aves;Passeriformes
+1088;Anthus campestris;Tawny Pipit;Anthus campestris;Aves;Passeriformes
+1089;Anthus cervinus;Red-throated Pipit;Anthus cervinus;Aves;Passeriformes
+1098;Anthus godlewskii;Blyth's Pipit;Anthus godlewskii;Aves;Passeriformes
+1099;Anthus gustavi;Pechora Pipit;Anthus gustavi;Aves;Passeriformes
+1102;Anthus hodgsoni;Olive-backed Pipit;Anthus hodgsoni;Aves;Passeriformes
+1116;Anthus petrosus;European Rock Pipit;Anthus petrosus;Aves;Passeriformes
+1117;Anthus pratensis;Meadow Pipit;Anthus pratensis;Aves;Passeriformes
+1118;Anthus richardi;Richard's Pipit;Anthus richardi;Aves;Passeriformes
+1120;Anthus rubescens;American Pipit;Anthus rubescens;Aves;Passeriformes
+1121;Anthus rufulus;Paddyfield Pipit;Anthus rufulus;Aves;Passeriformes
+1124;Anthus spinoletta;Water Pipit;Anthus spinoletta;Aves;Passeriformes
+1127;Anthus trivialis;Tree Pipit;Anthus trivialis;Aves;Passeriformes
+1132;Antigone canadensis;Sandhill Crane;Grus canadensis;Aves;Gruiformes
+1147;Antrostomus carolinensis;Chuck-will's-widow;Antrostomus carolinensis;Aves;Caprimulgiformes
+1156;Antrostomus vociferus;Eastern Whip-poor-will;Antrostomus vociferus;Aves;Caprimulgiformes
+1234;Apis mellifera;honey bee;Apis mellifera;Insecta;Hymenoptera
+1281;Apus affinis;Little Swift;Apus affinis;Aves;Apodiformes
+1283;Apus apus;Common Swift;Apus apus;Aves;Apodiformes
+1289;Apus caffer;White-rumped Swift;Apus caffer;Aves;Apodiformes
+1293;Tachymarptis melba;Alpine Swift;Tachymarptis melba;Aves;Apodiformes
+1297;Apus pacificus;Pacific Swift;Apus pacificus;Aves;Apodiformes
+1298;Apus pallidus;Pallid Swift;Apus pallidus;Aves;Apodiformes
+1300;Apus unicolor;Plain Swift;Apus unicolor;Aves;Apodiformes
+1305;Aquila adalberti;Spanish Imperial Eagle;Aquila adalberti;Aves;Accipitriformes
+1308;Aquila chrysaetos;Golden Eagle;Aquila chrysaetos;Aves;Accipitriformes
+1309;Clanga clanga;Greater Spotted Eagle;Aquila clanga;Aves;Accipitriformes
+1311;Aquila fasciata;Bonelli's Eagle;Aquila fasciata;Aves;Accipitriformes
+1315;Aquila nipalensis;Steppe Eagle;Aquila nipalensis;Aves;Accipitriformes
+1316;Clanga pomarina;Lesser Spotted Eagle;Aquila pomarina;Aves;Accipitriformes
+1322;Ara ararauna;Blue-and-yellow Macaw;Ara ararauna;Aves;Psittaciformes
+1354;Thectocercus acuticaudatus;Blue-crowned Parakeet;Aratinga acuticaudata;Aves;Psittaciformes
+1363;Psittacara erythrogenys;Red-masked Parakeet;Aratinga erythrogenys;Aves;Psittaciformes
+1375;Psittacara mitratus;Mitred Parakeet;Aratinga mitrata;Aves;Psittaciformes
+1379;Aratinga nenday;Nanday Parakeet;Nandayus nenday;Aves;Psittaciformes
+1410;Archilochus alexandri;Black-chinned Hummingbird;Archilochus alexandri;Aves;Apodiformes
+1411;Archilochus colubris;Ruby-throated Hummingbird;Archilochus colubris;Aves;Apodiformes
+1429;Arcyptera fusca;Arcyptera fusca;Arcyptera fusca;Insecta;Orthoptera
+1433;Ardea alba;Great Egret;Ardea alba;Aves;Pelecaniformes
+1437;Ardea cinerea;Grey Heron;Ardea cinerea;Aves;Pelecaniformes
+1441;Ardea herodias;Great Blue Heron;Ardea herodias;Aves;Pelecaniformes
+1443;Ardea ibis;Western Cattle Egret;Bubulcus ibis;Aves;Pelecaniformes
+1448;Ardea purpurea;Purple Heron;Ardea purpurea;Aves;Pelecaniformes
+1453;Ardenna gravis;Great Shearwater;Puffinus gravis;Aves;Procellariiformes
+1454;Ardenna grisea;Sooty Shearwater;Puffinus griseus;Aves;Procellariiformes
+1459;Ardeola ralloides;Squacco Heron;Ardeola ralloides;Aves;Pelecaniformes
+1468;Arenaria interpres;Ruddy Turnstone;Arenaria interpres;Aves;Charadriiformes
+1612;Asio flammeus;Short-eared Owl;Asio flammeus;Aves;Strigiformes
+1615;Asio otus;Long-eared Owl;Asio otus;Aves;Strigiformes
+1715;Athene noctua;Little Owl;Athene noctua;Aves;Strigiformes
+1847;Aythya affinis;Lesser Scaup;Aythya affinis;Aves;Anseriformes
+1848;Aythya americana;Redhead;Aythya americana;Aves;Anseriformes
+1850;Aythya collaris;Ring-necked Duck;Aythya collaris;Aves;Anseriformes
+1851;Aythya ferina;Common Pochard;Aythya ferina;Aves;Anseriformes
+1852;Aythya fuligula;Tufted Duck;Aythya fuligula;Aves;Anseriformes
+1854;Aythya marila;Greater Scaup;Aythya marila;Aves;Anseriformes
+1856;Aythya nyroca;Ferruginous Duck;Aythya nyroca;Aves;Anseriformes
+1857;Aythya valisineria;Canvasback;Aythya valisineria;Aves;Anseriformes
+1869;Baeolophus bicolor;Tufted Titmouse;Baeolophus bicolor;Aves;Passeriformes
+1890;Balearica regulorum;Grey Crowned Crane;Balearica regulorum;Aves;Gruiformes
+1915;Barbitistes serricauda;Barbitistes serricauda;Barbitistes serricauda;Insecta;Orthoptera
+1917;Barbitistes yersini;Barbitistes yersini;Barbitistes yersini;Insecta;Orthoptera
+1920;Bartramia longicauda;Upland Sandpiper;Bartramia longicauda;Aves;Charadriiformes
+2018;Bicolorana bicolor;Bicolorana bicolor;Bicolorana bicolor;Insecta;Orthoptera
+2022;Roeseliana roeselii;Roeseliana roeselii;Roeseliana roeselii;Insecta;Orthoptera
+2134;Bombina bombina;Bombina bombina;Bombina bombina;Amphibia;Anura
+2137;Bombina variegata;Bombina variegata;Bombina variegata;Amphibia;Anura
+2161;Bombycilla cedrorum;Cedar Waxwing;Bombycilla cedrorum;Aves;Passeriformes
+2162;Bombycilla garrulus;Bohemian Waxwing;Bombycilla garrulus;Aves;Passeriformes
+2166;Bonasa umbellus;Ruffed Grouse;Bonasa umbellus;Aves;Galliformes
+2182;Bos taurus;Domestic Cattle;Bos taurus;Mammalia;Artiodactyla
+2197;Botaurus lentiginosus;American Bittern;Botaurus lentiginosus;Aves;Pelecaniformes
+2202;Botaurus stellaris;Eurasian Bittern;Botaurus stellaris;Aves;Pelecaniformes
+2276;Branta bernicla;Brant Goose;Branta bernicla;Aves;Anseriformes
+2277;Branta canadensis;Canada Goose;Branta canadensis;Aves;Anseriformes
+2278;Branta hutchinsii;Cackling Goose;Branta hutchinsii;Aves;Anseriformes
+2279;Branta leucopsis;Barnacle Goose;Branta leucopsis;Aves;Anseriformes
+2280;Branta ruficollis;Red-breasted Goose;Branta ruficollis;Aves;Anseriformes
+2281;Branta sandvicensis;Nene;Branta sandvicensis;Aves;Anseriformes
+2308;Brotogeris versicolurus;White-winged Parakeet;Brotogeris versicolurus;Aves;Psittaciformes
+2328;Bubo bubo;Eurasian Eagle-Owl;Bubo bubo;Aves;Strigiformes
+2342;Bubo scandiacus;Snowy Owl;Bubo scandiacus;Aves;Strigiformes
+2346;Bubo virginianus;Great Horned Owl;Bubo virginianus;Aves;Strigiformes
+2349;Bucanetes githagineus;Trumpeter Finch;Bucanetes githagineus;Aves;Passeriformes
+2350;Bucanetes mongolicus;Mongolian Finch;Bucanetes mongolicus;Aves;Passeriformes
+2356;Bucephala albeola;Bufflehead;Bucephala albeola;Aves;Anseriformes
+2357;Bucephala clangula;Common Goldeneye;Bucephala clangula;Aves;Anseriformes
+2358;Bucephala islandica;Barrow's Goldeneye;Bucephala islandica;Aves;Anseriformes
+2378;Bufo bufo;Bufo bufo;Bufo bufo;Amphibia;Anura
+2379;Epidalea calamita;Epidalea calamita;Epidalea calamita;Amphibia;Anura
+2387;Bufotes viridis;Bufotes viridis;Bufotes viridis;Amphibia;Anura
+2418;Burhinus oedicnemus;Eurasian Stone-curlew;Burhinus oedicnemus;Aves;Charadriiformes
+2435;Buteo buteo;Common Buzzard;Buteo buteo;Aves;Accipitriformes
+2438;Buteo jamaicensis;Red-tailed Hawk;Buteo jamaicensis;Aves;Accipitriformes
+2440;Buteo lagopus;Rough-legged Buzzard;Buteo lagopus;Aves;Accipitriformes
+2441;Buteo lineatus;Red-shouldered Hawk;Buteo lineatus;Aves;Accipitriformes
+2445;Buteo platypterus;Broad-winged Hawk;Buteo platypterus;Aves;Accipitriformes
+2450;Buteo rufinus;Long-legged Buzzard;Buteo rufinus;Aves;Accipitriformes
+2454;Buteo swainsoni;Swainson's Hawk;Buteo swainsoni;Aves;Accipitriformes
+2468;Butorides virescens;Green Heron;Butorides virescens;Aves;Pelecaniformes
+2542;Cairina moschata;Muscovy Duck;Cairina moschata;Aves;Anseriformes
+2555;Calamospiza melanocorys;Lark Bunting;Calamospiza melanocorys;Aves;Passeriformes
+2561;Calandrella brachydactyla;Greater Short-toed Lark;Calandrella brachydactyla;Aves;Passeriformes
+2565;Calcarius lapponicus;Lapland Longspur;Calcarius lapponicus;Aves;Passeriformes
+2566;Calcarius ornatus;Chestnut-collared Longspur;Calcarius ornatus;Aves;Passeriformes
+2567;Calcarius pictus;Smith's Longspur;Calcarius pictus;Aves;Passeriformes
+2583;Calidris acuminata;Sharp-tailed Sandpiper;Calidris acuminata;Aves;Charadriiformes
+2584;Calidris alba;Sanderling;Calidris alba;Aves;Charadriiformes
+2585;Calidris alpina;Dunlin;Calidris alpina;Aves;Charadriiformes
+2586;Calidris bairdii;Baird's Sandpiper;Calidris bairdii;Aves;Charadriiformes
+2587;Calidris canutus;Red Knot;Calidris canutus;Aves;Charadriiformes
+2588;Calidris falcinellus;Broad-billed Sandpiper;Calidris falcinellus;Aves;Charadriiformes
+2590;Calidris ferruginea;Curlew Sandpiper;Calidris ferruginea;Aves;Charadriiformes
+2591;Calidris fuscicollis;White-rumped Sandpiper;Calidris fuscicollis;Aves;Charadriiformes
+2592;Calidris himantopus;Stilt Sandpiper;Calidris himantopus;Aves;Charadriiformes
+2593;Calidris maritima;Purple Sandpiper;Calidris maritima;Aves;Charadriiformes
+2594;Calidris mauri;Western Sandpiper;Calidris mauri;Aves;Charadriiformes
+2595;Calidris melanotos;Pectoral Sandpiper;Calidris melanotos;Aves;Charadriiformes
+2596;Calidris minuta;Little Stint;Calidris minuta;Aves;Charadriiformes
+2597;Calidris minutilla;Least Sandpiper;Calidris minutilla;Aves;Charadriiformes
+2599;Calidris pugnax;Ruff;Calidris pugnax;Aves;Charadriiformes
+2601;Calidris pusilla;Semipalmated Sandpiper;Calidris pusilla;Aves;Charadriiformes
+2603;Calidris ruficollis;Red-necked Stint;Calidris ruficollis;Aves;Charadriiformes
+2604;Calidris subminuta;Long-toed Stint;Calidris subminuta;Aves;Charadriiformes
+2605;Calidris subruficollis;Buff-breasted Sandpiper;Calidris subruficollis;Aves;Charadriiformes
+2606;Calidris temminckii;Temminck's Stint;Calidris temminckii;Aves;Charadriiformes
+2646;Calliope calliope;Siberian Rubythroat;Luscinia calliope;Aves;Passeriformes
+2652;Callipepla californica;California Quail;Callipepla californica;Aves;Galliformes
+2677;Callonetta leucophrys;Ringed Teal;Callonetta leucophrys;Aves;Anseriformes
+2702;Calonectris borealis;Cory's Shearwater;Calonectris diomedea;Aves;Procellariiformes
+2703;Calonectris diomedea;Scopoli's Shearwater;Calonectris diomedea;Aves;Procellariiformes
+2713;Calypte anna;Anna's Hummingbird;Calypte anna;Aves;Apodiformes
+2800;Canachites canadensis;Spruce Grouse;Canachites canadensis;Aves;Galliformes
+2805;Canis aureus;Golden Jackal;Canis aureus;Mammalia;Carnivora
+2806;Canis lupus;Domestic Dog;Canis lupus;Mammalia;Carnivora
+2807;Canis lupus;Gray Wolf;Canis lupus;Mammalia;Carnivora
+2811;Canis latrans;Coyote;Canis latrans;Mammalia;Carnivora
+2856;Capreolus capreolus;European Roe;Capreolus capreolus;Mammalia;Artiodactyla
+2871;Caprimulgus europaeus;European Nightjar;Caprimulgus europaeus;Aves;Caprimulgiformes
+2892;Caprimulgus ruficollis;Red-necked Nightjar;Caprimulgus ruficollis;Aves;Caprimulgiformes
+2909;Cardellina canadensis;Canada Warbler;Cardellina canadensis;Aves;Passeriformes
+2910;Cardellina pusilla;Wilson's Warbler;Cardellina pusilla;Aves;Passeriformes
+2914;Cardinalis cardinalis;Northern Cardinal;Cardinalis cardinalis;Aves;Passeriformes
+2920;Linaria cannabina;Common Linnet;Linaria cannabina;Aves;Passeriformes
+2922;Carduelis carduelis;European Goldfinch;Carduelis carduelis;Aves;Passeriformes
+2923;Carduelis citrinella;Citril Finch;Carduelis citrinella;Aves;Passeriformes
+2924;Carduelis corsicana;Corsican Finch;Carduelis corsicana;Aves;Passeriformes
+2927;Linaria flavirostris;Twite;Linaria flavirostris;Aves;Passeriformes
+2929;Spinus pinus;Pine Siskin;Spinus pinus;Aves;Passeriformes
+2931;Spinus spinus;Eurasian Siskin;Spinus spinus;Aves;Passeriformes
+2951;Carpodacus erythrinus;Common Rosefinch;Carpodacus erythrinus;Aves;Passeriformes
+2961;Carpodacus rubicilla;Great Rosefinch;Carpodacus rubicilla;Aves;Passeriformes
+2979;Carpospiza brachydactyla;Pale Rockfinch;Carpospiza brachydactyla;Aves;Passeriformes
+2996;Castor canadensis;american beaver;Castor canadensis;Mammalia;Rodentia
+2997;Castor fiber;Castor fiber;Castor fiber;Mammalia;Rodentia
+3008;Cathartes aura;Turkey Vulture;Cathartes aura;Aves;Accipitriformes
+3012;Catharus bicknelli;Bicknell's Thrush;Catharus bicknelli;Aves;Passeriformes
+3017;Catharus fuscescens;Veery;Catharus fuscescens;Aves;Passeriformes
+3019;Catharus guttatus;Hermit Thrush;Catharus guttatus;Aves;Passeriformes
+3021;Catharus minimus;Grey-cheeked Thrush;Catharus minimus;Aves;Passeriformes
+3023;Catharus ustulatus;Swainson's Thrush;Catharus ustulatus;Aves;Passeriformes
+3055;Cecropis daurica;Eastern Red-rumped Swallow;Cecropis daurica;Aves;Passeriformes
+3094;Centronyx henslowii;Henslow's Sparrow;Centronyx henslowii;Aves;Passeriformes
+3137;Cepphus grylle;Black Guillemot;Cepphus grylle;Aves;Charadriiformes
+3202;Cercotrichas galactotes;Rufous-tailed Scrub Robin;Erythropygia galactotes;Aves;Passeriformes
+3216;Certhia americana;Brown Creeper;Certhia americana;Aves;Passeriformes
+3217;Certhia brachydactyla;Short-toed Treecreeper;Certhia brachydactyla;Aves;Passeriformes
+3219;Certhia familiaris;Eurasian Treecreeper;Certhia familiaris;Aves;Passeriformes
+3238;Cervus canadensis;Cervus canadensis;Cervus elaphus;Mammalia;Artiodactyla
+3239;Cervus elaphus;Red Deer;Cervus elaphus;Mammalia;Artiodactyla
+3241;Ceryle rudis;Pied Kingfisher;Ceryle rudis;Aves;Coraciiformes
+3248;Cettia cetti;Cetti's Warbler;Cettia cetti;Aves;Passeriformes
+3292;Chaetura pelagica;Chimney Swift;Chaetura pelagica;Aves;Apodiformes
+3366;Charadrius dubius;Little Ringed Plover;Charadrius dubius;Aves;Charadriiformes
+3369;Charadrius hiaticula;Common Ringed Plover;Charadrius hiaticula;Aves;Charadriiformes
+3374;Charadrius melodus;Piping Plover;Charadrius melodus;Aves;Charadriiformes
+3379;Eudromias morinellus;Eurasian Dotterel;Charadrius morinellus;Aves;Charadriiformes
+3389;Charadrius semipalmatus;Semipalmated Plover;Charadrius semipalmatus;Aves;Charadriiformes
+3393;Charadrius vociferus;Killdeer;Charadrius vociferus;Aves;Charadriiformes
+3431;Chersophilus duponti;Dupont's Lark;Chersophilus duponti;Aves;Passeriformes
+3488;Chlidonias hybrida;Whiskered Tern;Chlidonias hybrida;Aves;Charadriiformes
+3489;Chlidonias leucopterus;White-winged Tern;Chlidonias leucopterus;Aves;Charadriiformes
+3490;Chlidonias niger;Black Tern;Chlidonias niger;Aves;Charadriiformes
+3499;Chloephaga picta;Upland Goose;Chloephaga picta;Aves;Anseriformes
+3509;Chloris chloris;European Greenfinch;Chloris chloris;Aves;Passeriformes
+3610;Chondestes grammacus;Lark Sparrow;Chondestes grammacus;Aves;Passeriformes
+3616;Chordeiles minor;Common Nighthawk;Chordeiles minor;Aves;Caprimulgiformes
+3621;Chorthippus albomarginatus;Chorthippus albomarginatus;Chorthippus albomarginatus;Insecta;Orthoptera
+3624;Chorthippus apricarius;Chorthippus apricarius;Chorthippus apricarius;Insecta;Orthoptera
+3625;Chorthippus biguttulus;Chorthippus biguttulus;Chorthippus biguttulus;Insecta;Orthoptera
+3626;Chorthippus binotatus;Chorthippus binotatus;Chorthippus binotatus;Insecta;Orthoptera
+3627;Chorthippus bornhalmi;Chorthippus bornhalmi;Chorthippus bornhalmi;Insecta;Orthoptera
+3628;Chorthippus brunneus;Chorthippus brunneus;Chorthippus brunneus;Insecta;Orthoptera
+3633;Chorthippus dorsatus;Chorthippus dorsatus;Chorthippus dorsatus;Insecta;Orthoptera
+3647;Chorthippus mollis;Chorthippus mollis;Chorthippus mollis;Insecta;Orthoptera
+3651;Pseudochorthippus parallelus;Pseudochorthippus parallelus;Pseudochorthippus parallelus;Insecta;Orthoptera
+3659;Chorthippus vagans;Chorthippus vagans;Chorthippus vagans;Insecta;Orthoptera
+3673;Chroicocephalus genei;Slender-billed Gull;Chroicocephalus genei;Aves;Charadriiformes
+3677;Chroicocephalus philadelphia;Bonaparte's Gull;Chroicocephalus philadelphia;Aves;Charadriiformes
+3679;Chroicocephalus ridibundus;Black-headed Gull;Chroicocephalus ridibundus;Aves;Charadriiformes
+3689;Chrysochraon dispar;Chrysochraon dispar;Chrysochraon dispar;Insecta;Orthoptera
+3713;Chrysolophus amherstiae;Lady Amherst's Pheasant;Chrysolophus amherstiae;Aves;Galliformes
+3714;Chrysolophus pictus;Golden Pheasant;Chrysolophus pictus;Aves;Galliformes
+3739;Cicada barbara;Cicada barbara;Cicada barbara;Insecta;Hemiptera
+3740;Cicada cretensis;Cicada cretensis;Cicada cretensis;Insecta;Hemiptera
+3743;Cicada orni;Cicada orni;Cicada orni;Insecta;Hemiptera
+3745;Cicadatra atra;Cicadatra atra;Cicadatra atra;Insecta;Hemiptera
+3749;Cicadatra platyptera;Cicadatra platyptera;Cicadatra platyptera;Insecta;Hemiptera
+3787;Ciconia ciconia;White Stork;Ciconia ciconia;Aves;Ciconiiformes
+3790;Ciconia nigra;Black Stork;Ciconia nigra;Aves;Ciconiiformes
+3826;Cinclus cinclus;White-throated Dipper;Cinclus cinclus;Aves;Passeriformes
+3900;Circaetus gallicus;Short-toed Snake Eagle;Circaetus gallicus;Aves;Accipitriformes
+3905;Circus aeruginosus;Western Marsh Harrier;Circus aeruginosus;Aves;Accipitriformes
+3910;Circus cyaneus;Hen Harrier;Circus cyaneus;Aves;Accipitriformes
+3911;Circus hudsonius;Northern Harrier;Circus cyaneus;Aves;Accipitriformes
+3913;Circus macrourus;Pallid Harrier;Circus macrourus;Aves;Accipitriformes
+3917;Circus pygargus;Montagu's Harrier;Circus pygargus;Aves;Accipitriformes
+3962;Cisticola juncidis;Zitting Cisticola;Cisticola juncidis;Aves;Passeriformes
+3985;Cistothorus palustris;Marsh Wren;Cistothorus palustris;Aves;Passeriformes
+3987;Cistothorus stellaris;Sedge Wren;Cistothorus platensis;Aves;Passeriformes
+3992;Clamator glandarius;Great Spotted Cuckoo;Clamator glandarius;Aves;Cuculiformes
+3995;Clangula hyemalis;Long-tailed Duck;Clangula hyemalis;Aves;Anseriformes
+4050;Coccothraustes coccothraustes;Hawfinch;Coccothraustes coccothraustes;Aves;Passeriformes
+4051;Hesperiphona vespertina;Evening Grosbeak;Hesperiphona vespertina;Aves;Passeriformes
+4056;Coccyzus americanus;Yellow-billed Cuckoo;Coccyzus americanus;Aves;Cuculiformes
+4057;Coccyzus erythropthalmus;Black-billed Cuckoo;Coccyzus erythropthalmus;Aves;Cuculiformes
+4100;Colaptes auratus;Northern Flicker;Colaptes auratus;Aves;Piciformes
+4119;Colibri thalassinus;Mexican Violetear;Colibri thalassinus;Aves;Apodiformes
+4123;Colinus virginianus;Northern Bobwhite;Colinus virginianus;Aves;Galliformes
+4159;Coloeus monedula;Western Jackdaw;Coloeus monedula;Aves;Passeriformes
+4181;Columba bollii;Bolle's Pigeon;Columba bollii;Aves;Columbiformes
+4192;Columba livia;Rock Dove;Columba livia;Aves;Columbiformes
+4195;Columba oenas;Stock Dove;Columba oenas;Aves;Columbiformes
+4198;Columba palumbus;Common Wood Pigeon;Columba palumbus;Aves;Columbiformes
+4206;Columba trocaz;Trocaz Pigeon;Columba trocaz;Aves;Columbiformes
+4214;Columbina passerina;Common Ground Dove;Columbina passerina;Aves;Columbiformes
+4241;Conocephalus brevipennis;Short-winged Meadow Katydid;Conocephalus brevipennis;Insecta;Orthoptera
+4248;Conocephalus fuscus;Conocephalus fuscus;Conocephalus fuscus;Insecta;Orthoptera
+4249;Conocephalus dorsalis;Conocephalus dorsalis;Conocephalus dorsalis;Insecta;Orthoptera
+4252;Conocephalus fasciatus;Slender Meadow Katydid;Conocephalus fasciatus;Insecta;Orthoptera
+4305;Contopus cooperi;Olive-sided Flycatcher;Contopus cooperi;Aves;Passeriformes
+4315;Contopus sordidulus;Western Wood Pewee;Contopus sordidulus;Aves;Passeriformes
+4316;Contopus virens;Eastern Wood Pewee;Contopus virens;Aves;Passeriformes
+4337;Copsychus malabaricus;White-rumped Shama;Copsychus malabaricus;Aves;Passeriformes
+4349;Coracias garrulus;European Roller;Coracias garrulus;Aves;Coraciiformes
+4412;Coragyps atratus;Black Vulture;Coragyps atratus;Aves;Accipitriformes
+4434;Corthylio calendula;Ruby-crowned Kinglet;Regulus calendula;Aves;Passeriformes
+4438;Corvus albus;Pied Crow;Corvus albus;Aves;Passeriformes
+4440;Corvus brachyrhynchos;American Crow;Corvus brachyrhynchos;Aves;Passeriformes
+4444;Corvus corax;Northern Raven;Corvus corax;Aves;Passeriformes
+4445;Corvus cornix;Hooded Crow;Corvus cornix;Aves;Passeriformes
+4446;Corvus corone;Carrion Crow;Corvus corone;Aves;Passeriformes
+4454;Corvus frugilegus;Rook;Corvus frugilegus;Aves;Passeriformes
+4470;Corvus ossifragus;Fish Crow;Corvus ossifragus;Aves;Passeriformes
+4479;Corvus splendens;House Crow;Corvus splendens;Aves;Passeriformes
+4546;Coturnicops noveboracensis;Yellow Rail;Coturnicops noveboracensis;Aves;Gruiformes
+4548;Coturnix coturnix;Common Quail;Coturnix coturnix;Aves;Galliformes
+4550;Coturnix japonica;Japanese Quail;Coturnix japonica;Aves;Galliformes
+4627;Crex crex;Corn Crake;Crex crex;Aves;Gruiformes
+4679;Crithagra mozambica;Yellow-fronted Canary;Crithagra mozambica;Aves;Passeriformes
+4710;Crotalus atrox;Western Diamond-backed Rattlesnake;Crotalus atrox;Squamata;
+4714;Crotalus horridus;Crotalus horridus;Crotalus horridus;Squamata;
+4726;Crotophaga sulcirostris;Groove-billed Ani;Crotophaga sulcirostris;Aves;Cuculiformes
+4793;Cuculus canorus;Common Cuckoo;Cuculus canorus;Aves;Cuculiformes
+4802;Cuculus optatus;Oriental Cuckoo;Cuculus optatus;Aves;Cuculiformes
+4806;Cuculus saturatus;Himalayan Cuckoo;Cuculus saturatus;Aves;Cuculiformes
+4821;Curruca balearica;Balearic Warbler;Curruca balearica;Aves;Passeriformes
+4824;Curruca cantillans;Eastern Subalpine Warbler;Curruca cantillans;Aves;Passeriformes
+4825;Curruca communis;Common Whitethroat;Sylvia communis;Aves;Passeriformes
+4827;Curruca conspicillata;Spectacled Warbler;Sylvia conspicillata;Aves;Passeriformes
+4829;Curruca crassirostris;Eastern Orphean Warbler;Sylvia crassirostris;Aves;Passeriformes
+4830;Curruca curruca;Lesser Whitethroat;Sylvia curruca;Aves;Passeriformes
+4834;Curruca hortensis;Western Orphean Warbler;Sylvia hortensis;Aves;Passeriformes
+4836;Curruca iberiae;Western Subalpine Warbler;Curruca iberiae;Aves;Passeriformes
+4840;Curruca melanocephala;Sardinian Warbler;Curruca melanocephala;Aves;Passeriformes
+4841;Curruca melanothorax;Cyprus Warbler;Sylvia melanothorax;Aves;Passeriformes
+4843;Curruca mystacea;Menetries's Warbler;Sylvia mystacea;Aves;Passeriformes
+4845;Curruca nana;Asian Desert Warbler;Sylvia nana;Aves;Passeriformes
+4847;Curruca nisoria;Barred Warbler;Sylvia nisoria;Aves;Passeriformes
+4849;Curruca ruppeli;Rüppell's Warbler;Sylvia ruppeli;Aves;Passeriformes
+4851;Curruca sarda;Marmora's Warbler;Sylvia sarda;Aves;Passeriformes
+4852;Curruca subalpina;Moltoni's Warbler;Curruca subalpina;Aves;Passeriformes
+4854;Curruca undata;Dartford Warbler;Sylvia undata;Aves;Passeriformes
+4857;Cursorius cursor;Cream-colored Courser;Cursorius cursor;Aves;Charadriiformes
+4868;Cyanistes caeruleus;Eurasian Blue Tit;Cyanistes caeruleus;Aves;Passeriformes
+4869;Cyanistes cyanus;Azure Tit;Cyanistes cyanus;Aves;Passeriformes
+4870;Cyanistes teneriffae;African Blue Tit;Cyanistes teneriffae;Aves;Passeriformes
+4872;Cyanocitta cristata;Blue Jay;Cyanocitta cristata;Aves;Passeriformes
+4905;Cyanoliseus patagonus;Burrowing Parrot;Cyanoliseus patagonus;Aves;Psittaciformes
+4925;Cyanopica cooki;Iberian Magpie;Cyanopica cooki;Aves;Passeriformes
+4974;Cygnus atratus;Black Swan;Cygnus atratus;Aves;Anseriformes
+4975;Cygnus buccinator;Trumpeter Swan;Cygnus buccinator;Aves;Anseriformes
+4976;Cygnus columbianus;Tundra Swan;Cygnus columbianus;Aves;Anseriformes
+4977;Cygnus cygnus;Whooper Swan;Cygnus cygnus;Aves;Anseriformes
+4979;Cygnus olor;Mute Swan;Cygnus olor;Aves;Anseriformes
+4987;Cynanthus latirostris;Broad-billed Hummingbird;Cynanthus latirostris;Aves;Apodiformes
+5072;Cyrtoxipha columbiana;Columbian trig;Cyrtoxipha columbiana;Insecta;Orthoptera
+5104;Dama dama;Dama dama;Dama dama;Mammalia;Artiodactyla
+5114;Phalcoboenus australis;Striated Caracara;Phalcoboenus australis;Aves;Falconiformes
+5150;Decticus albifrons;Decticus albifrons;Decticus albifrons;Insecta;Orthoptera
+5152;Decticus verrucivorus;Decticus verrucivorus;Decticus verrucivorus;Insecta;Orthoptera
+5159;Delichon urbicum;Western House Martin;Delichon urbicum;Aves;Passeriformes
+5161;Delphinapterus leucas;beluga;Delphinapterus leucas;Mammalia;Cetacea
+5205;Dendrocopos leucotos;White-backed Woodpecker;Dendrocopos leucotos;Aves;Piciformes
+5207;Dendrocopos major;Great Spotted Woodpecker;Dendrocopos major;Aves;Piciformes
+5208;Dendrocoptes medius;Middle Spotted Woodpecker;Dendrocoptes medius;Aves;Piciformes
+5210;Dryobates minor;Lesser Spotted Woodpecker;Dryobates minor;Aves;Piciformes
+5213;Dendrocopos syriacus;Syrian Woodpecker;Dendrocopos syriacus;Aves;Piciformes
+5218;Dendrocygna autumnalis;Black-bellied Whistling Duck;Dendrocygna autumnalis;Aves;Anseriformes
+5219;Dendrocygna bicolor;Fulvous Whistling Duck;Dendrocygna bicolor;Aves;Anseriformes
+5223;Dendrocygna viduata;White-faced Whistling Duck;Dendrocygna viduata;Aves;Anseriformes
+5394;Megatibicen grossa;Megatibicen grossa;Diceroprocta grossa;Insecta;Hemiptera
+5403;Diceroprocta viridifascia;Diceroprocta viridifascia;Diceroprocta viridifascia;Insecta;Hemiptera
+5469;Dimissalna dimissa;Dimissalna dimissa;Dimissalna dimissa;Insecta;Hemiptera
+5512;Dolichonyx oryzivorus;Bobolink;Dolichonyx oryzivorus;Aves;Passeriformes
+5594;Dryobates pubescens;Downy Woodpecker;Dryobates pubescens;Aves;Piciformes
+5602;Leuconotopicus villosus;Hairy Woodpecker;Leuconotopicus villosus;Aves;Piciformes
+5607;Dryocopus martius;Black Woodpecker;Dryocopus martius;Aves;Piciformes
+5608;Dryocopus pileatus;Pileated Woodpecker;Dryocopus pileatus;Aves;Piciformes
+5611;Dryophytes andersonii;Pine Barrens Treefrog;Dryophytes andersonii;Amphibia;Anura
+5620;Dryophytes chrysoscelis;Cope's Gray Treefrog;Dryophytes chrysoscelis;Amphibia;Anura
+5624;Dryophytes cinereus;Green Treefrog;Dryophytes cinereus;Amphibia;Anura
+5630;Dryophytes gratiosus;Barking Treefrog;Dryophytes gratiosus;Amphibia;Anura
+5638;Dryophytes squirellus;Squirrel Treefrog;Dryophytes squirellus;Amphibia;Anura
+5640;Dryophytes versicolor;Gray Treefrog;Dryophytes versicolor;Amphibia;Anura
+5704;Dumetella carolinensis;Grey Catbird;Dumetella carolinensis;Aves;Passeriformes
+5765;Egretta caerulea;Little Blue Heron;Egretta caerulea;Aves;Pelecaniformes
+5768;Egretta garzetta;Little Egret;Egretta garzetta;Aves;Pelecaniformes
+5769;Egretta gularis;Western Reef Heron;Egretta gularis;Aves;Pelecaniformes
+5774;Egretta thula;Snowy Egret;Egretta thula;Aves;Pelecaniformes
+5775;Egretta tricolor;Tricolored Heron;Egretta tricolor;Aves;Pelecaniformes
+5811;Elanoides forficatus;Swallow-tailed Kite;Elanoides forficatus;Aves;Accipitriformes
+5813;Elanus caeruleus;Black-winged Kite;Elanus caeruleus;Aves;Accipitriformes
+5887;Eliomys quercinus;Eliomys quercinus;Eliomys quercinus;Mammalia;Rodentia
+5900;Emberiza aureola;Yellow-breasted Bunting;Emberiza aureola;Aves;Passeriformes
+5901;Emberiza bruniceps;Red-headed Bunting;Emberiza bruniceps;Aves;Passeriformes
+5902;Emberiza buchanani;Grey-necked Bunting;Emberiza buchanani;Aves;Passeriformes
+5904;Emberiza caesia;Cretzschmar's Bunting;Emberiza caesia;Aves;Passeriformes
+5905;Emberiza calandra;Corn Bunting;Emberiza calandra;Aves;Passeriformes
+5907;Emberiza chrysophrys;Yellow-browed Bunting;Emberiza chrysophrys;Aves;Passeriformes
+5908;Emberiza cia;Rock Bunting;Emberiza cia;Aves;Passeriformes
+5909;Emberiza cineracea;Cinereous Bunting;Emberiza cineracea;Aves;Passeriformes
+5911;Emberiza cirlus;Cirl Bunting;Emberiza cirlus;Aves;Passeriformes
+5912;Emberiza citrinella;Yellowhammer;Emberiza citrinella;Aves;Passeriformes
+5918;Emberiza hortulana;Ortolan Bunting;Emberiza hortulana;Aves;Passeriformes
+5922;Emberiza lathami;Crested Bunting;Emberiza lathami;Aves;Passeriformes
+5923;Emberiza leucocephalos;Pine Bunting;Emberiza leucocephalos;Aves;Passeriformes
+5924;Emberiza melanocephala;Black-headed Bunting;Emberiza melanocephala;Aves;Passeriformes
+5928;Emberiza pusilla;Little Bunting;Emberiza pusilla;Aves;Passeriformes
+5929;Emberiza rustica;Rustic Bunting;Emberiza rustica;Aves;Passeriformes
+5932;Emberiza schoeniclus;Common Reed Bunting;Emberiza schoeniclus;Aves;Passeriformes
+5934;Emberiza spodocephala;Black-faced Bunting;Emberiza spodocephala;Aves;Passeriformes
+5953;Empidonax alnorum;Alder Flycatcher;Empidonax alnorum;Aves;Passeriformes
+5955;Empidonax difficilis;Western Flycatcher;Empidonax difficilis;Aves;Passeriformes
+5957;Empidonax flaviventris;Yellow-bellied Flycatcher;Empidonax flaviventris;Aves;Passeriformes
+5959;Empidonax hammondii;Hammond's Flycatcher;Empidonax hammondii;Aves;Passeriformes
+5960;Empidonax minimus;Least Flycatcher;Empidonax minimus;Aves;Passeriformes
+5963;Empidonax traillii;Willow Flycatcher;Empidonax traillii;Aves;Passeriformes
+5964;Empidonax virescens;Acadian Flycatcher;Empidonax virescens;Aves;Passeriformes
+5965;Empidonax wrightii;American Grey Flycatcher;Empidonax wrightii;Aves;Passeriformes
+6024;Ephippiger diurnus;Ephippiger diurnus;Ephippiger diurnus;Insecta;Orthoptera
+6025;Ephippiger ephippiger;Ephippiger ephippiger;Ephippiger ephippiger;Insecta;Orthoptera
+6076;Eptesicus serotinus;Eptesicus serotinus;Eptesicus serotinus;Mammalia;Chiroptera
+6113;Eremophila alpestris;Horned Lark;Eremophila alpestris;Aves;Passeriformes
+6123;Erethizon dorsata;Common Porcupine;Erethizon dorsatus;Mammalia;Rodentia
+6132;Erinaceus europaeus;West European Hedgehog;Erinaceus europaeus;Mammalia;Erinaceomorpha
+6151;Erithacus rubecula;European Robin;Erithacus rubecula;Aves;Passeriformes
+6202;Estrilda astrild;Common Waxbill;Estrilda astrild;Aves;Passeriformes
+6207;Estrilda melpoda;Orange-cheeked Waxbill;Estrilda melpoda;Aves;Passeriformes
+6216;Estrilda troglodytes;Black-rumped Waxbill;Estrilda troglodytes;Aves;Passeriformes
+6225;Euchorthippus declivus;Euchorthippus declivus;Euchorthippus declivus;Insecta;Orthoptera
+6238;Eudocimus albus;American White Ibis;Eudocimus albus;Aves;Pelecaniformes
+6279;Eumodicogryllus bordigalensis;Eumodicogryllus bordigalensis;Eumodicogryllus bordigalensis;Insecta;Orthoptera
+6294;Eunemobius carolinus;Carolina Ground Cricket;Eunemobius carolinus;Insecta;Orthoptera
+6302;Euodice malabarica;Indian Silverbill;Euodice malabarica;Aves;Passeriformes
+6309;Euphagus carolinus;Rusty Blackbird;Euphagus carolinus;Aves;Passeriformes
+6310;Euphagus cyanocephalus;Brewer's Blackbird;Euphagus cyanocephalus;Aves;Passeriformes
+6368;Euplectes afer;Yellow-crowned Bishop;Euplectes afer;Aves;Passeriformes
+6482;Falco columbarius;Merlin;Falco columbarius;Aves;Falconiformes
+6487;Falco eleonorae;Eleonora's Falcon;Falco eleonorae;Aves;Falconiformes
+6495;Falco naumanni;Lesser Kestrel;Falco naumanni;Aves;Falconiformes
+6498;Falco peregrinus;Peregrine Falcon;Falco peregrinus;Aves;Falconiformes
+6503;Falco rusticolus;Gyrfalcon;Falco rusticolus;Aves;Falconiformes
+6505;Falco sparverius;American Kestrel;Falco sparverius;Aves;Falconiformes
+6506;Falco subbuteo;Eurasian Hobby;Falco subbuteo;Aves;Falconiformes
+6508;Falco tinnunculus;Common Kestrel;Falco tinnunculus;Aves;Falconiformes
+6509;Falco vespertinus;Red-footed Falcon;Falco vespertinus;Aves;Falconiformes
+6524;Felis catus;Domestic Cat;Felis catus;Mammalia;Carnivora
+6528;Felis silvestris f. domestica;Felis silvestris f. domestica;Felis silvestris;Mammalia;Carnivora
+6532;Ficedula albicilla;Taiga Flycatcher;Ficedula albicilla;Aves;Passeriformes
+6533;Ficedula albicollis;Collared Flycatcher;Ficedula albicollis;Aves;Passeriformes
+6547;Ficedula hypoleuca;European Pied Flycatcher;Ficedula hypoleuca;Aves;Passeriformes
+6552;Ficedula parva;Red-breasted Flycatcher;Ficedula parva;Aves;Passeriformes
+6558;Ficedula semitorquata;Semicollared Flycatcher;Ficedula semitorquata;Aves;Passeriformes
+6626;Francolinus francolinus;Black Francolin;Francolinus francolinus;Aves;Galliformes
+6642;Fratercula arctica;Atlantic Puffin;Fratercula arctica;Aves;Charadriiformes
+6653;Fregata magnificens;Magnificent Frigatebird;Fregata magnificens;Aves;Suliformes
+6658;Fringilla coelebs;Eurasian Chaffinch;Fringilla coelebs;Aves;Passeriformes
+6660;Fringilla montifringilla;Brambling;Fringilla montifringilla;Aves;Passeriformes
+6664;Fringilla teydea;Tenerife Blue Chaffinch;Fringilla teydea;Aves;Passeriformes
+6672;Fulica americana;American Coot;Fulica americana;Aves;Gruiformes
+6675;Fulica atra;Eurasian Coot;Fulica atra;Aves;Gruiformes
+6677;Fulica cristata;Red-knobbed Coot;Fulica cristata;Aves;Gruiformes
+6681;Fulmarus glacialis;Northern Fulmar;Fulmarus glacialis;Aves;Procellariiformes
+6736;Galerida cristata;Crested Lark;Galerida cristata;Aves;Passeriformes
+6742;Galerida theklae;Thekla's Lark;Galerida theklae;Aves;Passeriformes
+6754;Gallinago delicata;Wilson's Snipe;Gallinago delicata;Aves;Charadriiformes
+6755;Gallinago gallinago;Common Snipe;Gallinago gallinago;Aves;Charadriiformes
+6761;Gallinago media;Great Snipe;Gallinago media;Aves;Charadriiformes
+6762;Gallinago megala;Swinhoe's Snipe;Gallinago megala;Aves;Charadriiformes
+6768;Gallinago stenura;Pin-tailed Snipe;Gallinago stenura;Aves;Charadriiformes
+6772;Gallinula chloropus;Common Moorhen;Gallinula chloropus;Aves;Gruiformes
+6773;Gallinula galeata;Common Gallinule;Gallinula chloropus;Aves;Gruiformes
+6804;Gallus gallus;Red Junglefowl;Gallus gallus;Aves;Galliformes
+6812;Gampsocleis glabra;Gampsocleis glabra;Gampsocleis glabra;Insecta;Orthoptera
+6870;Garrulus glandarius;Eurasian Jay;Garrulus glandarius;Aves;Passeriformes
+6875;Gastrophryne carolinensis;Eastern Narrow-mouthed Toad;Gastrophryne carolinensis;Amphibia;Anura
+6900;Gavia adamsii;Yellow-billed Loon;Gavia adamsii;Aves;Gaviiformes
+6901;Gavia arctica;Black-throated Loon;Gavia arctica;Aves;Gaviiformes
+6902;Gavia immer;Common Loon;Gavia immer;Aves;Gaviiformes
+6903;Gavia pacifica;Pacific Loon;Gavia pacifica;Aves;Gaviiformes
+6904;Gavia stellata;Red-throated Loon;Gavia stellata;Aves;Gaviiformes
+6920;Gelochelidon nilotica;Gull-billed Tern;Gelochelidon nilotica;Aves;Charadriiformes
+6956;Geokichla sibirica;Siberian Thrush;Geokichla sibirica;Aves;Passeriformes
+6959;Geopelia cuneata;Diamond Dove;Geopelia cuneata;Aves;Columbiformes
+6993;Geothlypis formosa;Kentucky Warbler;Geothlypis formosa;Aves;Passeriformes
+6995;Geothlypis philadelphia;Mourning Warbler;Geothlypis philadelphia;Aves;Passeriformes
+7000;Geothlypis tolmiei;MacGillivray's Warbler;Geothlypis tolmiei;Aves;Passeriformes
+7001;Geothlypis trichas;Common Yellowthroat;Geothlypis trichas;Aves;Passeriformes
+7021;Geronticus eremita;Northern Bald Ibis;Geronticus eremita;Aves;Pelecaniformes
+7052;Glareola nordmanni;Black-winged Pratincole;Glareola nordmanni;Aves;Charadriiformes
+7055;Glareola pratincola;Collared Pratincole;Glareola pratincola;Aves;Charadriiformes
+7080;Glaucidium passerinum;Eurasian Pygmy Owl;Glaucidium passerinum;Aves;Strigiformes
+7092;Glaucomys volans;southern flying squirrel;Glaucomys volans;Mammalia;Rodentia
+7101;Glis glis;Glis glis;Glis glis;Mammalia;Rodentia
+7121;Gomphocerippus rufus;Gomphocerippus rufus;Gomphocerippus rufus;Insecta;Orthoptera
+7122;Gomphocerus sibiricus;Gomphocerus sibiricus;Gomphocerus sibiricus;Insecta;Orthoptera
+7226;Grus grus;Common Crane;Grus grus;Aves;Gruiformes
+7236;Gryllodes sigillatus;Gryllodes sigillatus;Gryllodes sigillatus;Insecta;Orthoptera
+7243;Gryllotalpa gryllotalpa;Gryllotalpa gryllotalpa;Gryllotalpa gryllotalpa;Insecta;Orthoptera
+7252;Gryllotalpa vineae;Gryllotalpa vineae;Gryllotalpa vineae;Insecta;Orthoptera
+7256;Gryllus assimilis;Gryllus assimilis;Gryllus assimilis;Insecta;Orthoptera
+7258;Gryllus bimaculatus;Gryllus bimaculatus;Gryllus bimaculatus;Insecta;Orthoptera
+7259;Gryllus campestris;Field Cricket;Gryllus campestris;Insecta;Orthoptera
+7263;Gryllus firmus;Gryllus firmus;Gryllus firmus;Insecta;Orthoptera
+7264;Gryllus fultoni;southern wood cricket ;Gryllus fultoni;Insecta;Orthoptera
+7275;Gryllus pennsylvanicus;fall field cricket;Gryllus pennsylvanicus;Insecta;Orthoptera
+7278;Gryllus rubens;southeastern field cricket;Gryllus rubens;Insecta;Orthoptera
+7284;Gryllus veletis;spring field cricket ;Gryllus veletis;Insecta;Orthoptera
+7291;Gubernatrix cristata;Yellow Cardinal;Gubernatrix cristata;Aves;Passeriformes
+7295;Gulosus aristotelis;European Shag;Phalacrocorax aristotelis;Aves;Suliformes
+7339;Gymnoris xanthocollis;Yellow-throated Sparrow;Gymnoris xanthocollis;Aves;Passeriformes
+7348;Gyps fulvus;Griffon Vulture;Gyps fulvus;Aves;Accipitriformes
+7389;Haematopus ostralegus;Eurasian Oystercatcher;Haematopus ostralegus;Aves;Charadriiformes
+7390;Haematopus palliatus;American Oystercatcher;Haematopus palliatus;Aves;Charadriiformes
+7397;Haemorhous mexicanus;House Finch;Haemorhous mexicanus;Aves;Passeriformes
+7398;Haemorhous purpureus;Purple Finch;Haemorhous purpureus;Aves;Passeriformes
+7422;Halcyon smyrnensis;White-throated Kingfisher;Halcyon smyrnensis;Aves;Coraciiformes
+7423;Haliaeetus albicilla;White-tailed Eagle;Haliaeetus albicilla;Aves;Accipitriformes
+7426;Haliaeetus leucocephalus;Bald Eagle;Haliaeetus leucocephalus;Aves;Accipitriformes
+7429;Haliaeetus leucoryphus;Pallas's Fish Eagle;Haliaeetus leucoryphus;Aves;Accipitriformes
+7430;Haliaeetus pelagicus;Steller's Sea Eagle;Haliaeetus pelagicus;Aves;Accipitriformes
+7439;Halichoerus grypus;Atlantic gray seal;Halichoerus grypus;Mammalia;Carnivora
+7465;Hapithus saltator;Hapithus saltator;Hapithus saltator;Insecta;Orthoptera
+7557;Helmitheros vermivorum;Worm-eating Warbler;Helmitheros vermivorum;Aves;Passeriformes
+7703;Hieraaetus pennatus;Booted Eagle;Hieraaetus pennatus;Aves;Accipitriformes
+7710;Himantopus himantopus;Black-winged Stilt;Himantopus himantopus;Aves;Charadriiformes
+7713;Himantopus mexicanus;Black-necked Stilt;Himantopus mexicanus;Aves;Charadriiformes
+7717;Hippolais icterina;Icterine Warbler;Hippolais icterina;Aves;Passeriformes
+7718;Hippolais languida;Upcher's Warbler;Hippolais languida;Aves;Passeriformes
+7719;Hippolais olivetorum;Olive-tree Warbler;Hippolais olivetorum;Aves;Passeriformes
+7720;Hippolais polyglotta;Melodious Warbler;Hippolais polyglotta;Aves;Passeriformes
+7744;Hirundo rustica;Barn Swallow;Hirundo rustica;Aves;Passeriformes
+7754;Histrionicus histrionicus;Harlequin Duck;Histrionicus histrionicus;Aves;Anseriformes
+7767;Homo sapiens;human;Homo sapiens;Mammalia;Primates
+7833;Hydrobates castro;Band-rumped Storm Petrel;Oceanodroma castro;Aves;Procellariiformes
+7841;Hydrobates leucorhous;Leach's Storm Petrel;Oceanodroma leucorhoa;Aves;Procellariiformes
+7847;Hydrobates pelagicus;European Storm Petrel;Hydrobates pelagicus;Aves;Procellariiformes
+7854;Hydrocoloeus minutus;Little Gull;Hydrocoloeus minutus;Aves;Charadriiformes
+7859;Hydroprogne caspia;Caspian Tern;Hydroprogne caspia;Aves;Charadriiformes
+7881;Hyla arborea;Hyla arborea;Hyla arborea;Amphibia;Anura
+7886;Hyla intermedia;Hyla intermedia;Hyla intermedia;Amphibia;Anura
+7887;Hyla meridionalis;Hyla meridionalis;Hyla meridionalis;Amphibia;Anura
+7889;Hyla orientalis;Hyla orientalis;Hyla orientalis;Amphibia;Anura
+7890;Hyla sarda;Hyla sarda;Hyla sarda;Amphibia;Anura
+7942;Hylocichla mustelina;Wood Thrush;Hylocichla mustelina;Aves;Passeriformes
+8140;Ichthyaetus audouinii;Audouin's Gull;Ichthyaetus audouinii;Aves;Charadriiformes
+8142;Ichthyaetus ichthyaetus;Pallas's Gull;Ichthyaetus ichthyaetus;Aves;Charadriiformes
+8145;Ichthyaetus melanocephalus;Mediterranean Gull;Ichthyaetus melanocephalus;Aves;Charadriiformes
+8150;Icteria virens;Yellow-breasted Chat;Icteria virens;Aves;Passeriformes
+8155;Icterus bullockii;Bullock's Oriole;Icterus bullockii;Aves;Passeriformes
+8166;Icterus galbula;Baltimore Oriole;Icterus galbula;Aves;Passeriformes
+8182;Icterus spurius;Orchard Oriole;Icterus spurius;Aves;Passeriformes
+8189;Ictinia mississippiensis;Mississippi Kite;Ictinia mississippiensis;Aves;Accipitriformes
+8206;Iduna caligata;Booted Warbler;Iduna caligata;Aves;Passeriformes
+8208;Iduna opaca;Western Olivaceous Warbler;Iduna opaca;Aves;Passeriformes
+8209;Iduna pallida;Eastern Olivaceous Warbler;Iduna pallida;Aves;Passeriformes
+8210;Iduna rama;Sykes's Warbler;Iduna rama;Aves;Passeriformes
+8306;Irania gutturalis;White-throated Robin;Irania gutturalis;Aves;Passeriformes
+8352;Isophya modestior;Isophya modestior;Isophya modestior;Insecta;Orthoptera
+8397;Botaurus exilis;Least Bittern;Ixobrychus exilis;Aves;Pelecaniformes
+8399;Botaurus minutus;Little Bittern;Ixobrychus minutus;Aves;Pelecaniformes
+8407;Ixoreus naevius;Varied Thrush;Ixoreus naevius;Aves;Passeriformes
+8433;Junco hyemalis;Dark-eyed Junco;Junco hyemalis;Aves;Passeriformes
+8441;Jynx torquilla;Eurasian Wryneck;Jynx torquilla;Aves;Piciformes
+8471;Ketupa zeylonensis;Brown Fish Owl;Ketupa zeylonensis;Aves;Strigiformes
+8554;Lagopus lagopus;Willow Ptarmigan;Lagopus lagopus;Aves;Galliformes
+8556;Lagopus muta;Rock Ptarmigan;Lagopus muta;Aves;Galliformes
+8654;Lanius borealis;Northern Shrike;Lanius borealis;Aves;Passeriformes
+8658;Lanius collurio;Red-backed Shrike;Lanius collurio;Aves;Passeriformes
+8660;Lanius cristatus;Brown Shrike;Lanius cristatus;Aves;Passeriformes
+8662;Lanius excubitor;Great Grey Shrike;Lanius excubitor;Aves;Passeriformes
+8667;Lanius isabellinus;Isabelline Shrike;Lanius isabellinus;Aves;Passeriformes
+8668;Lanius ludovicianus;Loggerhead Shrike;Lanius ludovicianus;Aves;Passeriformes
+8672;Lanius meridionalis;Iberian Grey Shrike;Lanius meridionalis;Aves;Passeriformes
+8673;Lanius minor;Lesser Grey Shrike;Lanius minor;Aves;Passeriformes
+8675;Lanius nubicus;Masked Shrike;Lanius nubicus;Aves;Passeriformes
+8676;Lanius phoenicuroides;Red-tailed Shrike;Lanius phoenicuroides;Aves;Passeriformes
+8678;Lanius senator;Woodchat Shrike;Lanius senator;Aves;Passeriformes
+8693;Larus argentatus;European Herring Gull;Larus argentatus;Aves;Charadriiformes
+8697;Larus brachyrhynchus;Short-billed Gull;Larus brachyrhynchus;Aves;Charadriiformes
+8698;Larus cachinnans;Caspian Gull;Larus cachinnans;Aves;Charadriiformes
+8700;Larus canus;Common Gull;Larus canus;Aves;Charadriiformes
+8702;Larus delawarensis;Ring-billed Gull;Larus delawarensis;Aves;Charadriiformes
+8704;Larus fuscus;Lesser Black-backed Gull;Larus fuscus;Aves;Charadriiformes
+8705;Larus glaucescens;Glaucous-winged Gull;Larus glaucescens;Aves;Charadriiformes
+8706;Larus glaucoides;Iceland Gull;Larus glaucoides;Aves;Charadriiformes
+8707;Larus heermanni;Heermann's Gull;Larus heermanni;Aves;Charadriiformes
+8708;Larus hyperboreus;Glaucous Gull;Larus hyperboreus;Aves;Charadriiformes
+8710;Larus marinus;Great Black-backed Gull;Larus marinus;Aves;Charadriiformes
+8711;Larus michahellis;Yellow-legged Gull;Larus michahellis;Aves;Charadriiformes
+8715;Larus schistisagus;Slaty-backed Gull;Larus schistisagus;Aves;Charadriiformes
+8716;Larus smithsonianus;American Herring Gull;Larus smithsonianus;Aves;Charadriiformes
+8732;Laterallus jamaicensis;Black Rail;Laterallus jamaicensis;Aves;Gruiformes
+8760;Leiothlypis celata;Orange-crowned Warbler;Leiothlypis celata;Aves;Passeriformes
+8763;Leiothlypis peregrina;Tennessee Warbler;Leiothlypis peregrina;Aves;Passeriformes
+8764;Leiothlypis ruficapilla;Nashville Warbler;Leiothlypis ruficapilla;Aves;Passeriformes
+8765;Leiothlypis virginiae;Virginia's Warbler;Leiothlypis virginiae;Aves;Passeriformes
+8767;Leiothrix lutea;Red-billed Leiothrix;Leiothrix lutea;Aves;Passeriformes
+8945;Leptophyes laticauda;Leptophyes laticauda;Leptophyes laticauda;Insecta;Orthoptera
+8948;Leptophyes punctatissima;Leptophyes punctatissima;Leptophyes punctatissima;Insecta;Orthoptera
+9009;Leucophaeus atricilla;Laughing Gull;Leucophaeus atricilla;Aves;Charadriiformes
+9012;Leucophaeus pipixcan;Franklin's Gull;Leucophaeus pipixcan;Aves;Charadriiformes
+9059;Limnodromus griseus;Short-billed Dowitcher;Limnodromus griseus;Aves;Charadriiformes
+9060;Limnodromus scolopaceus;Long-billed Dowitcher;Limnodromus scolopaceus;Aves;Charadriiformes
+9065;Limnodynastes dumerilii;Limnodynastes dumerilii;Limnodynastes dumerilii;Amphibia;Anura
+9086;Limnothlypis swainsonii;Swainson's Warbler;Limnothlypis swainsonii;Aves;Passeriformes
+9088;Limosa fedoa;Marbled Godwit;Limosa fedoa;Aves;Charadriiformes
+9089;Limosa haemastica;Hudsonian Godwit;Limosa haemastica;Aves;Charadriiformes
+9090;Limosa lapponica;Bar-tailed Godwit;Limosa lapponica;Aves;Charadriiformes
+9091;Limosa limosa;Black-tailed Godwit;Limosa limosa;Aves;Charadriiformes
+9135;Lithobates catesbeianus;American Bullfrog;Lithobates catesbeianus;Amphibia;Anura
+9137;Lithobates clamitans;Green Frog;Lithobates clamitans;Amphibia;Anura
+9140;Lithobates kauffeldi;Atlantic Coast Leopard Frog;Lithobates kauffeldi;Amphibia;Anura
+9145;Lithobates palustris;Pickerel Frog;Lithobates palustris;Amphibia;Anura
+9146;Lithobates pipiens;Northern Leopard Frog;Lithobates pipiens;Amphibia;Anura
+9147;Lithobates septentrionalis;Mink Frog;Lithobates septentrionalis;Amphibia;Anura
+9149;Lithobates sphenocephalus;Southern Leopard Frog;Lithobates sphenocephalus;Amphibia;Anura
+9150;Lithobates sylvaticus;Wood Frog;Lithobates sylvaticus;Amphibia;Anura
+9154;Lithobates virgatipes;Carpenter Frog;Lithobates virgatipes;Amphibia;Anura
+9221;Locustella fluviatilis;River Warbler;Locustella fluviatilis;Aves;Passeriformes
+9225;Locustella lanceolata;Lanceolated Warbler;Locustella lanceolata;Aves;Passeriformes
+9226;Locustella luscinioides;Savi's Warbler;Locustella luscinioides;Aves;Passeriformes
+9230;Locustella naevia;Common Grasshopper Warbler;Locustella naevia;Aves;Passeriformes
+9267;Lonchura punctulata;Scaly-breasted Munia;Lonchura punctulata;Aves;Passeriformes
+9277;Lontra canadensis;North American River Otter;Lontra canadensis;Mammalia;Carnivora
+9295;Lophodytes cucullatus;Hooded Merganser;Lophodytes cucullatus;Aves;Anseriformes
+9299;Lophophanes cristatus;Crested Tit;Lophophanes cristatus;Aves;Passeriformes
+9366;Loxia curvirostra;Red Crossbill;Loxia curvirostra;Aves;Passeriformes
+9367;Loxia leucoptera;Two-barred Crossbill;Loxia leucoptera;Aves;Passeriformes
+9369;Loxia pytyopsittacus;Parrot Crossbill;Loxia pytyopsittacus;Aves;Passeriformes
+9370;Loxia scotica;Scottish Crossbill;Loxia scotica;Aves;Passeriformes
+9391;Lullula arborea;Woodlark;Lullula arborea;Aves;Passeriformes
+9399;Luscinia luscinia;Thrush Nightingale;Luscinia luscinia;Aves;Passeriformes
+9400;Luscinia megarhynchos;Common Nightingale;Luscinia megarhynchos;Aves;Passeriformes
+9402;Luscinia svecica;Bluethroat;Luscinia svecica;Aves;Passeriformes
+9406;Lutra lutra;Lutra lutra;Lutra lutra;Mammalia;Carnivora
+9434;Lymnocryptes minimus;Jack Snipe;Lymnocryptes minimus;Aves;Charadriiformes
+9438;Lynx lynx;Lynx lynx;Lynx lynx;Mammalia;Carnivora
+9439;Lynx rufus;Bobcat;Lynx rufus;Mammalia;Carnivora
+9441;Lyristes plebejus;Lyristes plebejus;Lyristes plebejus;Insecta;Hemiptera
+9443;Lyrurus tetrix;Black Grouse;Lyrurus tetrix;Aves;Galliformes
+9555;Magicicada cassini;Dwarf Periodical Cicada;Magicicada cassini;Insecta;Hemiptera
+9558;Magicicada septendecim;Pharaoh Cicada;Magicicada septendecim;Insecta;Hemiptera
+9559;Magicicada septendecula;Magicicada septendecula;Magicicada septendecula;Insecta;Hemiptera
+9561;Magicicada tredecim;Magicicada tredecim;Magicicada tredecim;Insecta;Hemiptera
+9654;Mareca americana;American Wigeon;Mareca americana;Aves;Anseriformes
+9671;Marmota marmota;Marmota marmota;Marmota marmota;Mammalia;Rodentia
+9672;Marmota monax;woodchuck;Marmota monax;Mammalia;Rodentia
+9680;Martes foina;Martes foina;Martes foina;Mammalia;Carnivora
+9721;Megaceryle alcyon;Belted Kingfisher;Megaceryle alcyon;Aves;Coraciiformes
+9758;Megaptera novaeangliae;Humpback Whale;Megaptera novaeangliae;Mammalia;Cetacea
+9762;Megascops asio;Eastern Screech Owl;Megascops asio;Aves;Strigiformes
+9834;Melanerpes carolinus;Red-bellied Woodpecker;Melanerpes carolinus;Aves;Piciformes
+9838;Melanerpes erythrocephalus;Red-headed Woodpecker;Melanerpes erythrocephalus;Aves;Piciformes
+9871;Melanitta americana;Black Scoter;Melanitta americana;Aves;Anseriformes
+9873;Melanitta fusca;Velvet Scoter;Melanitta fusca;Aves;Anseriformes
+9874;Melanitta nigra;Common Scoter;Melanitta nigra;Aves;Anseriformes
+9875;Melanitta perspicillata;Surf Scoter;Melanitta perspicillata;Aves;Anseriformes
+9885;Melanocorypha bimaculata;Bimaculated Lark;Melanocorypha bimaculata;Aves;Passeriformes
+9886;Melanocorypha calandra;Calandra Lark;Melanocorypha calandra;Aves;Passeriformes
+9899;Melanogryllus desertus;Melanogryllus desertus;Melanogryllus desertus;Insecta;Orthoptera
+9923;Meleagris gallopavo;Wild Turkey;Meleagris gallopavo;Aves;Galliformes
+9990;Melopsittacus undulatus;Budgerigar;Melopsittacus undulatus;Aves;Psittaciformes
+9995;Melospiza georgiana;Swamp Sparrow;Melospiza georgiana;Aves;Passeriformes
+9996;Melospiza lincolnii;Lincoln's Sparrow;Melospiza lincolnii;Aves;Passeriformes
+9997;Melospiza melodia;Song Sparrow;Melospiza melodia;Aves;Passeriformes
+10007;Menelikornis leucotis;White-cheeked Turaco;Tauraco leucotis;Aves;Musophagiformes
+10021;Mergus merganser;Common Merganser;Mergus merganser;Aves;Anseriformes
+10023;Mergus serrator;Red-breasted Merganser;Mergus serrator;Aves;Anseriformes
+10031;Merops apiaster;European Bee-eater;Merops apiaster;Aves;Coraciiformes
+10045;Merops nubicus;Northern Carmine Bee-eater;Merops nubicus;Aves;Coraciiformes
+10049;Merops persicus;Blue-cheeked Bee-eater;Merops persicus;Aves;Coraciiformes
+10088;Metrioptera brachyptera;Metrioptera brachyptera;Metrioptera brachyptera;Insecta;Orthoptera
+10118;Microcentrum retinerve;lesser angle-wing;Microcentrum retinerve;Insecta;Orthoptera
+10119;Microcentrum rhombifolium;greater angle-wing;Microcentrum rhombifolium;Insecta;Orthoptera
+10200;Brachypodius melanocephalos;Black-headed Bulbul;Brachypodius melanocephalos;Aves;Passeriformes
+10217;Milvus migrans;Black Kite;Milvus migrans;Aves;Accipitriformes
+10218;Milvus milvus;Red Kite;Milvus milvus;Aves;Accipitriformes
+10230;Mimus polyglottos;Northern Mockingbird;Mimus polyglottos;Aves;Passeriformes
+10307;Mniotilta varia;Black-and-white Warbler;Mniotilta varia;Aves;Passeriformes
+10334;Molothrus ater;Brown-headed Cowbird;Molothrus ater;Aves;Passeriformes
+10404;Monticola saxatilis;Common Rock Thrush;Monticola saxatilis;Aves;Passeriformes
+10407;Monticola solitarius;Blue Rock Thrush;Monticola solitarius;Aves;Passeriformes
+10412;Montifringilla nivalis;White-winged Snowfinch;Montifringilla nivalis;Aves;Passeriformes
+10424;Morus bassanus;Northern Gannet;Morus bassanus;Aves;Suliformes
+10428;Motacilla alba;White Wagtail;Motacilla alba;Aves;Passeriformes
+10430;Motacilla cinerea;Grey Wagtail;Motacilla cinerea;Aves;Passeriformes
+10431;Motacilla citreola;Citrine Wagtail;Motacilla citreola;Aves;Passeriformes
+10433;Motacilla flava;Western Yellow Wagtail;Motacilla flava;Aves;Passeriformes
+10438;Motacilla tschutschensis;Eastern Yellow Wagtail;Motacilla tschutschensis;Aves;Passeriformes
+10451;Muntiacus reevesi;Muntiacus reevesi;Muntiacus reevesi;Mammalia;Artiodactyla
+10472;Muscicapa striata;Spotted Flycatcher;Muscicapa striata;Aves;Passeriformes
+10474;Muscicapa tyrrhenica;Mediterranean Flycatcher;Muscicapa tyrrhenica;Aves;Passeriformes
+10517;Myadestes townsendi;Townsend's Solitaire;Myadestes townsendi;Aves;Passeriformes
+10524;Mycteria americana;Wood Stork;Mycteria americana;Aves;Ciconiiformes
+10560;Myiarchus cinerascens;Ash-throated Flycatcher;Myiarchus cinerascens;Aves;Passeriformes
+10561;Myiarchus crinitus;Great Crested Flycatcher;Myiarchus crinitus;Aves;Passeriformes
+10590;Myioborus pictus;Painted Whitestart;Myioborus pictus;Aves;Passeriformes
+10623;Myiopsitta monachus;Monk Parakeet;Myiopsitta monachus;Aves;Psittaciformes
+10655;Myocastor coypus;nutria;Myocastor coypus;Mammalia;Rodentia
+10696;Myotis dasycneme;Myotis dasycneme;Myotis dasycneme;Mammalia;Chiroptera
+10711;Myotis nattereri;Myotis nattereri;Myotis nattereri;Mammalia;Chiroptera
+10757;Myrmeleotettix maculatus;Myrmeleotettix maculatus;Myrmeleotettix maculatus;Insecta;Orthoptera
+10846;Nannopterum auritum;Double-crested Cormorant;Phalacrocorax auritus;Aves;Suliformes
+10847;Nannopterum brasilianum;Neotropic Cormorant;Phalacrocorax brasilianus;Aves;Suliformes
+10898;Nemobius sylvestris;Nemobius sylvestris;Nemobius sylvestris;Insecta;Orthoptera
+10918;Neocicada hieroglyphica;Neocicada hieroglyphica;Neocicada hieroglyphica;Insecta;Hemiptera
+10924;Neoconocephalus ensiger;sword-bearing conehead;Neoconocephalus ensiger;Insecta;Orthoptera
+10925;Neoconocephalus exiliscanorus;Slightly Musical Conehead;Neoconocephalus exiliscanorus;Insecta;Orthoptera
+10929;Neoconocephalus nebrascensis;Nebraska Conehead;Neoconocephalus nebrascensis;Insecta;Orthoptera
+10937;Neoconocephalus retusus;Round-tipped Conehead;Neoconocephalus retusus;Insecta;Orthoptera
+10938;Neoconocephalus robustus;Robust Conehead;Neoconocephalus robustus;Insecta;Orthoptera
+10942;Neoconocephalus triops;Broad-tipped Conehead;Neoconocephalus triops;Insecta;Orthoptera
+10954;Neocurtilla hexadactyla;northern mole cricket;Neocurtilla hexadactyla;Insecta;Orthoptera
+11033;Neotibicen canicularis;Northern Dog-day Cicada;Neotibicen canicularis;Insecta;Hemiptera
+11034;Tibicen davisi;Tibicen davisi;Neotibicen davisi;Insecta;Hemiptera
+11036;Neotibicen latifasciatus;Neotibicen latifasciatus;Neotibicen latifasciatus;Insecta;Hemiptera
+11037;Neotibicen linnei;Linne's Cicada;Neotibicen linnei;Insecta;Hemiptera
+11038;Neotibicen lyricen;Lyric Cicada;Neotibicen lyricen;Insecta;Hemiptera
+11039;Tibicen pruinosa;scissor-grinder cicada;Neotibicen pruinosus;Insecta;Hemiptera
+11041;Neotibicen robinsonianus;Robinson's Annual Cicada;Neotibicen robinsonianus;Insecta;Hemiptera
+11044;Tibicen chloromera;Tibicen chloromera;Neotibicen tibicen;Insecta;Hemiptera
+11046;Neotibicen winnemanna;Neotibicen winnemanna;Neotibicen winnemanna;Insecta;Hemiptera
+11051;Neoxabea bipunctata;Two-spotted Tree Cricket;Neoxabea bipunctata;Insecta;Orthoptera
+11095;Netta rufina;Red-crested Pochard;Netta rufina;Aves;Anseriformes
+11225;Nucifraga caryocatactes;Northern Nutcracker;Nucifraga caryocatactes;Aves;Passeriformes
+11229;Numenius americanus;Long-billed Curlew;Numenius americanus;Aves;Charadriiformes
+11230;Numenius arquata;Eurasian Curlew;Numenius arquata;Aves;Charadriiformes
+11231;Numenius hudsonicus;Hudsonian Whimbrel;Numenius hudsonicus;Aves;Charadriiformes
+11234;Numenius phaeopus;Eurasian Whimbrel;Numenius phaeopus;Aves;Charadriiformes
+11237;Numida meleagris;Helmeted Guineafowl;Numida meleagris;Aves;Galliformes
+11245;Nyctanassa violacea;Yellow-crowned Night Heron;Nyctanassa violacea;Aves;Pelecaniformes
+11266;Nycticorax nycticorax;Black-crowned Night Heron;Nycticorax nycticorax;Aves;Pelecaniformes
+11301;Nymphicus hollandicus;Cockatiel;Nymphicus hollandicus;Aves;Psittaciformes
+11321;Oceanites oceanicus;Wilson's Storm Petrel;Oceanites oceanicus;Aves;Procellariiformes
+11371;Odocoileus virginianus;White-tailed Deer;Odocoileus virginianus;Mammalia;Artiodactyla
+11397;Odontotaenius disjunctus;Odontotaenius disjunctus;Odontotaenius disjunctus;Insecta;Coleoptera
+11420;Oecanthus celerinictus;fast-calling tree cricket ;Oecanthus celerinictus;Insecta;Orthoptera
+11421;Oecanthus dulcisonans;Oecanthus dulcisonans;Oecanthus dulcisonans;Insecta;Orthoptera
+11423;Oecanthus exclamationis;Davis's Tree Cricket;Oecanthus exclamationis;Insecta;Orthoptera
+11426;Oecanthus fultoni;snowy tree cricket;Oecanthus fultoni;Insecta;Orthoptera
+11430;Oecanthus latipennis;Broad-winged Tree Cricket;Oecanthus latipennis;Insecta;Orthoptera
+11435;Oecanthus nigricornis;blackhorned tree cricket;Oecanthus nigricornis;Insecta;Orthoptera
+11436;Oecanthus niveus;narrow-winged tree cricket;Oecanthus niveus;Insecta;Orthoptera
+11437;Oecanthus pellucens;Oecanthus pellucens;Oecanthus pellucens;Insecta;Orthoptera
+11438;Oecanthus pini;Pine Tree Cricket;Oecanthus pini;Insecta;Orthoptera
+11439;Oecanthus quadripunctatus;four-spotted tree cricket;Oecanthus quadripunctatus;Insecta;Orthoptera
+11459;Oenanthe chrysopygia;Red-tailed Wheatear;Oenanthe chrysopygia;Aves;Passeriformes
+11460;Oenanthe cypriaca;Cyprus Wheatear;Oenanthe cypriaca;Aves;Passeriformes
+11461;Oenanthe deserti;Desert Wheatear;Oenanthe deserti;Aves;Passeriformes
+11464;Oenanthe finschii;Finsch's Wheatear;Oenanthe finschii;Aves;Passeriformes
+11469;Oenanthe hispanica;Western Black-eared Wheatear;Oenanthe hispanica;Aves;Passeriformes
+11470;Oenanthe melanoleuca;Eastern Black-eared Wheatear;Oenanthe hispanica;Aves;Passeriformes
+11471;Oenanthe isabellina;Isabelline Wheatear;Oenanthe isabellina;Aves;Passeriformes
+11473;Oenanthe leucura;Black Wheatear;Oenanthe leucura;Aves;Passeriformes
+11479;Oenanthe oenanthe;Northern Wheatear;Oenanthe oenanthe;Aves;Passeriformes
+11484;Oenanthe pleschanka;Pied Wheatear;Oenanthe pleschanka;Aves;Passeriformes
+11508;Okanagana noveboracensis;Okanagana noveboracensis;Okanagana noveboracensis;Insecta;Hemiptera
+11514;Okanagana rimosa;Okanagana rimosa;Okanagana rimosa;Insecta;Hemiptera
+11557;Omocestus haemorrhoidalis;Omocestus haemorrhoidalis;Omocestus haemorrhoidalis;Insecta;Orthoptera
+11563;Omocestus raymondi;Omocestus raymondi;Omocestus raymondi;Insecta;Orthoptera
+11564;Omocestus rufipes;Omocestus rufipes;Omocestus rufipes;Insecta;Orthoptera
+11567;Omocestus viridulus;Omocestus viridulus;Omocestus viridulus;Insecta;Orthoptera
+11590;Onychoprion anaethetus;Bridled Tern;Onychoprion anaethetus;Aves;Charadriiformes
+11591;Onychoprion fuscatus;Sooty Tern;Onychoprion fuscatus;Aves;Charadriiformes
+11610;Oporornis agilis;Connecticut Warbler;Oporornis agilis;Aves;Passeriformes
+11618;Orchelimum agile;agile meadow katydid;Orchelimum agile;Insecta;Orthoptera
+11626;Orchelimum erythrocephalum;Red-headed Meadow Katydid;Orchelimum erythrocephalum;Insecta;Orthoptera
+11628;Orchelimum gladiator;Gladiator Meadow Katydid;Orchelimum gladiator;Insecta;Orthoptera
+11630;Orchelimum minor;lesser pine katydid;Orchelimum minor;Insecta;Orthoptera
+11631;Orchelimum nigripes;Black-legged Meadow Katydid;Orchelimum nigripes;Insecta;Orthoptera
+11632;Orchelimum pulchellum;Handsome Meadow Katydid;Orchelimum pulchellum;Insecta;Orthoptera
+11633;Orchelimum silvaticum;long-spurred meadow katydid;Orchelimum silvaticum;Insecta;Orthoptera
+11637;Orchelimum vulgare;Common Meadow Katydid;Orchelimum vulgare;Insecta;Orthoptera
+11663;Oreoscoptes montanus;Sage Thrasher;Oreoscoptes montanus;Aves;Passeriformes
+11705;Oriolus oriolus;Eurasian Golden Oriole;Oriolus oriolus;Aves;Passeriformes
+11740;Orocharis saltator;Jumping Bush Cricket;Orocharis saltator;Insecta;Orthoptera
+11842;Otus cyprius;Cyprus Scops Owl;Otus cyprius;Aves;Strigiformes
+11878;Otus scops;Eurasian Scops Owl;Otus scops;Aves;Strigiformes
+11889;Ovis aries;Sheep;Ovis aries;Mammalia;Artiodactyla
+11905;Oxyura jamaicensis;Ruddy Duck;Oxyura jamaicensis;Aves;Anseriformes
+12017;Pagophilus groenlandicus;Harp Seal;Pagophilus groenlandicus;Mammalia;Carnivora
+12045;Pandion haliaetus;Osprey;Pandion haliaetus;Aves;Accipitriformes
+12058;Panurus biarmicus;Bearded Reedling;Panurus biarmicus;Aves;Passeriformes
+12076;Parabuteo unicinctus;Harris's Hawk;Parabuteo unicinctus;Aves;Accipitriformes
+12102;Sinosuthora webbiana;Sinosuthora webbiana;Sinosuthora webbiana;Aves;Passeriformes
+12103;Suthora webbiana;Vinous-throated Parrotbill;Sinosuthora webbiana;Aves;Passeriformes
+12147;Parkesia motacilla;Louisiana Waterthrush;Parkesia motacilla;Aves;Passeriformes
+12148;Parkesia noveboracensis;Northern Waterthrush;Parkesia noveboracensis;Aves;Passeriformes
+12187;Parus major;Great Tit;Parus major;Aves;Passeriformes
+12198;Passer domesticus;House Sparrow;Passer domesticus;Aves;Passeriformes
+12204;Passer hispaniolensis;Spanish Sparrow;Passer hispaniolensis;Aves;Passeriformes
+12207;Passer italiae;Italian Sparrow;Passer italiae;Aves;Passeriformes
+12208;Passer luteus;Sudan Golden Sparrow;Passer luteus;Aves;Passeriformes
+12210;Passer moabiticus;Dead Sea Sparrow;Passer moabiticus;Aves;Passeriformes
+12211;Passer montanus;Eurasian Tree Sparrow;Passer montanus;Aves;Passeriformes
+12219;Passerculus sandwichensis;Savannah Sparrow;Passerculus sandwichensis;Aves;Passeriformes
+12220;Passerella iliaca;Red Fox Sparrow;Passerella iliaca;Aves;Passeriformes
+12224;Passerina amoena;Lazuli Bunting;Passerina amoena;Aves;Passeriformes
+12225;Passerina caerulea;Blue Grosbeak;Passerina caerulea;Aves;Passeriformes
+12226;Passerina ciris;Painted Bunting;Passerina ciris;Aves;Passeriformes
+12227;Passerina cyanea;Indigo Bunting;Passerina cyanea;Aves;Passeriformes
+12231;Pastor roseus;Rosy Starling;Pastor roseus;Aves;Passeriformes
+12268;Pavo cristatus;Indian Peafowl;Pavo cristatus;Aves;Galliformes
+12289;Pelecanus erythrorhynchos;American White Pelican;Pelecanus erythrorhynchos;Aves;Pelecaniformes
+12290;Pelecanus occidentalis;Brown Pelican;Pelecanus occidentalis;Aves;Pelecaniformes
+12291;Pelecanus onocrotalus;Great White Pelican;Pelecanus onocrotalus;Aves;Pelecaniformes
+12311;Pelobates fuscus;Pelobates fuscus;Pelobates fuscus;Amphibia;Anura
+12317;Pelodytes punctatus;Pelodytes punctatus;Pelodytes punctatus;Amphibia;Anura
+12327;Pelophylax lessonae;Pelophylax lessonae;Pelophylax lessonae;Amphibia;Anura
+12331;Pelophylax perezi;Pelophylax perezi;Pelophylax perezi;Amphibia;Anura
+12335;Pelophylax ridibundus;Pelophylax ridibundus;Pelophylax ridibundus;Amphibia;Anura
+12393;Perdix perdix;Grey Partridge;Perdix perdix;Aves;Galliformes
+12413;Periparus ater;Coal Tit;Periparus ater;Aves;Passeriformes
+12420;Perisoreus canadensis;Canada Jay;Perisoreus canadensis;Aves;Passeriformes
+12421;Perisoreus infaustus;Siberian Jay;Perisoreus infaustus;Aves;Passeriformes
+12424;Pernis apivorus;European Honey Buzzard;Pernis apivorus;Aves;Accipitriformes
+12441;Petrochelidon fulva;Cave Swallow;Petrochelidon fulva;Aves;Passeriformes
+12444;Petrochelidon pyrrhonota;American Cliff Swallow;Petrochelidon pyrrhonota;Aves;Passeriformes
+12462;Petronia petronia;Rock Sparrow;Petronia petronia;Aves;Passeriformes
+12468;Peucaea cassinii;Cassin's Sparrow;Peucaea cassinii;Aves;Passeriformes
+12505;Phaethon aethereus;Red-billed Tropicbird;Phaethon aethereus;Aves;Phaethontiformes
+12540;Phalacrocorax carbo;Great Cormorant;Phalacrocorax carbo;Aves;Suliformes
+12557;Phalaropus fulicarius;Red Phalarope;Phalaropus fulicarius;Aves;Charadriiformes
+12558;Phalaropus lobatus;Red-necked Phalarope;Phalaropus lobatus;Aves;Charadriiformes
+12559;Phalaropus tricolor;Wilson's Phalarope;Phalaropus tricolor;Aves;Charadriiformes
+12584;Phasianus colchicus;Common Pheasant;Phasianus colchicus;Aves;Galliformes
+12595;Pheucticus ludovicianus;Rose-breasted Grosbeak;Pheucticus ludovicianus;Aves;Passeriformes
+12596;Pheucticus melanocephalus;Black-headed Grosbeak;Pheucticus melanocephalus;Aves;Passeriformes
+12695;Phoeniconaias minor;Lesser Flamingo;Phoeniconaias minor;Aves;Phoenicopteriformes
+12698;Phoenicopterus chilensis;Chilean Flamingo;Phoenicopterus chilensis;Aves;Phoenicopteriformes
+12699;Phoenicopterus roseus;Greater Flamingo;Phoenicopterus roseus;Aves;Phoenicopteriformes
+12700;Phoenicopterus ruber;American Flamingo;Phoenicopterus ruber;Aves;Phoenicopteriformes
+12712;Phoenicurus erythrogastrus;Güldenstädt's Redstart;Phoenicurus erythrogastrus;Aves;Passeriformes
+12718;Phoenicurus ochruros;Black Redstart;Phoenicurus ochruros;Aves;Passeriformes
+12719;Phoenicurus phoenicurus;Common Redstart;Phoenicurus phoenicurus;Aves;Passeriformes
+12723;Pholidoptera aptera;Pholidoptera aptera;Pholidoptera aptera;Insecta;Orthoptera
+12727;Pholidoptera fallax;Pholidoptera fallax;Pholidoptera fallax;Insecta;Orthoptera
+12732;Pholidoptera littoralis;Pholidoptera littoralis;Pholidoptera littoralis;Insecta;Orthoptera
+12840;Phyllopalpus pulchellus;Handsome Trig;Phyllopalpus pulchellus;Insecta;Orthoptera
+12871;Phylloscopus bonelli;Western Bonelli's Warbler;Phylloscopus bonelli;Aves;Passeriformes
+12872;Phylloscopus borealis;Arctic Warbler;Phylloscopus borealis;Aves;Passeriformes
+12877;Phylloscopus canariensis;Canary Islands Chiffchaff;Phylloscopus canariensis;Aves;Passeriformes
+12883;Phylloscopus collybita;Common Chiffchaff;Phylloscopus collybita;Aves;Passeriformes
+12884;Phylloscopus coronatus;Eastern Crowned Warbler;Phylloscopus coronatus;Aves;Passeriformes
+12889;Phylloscopus fuscatus;Dusky Warbler;Phylloscopus fuscatus;Aves;Passeriformes
+12892;Phylloscopus griseolus;Sulphur-bellied Warbler;Phylloscopus griseolus;Aves;Passeriformes
+12895;Phylloscopus humei;Hume's Leaf Warbler;Phylloscopus humei;Aves;Passeriformes
+12896;Phylloscopus ibericus;Iberian Chiffchaff;Phylloscopus ibericus;Aves;Passeriformes
+12898;Phylloscopus inornatus;Yellow-browed Warbler;Phylloscopus inornatus;Aves;Passeriformes
+12915;Phylloscopus nitidus;Green Warbler;Phylloscopus nitidus;Aves;Passeriformes
+12921;Phylloscopus orientalis;Eastern Bonelli's Warbler;Phylloscopus orientalis;Aves;Passeriformes
+12922;Phylloscopus plumbeitarsus;Two-barred Warbler;Phylloscopus plumbeitarsus;Aves;Passeriformes
+12925;Phylloscopus proregulus;Pallas's Leaf Warbler;Phylloscopus proregulus;Aves;Passeriformes
+12931;Phylloscopus schwarzi;Radde's Warbler;Phylloscopus schwarzi;Aves;Passeriformes
+12932;Phylloscopus sibilatrix;Wood Warbler;Phylloscopus sibillatrix;Aves;Passeriformes
+12933;Phylloscopus sindianus;Mountain Chiffchaff;Phylloscopus sindianus;Aves;Passeriformes
+12937;Phylloscopus tenellipes;Pale-legged Leaf Warbler;Phylloscopus tenellipes;Aves;Passeriformes
+12940;Phylloscopus trochiloides;Greenish Warbler;Phylloscopus trochiloides;Aves;Passeriformes
+12941;Phylloscopus trochilus;Willow Warbler;Phylloscopus trochilus;Aves;Passeriformes
+13003;Pica hudsonia;Black-billed Magpie;Pica hudsonia;Aves;Passeriformes
+13006;Pica pica;Eurasian Magpie;Pica pica;Aves;Passeriformes
+13010;Picoides arcticus;Black-backed Woodpecker;Picoides arcticus;Aves;Piciformes
+13011;Picoides dorsalis;American Three-toed Woodpecker;Picoides dorsalis;Aves;Piciformes
+13012;Picoides tridactylus;Eurasian Three-toed Woodpecker;Picoides tridactylus;Aves;Piciformes
+13051;Picus canus;Grey-headed Woodpecker;Picus canus;Aves;Piciformes
+13057;Picus sharpei;Iberian Green Woodpecker;Picus sharpei;Aves;Piciformes
+13061;Picus viridis;European Green Woodpecker;Picus viridis;Aves;Piciformes
+13078;Pinicola enucleator;Pine Grosbeak;Pinicola enucleator;Aves;Passeriformes
+13095;Pionus maximiliani;Scaly-headed Parrot;Pionus maximiliani;Aves;Psittaciformes
+13109;Pipilo chlorurus;Green-tailed Towhee;Pipilo chlorurus;Aves;Passeriformes
+13110;Pipilo erythrophthalmus;Eastern Towhee;Pipilo erythrophthalmus;Aves;Passeriformes
+13111;Pipilo maculatus;Spotted Towhee;Pipilo maculatus;Aves;Passeriformes
+13143;Piranga flava;Red Tanager;Piranga flava;Aves;Passeriformes
+13146;Piranga ludoviciana;Western Tanager;Piranga ludoviciana;Aves;Passeriformes
+13148;Piranga olivacea;Scarlet Tanager;Piranga olivacea;Aves;Passeriformes
+13150;Piranga rubra;Summer Tanager;Piranga rubra;Aves;Passeriformes
+13207;Platalea ajaja;Roseate Spoonbill;Platalea ajaja;Aves;Pelecaniformes
+13210;Platalea leucorodia;Eurasian Spoonbill;Platalea leucorodia;Aves;Pelecaniformes
+13218;Platycercus elegans;Crimson Rosella;Platycercus elegans;Aves;Psittaciformes
+13219;Platycercus eximius;Eastern Rosella;Platycercus eximius;Aves;Psittaciformes
+13222;Platycleis affinis;Platycleis affinis;Platycleis affinis;Insecta;Orthoptera
+13223;Platycleis albopunctata;Platycleis albopunctata;Platycleis albopunctata;Insecta;Orthoptera
+13228;Platycleis grisea;Platycleis grisea;Platycleis grisea;Insecta;Orthoptera
+13316;Plectrophenax nivalis;Snow Bunting;Plectrophenax nivalis;Aves;Passeriformes
+13326;Plegadis chihi;White-faced Ibis;Plegadis chihi;Aves;Pelecaniformes
+13327;Plegadis falcinellus;Glossy Ibis;Plegadis falcinellus;Aves;Pelecaniformes
+13388;Ploceus melanocephalus;Black-headed Weaver;Ploceus melanocephalus;Aves;Passeriformes
+13415;Pluvialis apricaria;European Golden Plover;Pluvialis apricaria;Aves;Charadriiformes
+13416;Pluvialis dominica;American Golden Plover;Pluvialis dominica;Aves;Charadriiformes
+13417;Pluvialis fulva;Pacific Golden Plover;Pluvialis fulva;Aves;Charadriiformes
+13418;Pluvialis squatarola;Grey Plover;Pluvialis squatarola;Aves;Charadriiformes
+13431;Podiceps auritus;Horned Grebe;Podiceps auritus;Aves;Podicipediformes
+13432;Podiceps cristatus;Great Crested Grebe;Podiceps cristatus;Aves;Podicipediformes
+13434;Podiceps grisegena;Red-necked Grebe;Podiceps grisegena;Aves;Podicipediformes
+13436;Podiceps nigricollis;Black-necked Grebe;Podiceps nigricollis;Aves;Podicipediformes
+13440;Podilymbus podiceps;Pied-billed Grebe;Podilymbus podiceps;Aves;Podicipediformes
+13449;Poecile atricapillus;Black-capped Chickadee;Poecile atricapillus;Aves;Passeriformes
+13450;Poecile carolinensis;Carolina Chickadee;Poecile carolinensis;Aves;Passeriformes
+13451;Poecile cinctus;Grey-headed Chickadee;Poecile cinctus;Aves;Passeriformes
+13454;Poecile hudsonicus;Boreal Chickadee;Poecile hudsonicus;Aves;Passeriformes
+13456;Poecile hyrcanus;Caspian Tit;Poecile hyrcanus;Aves;Passeriformes
+13457;Poecile lugubris;Sombre Tit;Poecile lugubris;Aves;Passeriformes
+13458;Poecile montanus;Willow Tit;Poecile montanus;Aves;Passeriformes
+13459;Poecile palustris;Marsh Tit;Poecile palustris;Aves;Passeriformes
+13469;Poecilimon affinis;Poecilimon affinis;Poecilimon affinis;Insecta;Orthoptera
+13521;Poecilimon ornatus;Poecilimon ornatus;Poecilimon ornatus;Insecta;Orthoptera
+13599;Poicephalus senegalus;Senegal Parrot;Poicephalus senegalus;Aves;Psittaciformes
+13620;Polioptila caerulea;Blue-grey Gnatcatcher;Polioptila caerulea;Aves;Passeriformes
+13658;Polyphylla fullo;Polyphylla fullo;Polyphylla fullo;Insecta;Coleoptera
+13670;Polysarcus denticauda;Polysarcus denticauda;Polysarcus denticauda;Insecta;Orthoptera
+13716;Pooecetes gramineus;Vesper Sparrow;Pooecetes gramineus;Aves;Passeriformes
+13746;Porphyrio poliocephalus;Grey-headed Swamphen;Porphyrio porphyrio;Aves;Gruiformes
+13747;Porphyrio porphyrio;Western Swamphen;Porphyrio porphyrio;Aves;Gruiformes
+13748;Porphyrio martinica;Purple Gallinule;Porphyrio martinica;Aves;Gruiformes
+13762;Porzana carolina;Sora;Porzana carolina;Aves;Gruiformes
+13765;Zapornia parva;Little Crake;Porzana parva;Aves;Gruiformes
+13768;Porzana porzana;Spotted Crake;Porzana porzana;Aves;Gruiformes
+13769;Zapornia pusilla;Baillon's Crake;Porzana pusilla;Aves;Gruiformes
+13809;Prinia gracilis;Graceful Prinia;Prinia gracilis;Aves;Passeriformes
+13949;Procyon lotor;common raccoon;Procyon lotor;Mammalia;Carnivora
+13954;Progne chalybea;Grey-breasted Martin;Progne chalybea;Aves;Passeriformes
+13961;Progne subis;Purple Martin;Progne subis;Aves;Passeriformes
+13986;Protonotaria citrea;Prothonotary Warbler;Protonotaria citrea;Aves;Passeriformes
+13988;Prunella atrogularis;Black-throated Accentor;Prunella atrogularis;Aves;Passeriformes
+13989;Prunella collaris;Alpine Accentor;Prunella collaris;Aves;Passeriformes
+13994;Prunella modularis;Dunnock;Prunella modularis;Aves;Passeriformes
+13995;Prunella montanella;Siberian Accentor;Prunella montanella;Aves;Passeriformes
+13996;Prunella ocularis;Radde's Accentor;Prunella ocularis;Aves;Passeriformes
+14044;Pseudacris brachyphona;Mountain Chorus Frog;Pseudacris brachyphona;Amphibia;Anura
+14049;Pseudacris crucifer;Spring Peeper;Pseudacris crucifer;Amphibia;Anura
+14050;Pseudacris feriarum;Upland Chorus Frog;Pseudacris feriarum;Amphibia;Anura
+14054;Pseudacris kalmi;Pseudacris kalmi;Pseudacris kalmi;Amphibia;Anura
+14055;Pseudacris maculata;Boreal Chorus Frog;Pseudacris maculata;Amphibia;Anura
+14061;Pseudacris triseriata;Striped Chorus Frog;Pseudacris triseriata;Amphibia;Anura
+14084;Pseudochorthippus montanus;Pseudochorthippus montanus;Pseudochorthippus montanus;Insecta;Orthoptera
+14197;Psittacula cyanocephala;Plum-headed Parakeet;Psittacula cyanocephala;Aves;Psittaciformes
+14200;Psittacula eupatria;Alexandrine Parakeet;Psittacula eupatria;Aves;Psittaciformes
+14203;Psittacula krameri;Rose-ringed Parakeet;Psittacula krameri;Aves;Psittaciformes
+14233;Psophus stridulus;Psophus stridulus;Psophus stridulus;Insecta;Orthoptera
+14270;Pterocles alchata;Pin-tailed Sandgrouse;Pterocles alchata;Aves;Pteroclidiformes
+14280;Pterocles orientalis;Black-bellied Sandgrouse;Pterocles orientalis;Aves;Pteroclidiformes
+14304;Pterodroma madeira;Zino's Petrel;Pterodroma madeira;Aves;Procellariiformes
+14335;Pteronemobius heydenii;Pteronemobius heydenii;Pteronemobius heydenii;Insecta;Orthoptera
+14353;Pterophylla camellifolia;Common True Katydid;Pterophylla camellifolia;Insecta;Orthoptera
+14494;Ptyonoprogne rupestris;Eurasian Crag Martin;Ptyonoprogne rupestris;Aves;Passeriformes
+14499;Puffinus baroli;Barolo Shearwater;Puffinus baroli;Aves;Procellariiformes
+14509;Puffinus puffinus;Manx Shearwater;Puffinus puffinus;Aves;Procellariiformes
+14543;Pycnonotus barbatus;Common Bulbul;Pycnonotus barbatus;Aves;Passeriformes
+14548;Pycnonotus cafer;Red-vented Bulbul;Pycnonotus cafer;Aves;Passeriformes
+14559;Pycnonotus jocosus;Red-whiskered Bulbul;Pycnonotus jocosus;Aves;Passeriformes
+14577;Pycnonotus xanthopygos;White-spectacled Bulbul;Pycnonotus xanthopygos;Aves;Passeriformes
+14609;Pyrrhocorax graculus;Alpine Chough;Pyrrhocorax graculus;Aves;Passeriformes
+14610;Pyrrhocorax pyrrhocorax;Red-billed Chough;Pyrrhocorax pyrrhocorax;Aves;Passeriformes
+14619;Pyrrhula murina;Azores Bullfinch;Pyrrhula murina;Aves;Passeriformes
+14622;Pyrrhula pyrrhula;Eurasian Bullfinch;Pyrrhula pyrrhula;Aves;Passeriformes
+14658;Quelea quelea;Red-billed Quelea;Quelea quelea;Aves;Passeriformes
+14670;Quiscalus major;Boat-tailed Grackle;Quiscalus major;Aves;Passeriformes
+14671;Quiscalus mexicanus;Great-tailed Grackle;Quiscalus mexicanus;Aves;Passeriformes
+14674;Quiscalus quiscula;Common Grackle;Quiscalus quiscula;Aves;Passeriformes
+14677;Radjah radjah;Radjah Shelduck;Radjah radjah;Aves;Anseriformes
+14690;Rallus aquaticus;Water Rail;Rallus aquaticus;Aves;Gruiformes
+14692;Rallus crepitans;Clapper Rail;Rallus crepitans;Aves;Gruiformes
+14693;Rallus elegans;King Rail;Rallus elegans;Aves;Gruiformes
+14695;Rallus limicola;Virginia Rail;Rallus limicola;Aves;Gruiformes
+14739;Rana arvalis;Rana arvalis;Rana arvalis;Amphibia;Anura
+14745;Rana dalmatina;Rana dalmatina;Rana dalmatina;Amphibia;Anura
+14754;Rana temporaria;Rana temporaria;Rana temporaria;Amphibia;Anura
+14818;Recurvirostra americana;American Avocet;Recurvirostra americana;Aves;Charadriiformes
+14820;Recurvirostra avosetta;Pied Avocet;Recurvirostra avosetta;Aves;Charadriiformes
+14826;Regulus ignicapilla;Common Firecrest;Regulus ignicapilla;Aves;Passeriformes
+14827;Regulus madeirensis;Madeira Firecrest;Regulus madeirensis;Aves;Passeriformes
+14828;Regulus regulus;Goldcrest;Regulus regulus;Aves;Passeriformes
+14829;Regulus satrapa;Golden-crowned Kinglet;Regulus satrapa;Aves;Passeriformes
+14837;Remiz pendulinus;Eurasian Penduline Tit;Remiz pendulinus;Aves;Passeriformes
+14891;Rhea americana;Greater Rhea;Rhea americana;Aves;Rheiformes
+14942;Rhinolophus ferrumequinum;Rhinolophus ferrumequinum;Rhinolophus ferrumequinum;Mammalia;Chiroptera
+15036;Rhodospiza obsoleta;Desert Finch;Rhodospiza obsoleta;Aves;Passeriformes
+15037;Rhodostethia rosea;Ross's Gull;Rhodostethia rosea;Aves;Charadriiformes
+15087;Riparia riparia;Sand Martin;Riparia riparia;Aves;Passeriformes
+15090;Rissa tridactyla;Black-legged Kittiwake;Rissa tridactyla;Aves;Charadriiformes
+15136;Ruspolia nitidula;Ruspolia nitidula;Ruspolia nitidula;Insecta;Orthoptera
+15140;Rynchops niger;Black Skimmer;Rynchops niger;Aves;Charadriiformes
+15182;Salpinctes obsoletus;Rock Wren;Salpinctes obsoletus;Aves;Passeriformes
+15264;Saxicola caprata;Pied Bush Chat;Saxicola caprata;Aves;Passeriformes
+15272;Saxicola maurus;Siberian Stonechat;Saxicola maurus;Aves;Passeriformes
+15273;Saxicola rubetra;Whinchat;Saxicola rubetra;Aves;Passeriformes
+15274;Saxicola rubicola;European Stonechat;Saxicola rubicola;Aves;Passeriformes
+15276;Saxicola stejnegeri;Amur Stonechat;Saxicola stejnegeri;Aves;Passeriformes
+15280;Sayornis nigricans;Black Phoebe;Sayornis nigricans;Aves;Passeriformes
+15281;Sayornis phoebe;Eastern Phoebe;Sayornis phoebe;Aves;Passeriformes
+15282;Sayornis saya;Say's Phoebe;Sayornis saya;Aves;Passeriformes
+15289;Scaphiopus holbrookii;Eastern Spadefoot;Scaphiopus holbrookii;Amphibia;Anura
+15392;Sciurus carolinensis;eastern gray squirrel;Sciurus carolinensis;Mammalia;Rodentia
+15398;Sciurus niger;eastern fox squirrel;Sciurus niger;Mammalia;Rodentia
+15402;Sciurus vulgaris;Sciurus vulgaris;Sciurus vulgaris;Mammalia;Rodentia
+15436;Scolopax minor;American Woodcock;Scolopax minor;Aves;Charadriiformes
+15440;Scolopax rusticola;Eurasian Woodcock;Scolopax rusticola;Aves;Charadriiformes
+15458;Scudderia septentrionalis;northern bush katydid;Scudderia septentrionalis;Insecta;Orthoptera
+15459;Scudderia texensis;Texas bush katydid;Scudderia texensis;Insecta;Orthoptera
+15513;Seiurus aurocapilla;Ovenbird;Seiurus aurocapilla;Aves;Passeriformes
+15516;Selasphorus calliope;Calliope Hummingbird;Selasphorus calliope;Aves;Apodiformes
+15520;Selasphorus platycercus;Broad-tailed Hummingbird;Selasphorus platycercus;Aves;Apodiformes
+15521;Selasphorus rufus;Rufous Hummingbird;Selasphorus rufus;Aves;Apodiformes
+15550;Sepiana sepium;Sepiana sepium;Sepiana sepium;Insecta;Orthoptera
+15570;Serinus canaria;Atlantic Canary;Serinus canaria;Aves;Passeriformes
+15574;Serinus pusillus;Red-fronted Serin;Serinus pusillus;Aves;Passeriformes
+15575;Serinus serinus;European Serin;Serinus serinus;Aves;Passeriformes
+15589;Setophaga aestiva;American Yellow Warbler;Setophaga aestiva;Aves;Passeriformes
+15590;Setophaga americana;Northern Parula;Setophaga americana;Aves;Passeriformes
+15592;Setophaga auduboni;Audubon's Warbler;Setophaga auduboni;Aves;Passeriformes
+15593;Setophaga caerulescens;Black-throated Blue Warbler;Setophaga caerulescens;Aves;Passeriformes
+15594;Setophaga castanea;Bay-breasted Warbler;Setophaga castanea;Aves;Passeriformes
+15595;Setophaga cerulea;Cerulean Warbler;Setophaga cerulea;Aves;Passeriformes
+15597;Setophaga citrina;Hooded Warbler;Setophaga citrina;Aves;Passeriformes
+15598;Setophaga coronata;Myrtle Warbler;Setophaga coronata;Aves;Passeriformes
+15600;Setophaga discolor;Prairie Warbler;Setophaga discolor;Aves;Passeriformes
+15601;Setophaga dominica;Yellow-throated Warbler;Setophaga dominica;Aves;Passeriformes
+15603;Setophaga fusca;Blackburnian Warbler;Setophaga fusca;Aves;Passeriformes
+15606;Setophaga kirtlandii;Kirtland's Warbler;Setophaga kirtlandii;Aves;Passeriformes
+15607;Setophaga magnolia;Magnolia Warbler;Setophaga magnolia;Aves;Passeriformes
+15608;Setophaga nigrescens;Black-throated Grey Warbler;Setophaga nigrescens;Aves;Passeriformes
+15609;Setophaga occidentalis;Hermit Warbler;Setophaga occidentalis;Aves;Passeriformes
+15610;Setophaga palmarum;Palm Warbler;Setophaga palmarum;Aves;Passeriformes
+15611;Setophaga pensylvanica;Chestnut-sided Warbler;Setophaga pensylvanica;Aves;Passeriformes
+15612;Setophaga petechia;Mangrove Warbler;Setophaga petechia;Aves;Passeriformes
+15614;Setophaga pinus;Pine Warbler;Setophaga pinus;Aves;Passeriformes
+15618;Setophaga ruticilla;American Redstart;Setophaga ruticilla;Aves;Passeriformes
+15619;Setophaga striata;Blackpoll Warbler;Setophaga striata;Aves;Passeriformes
+15621;Setophaga tigrina;Cape May Warbler;Setophaga tigrina;Aves;Passeriformes
+15622;Setophaga townsendi;Townsend's Warbler;Setophaga townsendi;Aves;Passeriformes
+15623;Setophaga virens;Black-throated Green Warbler;Setophaga virens;Aves;Passeriformes
+15638;Sialia currucoides;Mountain Bluebird;Sialia currucoides;Aves;Passeriformes
+15640;Sialia sialis;Eastern Bluebird;Sialia sialis;Aves;Passeriformes
+15662;Suthora alphonsiana;Ashy-throated Parrotbill;Sinosuthora alphonsiana;Aves;Passeriformes
+15692;Sitta canadensis;Red-breasted Nuthatch;Sitta canadensis;Aves;Passeriformes
+15693;Sitta carolinensis;White-breasted Nuthatch;Sitta carolinensis;Aves;Passeriformes
+15697;Sitta europaea;Eurasian Nuthatch;Sitta europaea;Aves;Passeriformes
+15702;Sitta krueperi;Krüper's Nuthatch;Sitta krueperi;Aves;Passeriformes
+15708;Sitta neumayer;Western Rock Nuthatch;Sitta neumayer;Aves;Passeriformes
+15711;Sitta pusilla;Brown-headed Nuthatch;Sitta pusilla;Aves;Passeriformes
+15714;Sitta tephronota;Eastern Rock Nuthatch;Sitta tephronota;Aves;Passeriformes
+15717;Sitta whiteheadi;Corsican Nuthatch;Sitta whiteheadi;Aves;Passeriformes
+15740;Somateria mollissima;Common Eider;Somateria mollissima;Aves;Anseriformes
+15741;Somateria spectabilis;King Eider;Somateria spectabilis;Aves;Anseriformes
+15754;Spatula discors;Blue-winged Teal;Spatula discors;Aves;Anseriformes
+15843;Sphyrapicus varius;Yellow-bellied Sapsucker;Sphyrapicus varius;Aves;Piciformes
+15849;Spilopelia senegalensis;Laughing Dove;Spilopelia senegalensis;Aves;Columbiformes
+15876;Spinus tristis;American Goldfinch;Spinus tristis;Aves;Passeriformes
+15880;Spiza americana;Dickcissel;Spiza americana;Aves;Passeriformes
+15886;Spizella breweri;Brewer's Sparrow;Spizella breweri;Aves;Passeriformes
+15887;Spizella pallida;Clay-colored Sparrow;Spizella pallida;Aves;Passeriformes
+15888;Spizella passerina;Chipping Sparrow;Spizella passerina;Aves;Passeriformes
+15889;Spizella pusilla;Field Sparrow;Spizella pusilla;Aves;Passeriformes
+15891;Spizelloides arborea;American Tree Sparrow;Spizelloides arborea;Aves;Passeriformes
+15974;Stauroderus scalaris;Stauroderus scalaris;Stauroderus scalaris;Insecta;Orthoptera
+15982;Stelgidopteryx serripennis;Northern Rough-winged Swallow;Stelgidopteryx serripennis;Aves;Passeriformes
+16000;Stenobothrus lineatus;Stenobothrus lineatus;Stenobothrus lineatus;Insecta;Orthoptera
+16001;Stenobothrus nigromaculatus;Stenobothrus nigromaculatus;Stenobothrus nigromaculatus;Insecta;Orthoptera
+16002;Stenobothrus rubicundulus;Stenobothrus rubicundulus;Stenobothrus rubicundulus;Insecta;Orthoptera
+16004;Stenobothrus stigmaticus;Stenobothrus stigmaticus;Stenobothrus stigmaticus;Insecta;Orthoptera
+16016;Stercorarius longicaudus;Long-tailed Jaeger;Stercorarius longicaudus;Aves;Charadriiformes
+16018;Stercorarius parasiticus;Parasitic Jaeger;Stercorarius parasiticus;Aves;Charadriiformes
+16019;Stercorarius pomarinus;Pomarine Jaeger;Stercorarius pomarinus;Aves;Charadriiformes
+16020;Stercorarius skua;Great Skua;Stercorarius skua;Aves;Charadriiformes
+16024;Sterna dougallii;Roseate Tern;Sterna dougallii;Aves;Charadriiformes
+16025;Sterna forsteri;Forster's Tern;Sterna forsteri;Aves;Charadriiformes
+16027;Sterna hirundo;Common Tern;Sterna hirundo;Aves;Charadriiformes
+16028;Sterna paradisaea;Arctic Tern;Sterna paradisaea;Aves;Charadriiformes
+16037;Sternula albifrons;Little Tern;Sternula albifrons;Aves;Charadriiformes
+16038;Sternula antillarum;Least Tern;Sternula antillarum;Aves;Charadriiformes
+16055;Stethophyma grossum;Stethophyma grossum;Stethophyma grossum;Insecta;Orthoptera
+16105;Streptopelia decaocto;Eurasian Collared Dove;Streptopelia decaocto;Aves;Columbiformes
+16109;Streptopelia orientalis;Oriental Turtle Dove;Streptopelia orientalis;Aves;Columbiformes
+16111;Streptopelia roseogrisea;African Collared Dove;Streptopelia roseogrisea;Aves;Columbiformes
+16115;Streptopelia turtur;European Turtle Dove;Streptopelia turtur;Aves;Columbiformes
+16126;Strix aluco;Tawny Owl;Strix aluco;Aves;Strigiformes
+16135;Strix nebulosa;Great Grey Owl;Strix nebulosa;Aves;Strigiformes
+16142;Strix uralensis;Ural Owl;Strix uralensis;Aves;Strigiformes
+16143;Strix varia;Barred Owl;Strix varia;Aves;Strigiformes
+16154;Sturnella magna;Eastern Meadowlark;Sturnella magna;Aves;Passeriformes
+16155;Sturnella neglecta;Western Meadowlark;Sturnella neglecta;Aves;Passeriformes
+16164;Sturnus unicolor;Spotless Starling;Sturnus unicolor;Aves;Passeriformes
+16165;Sturnus vulgaris;Common Starling;Sturnus vulgaris;Aves;Passeriformes
+16178;Sula leucogaster;Brown Booby;Sula leucogaster;Aves;Suliformes
+16189;Surnia ulula;Northern Hawk-Owl;Surnia ulula;Aves;Strigiformes
+16196;Sus scrofa;Pig;Sus scrofa;Mammalia;Artiodactyla
+16208;Sylvia atricapilla;Eurasian Blackcap;Sylvia atricapilla;Aves;Passeriformes
+16209;Sylvia borin;Garden Warbler;Sylvia borin;Aves;Passeriformes
+16323;Syrrhaptes paradoxus;Pallas's Sandgrouse;Syrrhaptes paradoxus;Aves;Pteroclidiformes
+16337;Tachybaptus ruficollis;Little Grebe;Tachybaptus ruficollis;Aves;Podicipediformes
+16341;Tachycineta bicolor;Tree Swallow;Tachycineta bicolor;Aves;Passeriformes
+16385;Tadarida teniotis;Tadarida teniotis;Tadarida teniotis;Mammalia;Chiroptera
+16386;Tadorna cana;South African Shelduck;Tadorna cana;Aves;Anseriformes
+16387;Tadorna ferruginea;Ruddy Shelduck;Tadorna ferruginea;Aves;Anseriformes
+16388;Tadorna tadorna;Common Shelduck;Tadorna tadorna;Aves;Anseriformes
+16408;Tamias striatus;Eastern Chipmunk;Tamias striatus;Mammalia;Rodentia
+16412;Tamiasciurus hudsonicus;Red Squirrel;Tamiasciurus hudsonicus;Mammalia;Rodentia
+16487;Tarsiger cyanurus;Red-flanked Bluetail;Tarsiger cyanurus;Aves;Passeriformes
+16603;Tetrao urogallus;Western Capercaillie;Tetrao urogallus;Aves;Galliformes
+16605;Tetraogallus caspius;Caspian Snowcock;Tetraogallus caspius;Aves;Galliformes
+16606;Tetraogallus caucasicus;Caucasian Snowcock;Tetraogallus caucasicus;Aves;Galliformes
+16613;Tetrastes bonasia;Hazel Grouse;Tetrastes bonasia;Aves;Galliformes
+16615;Tetrax tetrax;Little Bustard;Tetrax tetrax;Aves;Otidiformes
+16624;Tettigettalna argentata;Tettigettalna argentata;Tettigettalna argentata;Insecta;Hemiptera
+16633;Tettigonia cantans;Tettigonia cantans;Tettigonia cantans;Insecta;Orthoptera
+16634;Tettigonia caudata;Tettigonia caudata;Tettigonia caudata;Insecta;Orthoptera
+16640;Tettigonia viridissima;Tettigonia viridissima;Tettigonia viridissima;Insecta;Orthoptera
+16649;Thalassarche melanophris;Black-browed Albatross;Thalassarche melanophris;Aves;Procellariiformes
+16651;Thalasseus acuflavidus;Cabot's Tern;Thalasseus acuflavidus;Aves;Charadriiformes
+16653;Thalasseus bengalensis;Lesser Crested Tern;Thalasseus bengalensis;Aves;Charadriiformes
+16656;Thalasseus elegans;Elegant Tern;Thalasseus elegans;Aves;Charadriiformes
+16657;Thalasseus maximus;Royal Tern;Thalasseus maximus;Aves;Charadriiformes
+16658;Thalasseus sandvicensis;Sandwich Tern;Thalasseus sandvicensis;Aves;Charadriiformes
+16720;Thinornis dubius;Little Ringed Plover;;Aves;Charadriiformes
+16752;Threskiornis aethiopicus;African Sacred Ibis;Threskiornis aethiopicus;Aves;Pelecaniformes
+16776;Thryothorus ludovicianus;Carolina Wren;Thryothorus ludovicianus;Aves;Passeriformes
+16786;Tibicina haematodes;Tibicina haematodes;Tibicina haematodes;Insecta;Hemiptera
+16800;Tichodroma muraria;Wallcreeper;Tichodroma muraria;Aves;Passeriformes
+16920;Toxostoma rufum;Brown Thrasher;Toxostoma rufum;Aves;Passeriformes
+17046;Trimerotropis verruculata;Trimerotropis verruculata;Trimerotropis verruculata;Insecta;Orthoptera
+17047;Tringa brevipes;Grey-tailed Tattler;Tringa brevipes;Aves;Charadriiformes
+17048;Tringa erythropus;Spotted Redshank;Tringa erythropus;Aves;Charadriiformes
+17049;Tringa flavipes;Lesser Yellowlegs;Tringa flavipes;Aves;Charadriiformes
+17050;Tringa glareola;Wood Sandpiper;Tringa glareola;Aves;Charadriiformes
+17053;Tringa melanoleuca;Greater Yellowlegs;Tringa melanoleuca;Aves;Charadriiformes
+17054;Tringa nebularia;Common Greenshank;Tringa nebularia;Aves;Charadriiformes
+17055;Tringa ochropus;Green Sandpiper;Tringa ochropus;Aves;Charadriiformes
+17056;Tringa semipalmata;Willet;Tringa semipalmata;Aves;Charadriiformes
+17057;Tringa solitaria;Solitary Sandpiper;Tringa solitaria;Aves;Charadriiformes
+17058;Tringa stagnatilis;Marsh Sandpiper;Tringa stagnatilis;Aves;Charadriiformes
+17059;Tringa totanus;Common Redshank;Tringa totanus;Aves;Charadriiformes
+17086;Troglodytes aedon;Northern House Wren;Troglodytes aedon;Aves;Passeriformes
+17091;Troglodytes hiemalis;Winter Wren;Troglodytes hiemalis;Aves;Passeriformes
+17103;Troglodytes troglodytes;Eurasian Wren;Troglodytes troglodytes;Aves;Passeriformes
+17179;Turdus atrogularis;Black-throated Thrush;Turdus atrogularis;Aves;Passeriformes
+17192;Turdus eunomus;Dusky Thrush;Turdus eunomus;Aves;Passeriformes
+17204;Turdus iliacus;Redwing;Turdus iliacus;Aves;Passeriformes
+17220;Turdus merula;Common Blackbird;Turdus merula;Aves;Passeriformes
+17221;Turdus migratorius;American Robin;Turdus migratorius;Aves;Passeriformes
+17223;Turdus naumanni;Naumann's Thrush;Turdus naumanni;Aves;Passeriformes
+17230;Turdus obscurus;Eyebrowed Thrush;Turdus obscurus;Aves;Passeriformes
+17238;Turdus philomelos;Song Thrush;Turdus philomelos;Aves;Passeriformes
+17239;Turdus pilaris;Fieldfare;Turdus pilaris;Aves;Passeriformes
+17246;Turdus ruficollis;Red-throated Thrush;Turdus ruficollis;Aves;Passeriformes
+17260;Turdus torquatus;Ring Ouzel;Turdus torquatus;Aves;Passeriformes
+17263;Turdus viscivorus;Mistle Thrush;Turdus viscivorus;Aves;Passeriformes
+17294;Tylopsis lilifolia;Tylopsis lilifolia;Tylopsis lilifolia;Insecta;Orthoptera
+17314;Tyrannus crassirostris;Thick-billed Kingbird;Tyrannus crassirostris;Aves;Passeriformes
+17316;Tyrannus dominicensis;Grey Kingbird;Tyrannus dominicensis;Aves;Passeriformes
+17317;Tyrannus forficatus;Scissor-tailed Flycatcher;Tyrannus forficatus;Aves;Passeriformes
+17318;Tyrannus melancholicus;Tropical Kingbird;Tyrannus melancholicus;Aves;Passeriformes
+17321;Tyrannus tyrannus;Eastern Kingbird;Tyrannus tyrannus;Aves;Passeriformes
+17322;Tyrannus verticalis;Western Kingbird;Tyrannus verticalis;Aves;Passeriformes
+17324;Tyto alba;Western Barn Owl;Tyto alba;Aves;Strigiformes
+17327;Tyto furcata;American Barn Owl;Tyto furcata;Aves;Strigiformes
+17362;Upupa epops;Eurasian Hoopoe;Upupa epops;Aves;Bucerotiformes
+17369;Uria aalge;Common Murre;Uria aalge;Aves;Charadriiformes
+17370;Uria lomvia;Thick-billed Murre;Uria lomvia;Aves;Charadriiformes
+17383;Urocyon cinereoargenteus;common gray fox;Urocyon cinereoargenteus;Mammalia;Carnivora
+17400;Uromenus rugosicollis;Uromenus rugosicollis;Uromenus rugosicollis;Insecta;Orthoptera
+17414;Ursus americanus;American Black Bear;Ursus americanus;Mammalia;Carnivora
+17436;Vanellus cinereus;Grey-headed Lapwing;Vanellus cinereus;Aves;Charadriiformes
+17441;Vanellus indicus;Red-wattled Lapwing;Vanellus indicus;Aves;Charadriiformes
+17442;Vanellus leucurus;White-tailed Lapwing;Vanellus leucurus;Aves;Charadriiformes
+17450;Vanellus spinosus;Spur-winged Lapwing;Vanellus spinosus;Aves;Charadriiformes
+17454;Vanellus vanellus;Northern Lapwing;Vanellus vanellus;Aves;Charadriiformes
+17473;Velarifictorus micado;Japanese burrowing cricket;Velarifictorus micado;Insecta;Orthoptera
+17483;Vermivora chrysoptera;Golden-winged Warbler;Vermivora chrysoptera;Aves;Passeriformes
+17484;Vermivora cyanoptera;Blue-winged Warbler;Vermivora cyanoptera;Aves;Passeriformes
+17490;Vespertilio murinus;Vespertilio murinus;Vespertilio murinus;Mammalia;Chiroptera
+17514;Vidua macroura;Pin-tailed Whydah;Vidua macroura;Aves;Passeriformes
+17539;Vireo bellii;Bell's Vireo;Vireo bellii;Aves;Passeriformes
+17545;Vireo olivaceus;Red-eyed Vireo;Vireo olivaceus;Aves;Passeriformes
+17547;Vireo flavifrons;Yellow-throated Vireo;Vireo flavifrons;Aves;Passeriformes
+17548;Vireo flavoviridis;Yellow-green Vireo;Vireo flavoviridis;Aves;Passeriformes
+17549;Vireo gilvus;Warbling Vireo;Vireo gilvus;Aves;Passeriformes
+17551;Vireo griseus;White-eyed Vireo;Vireo griseus;Aves;Passeriformes
+17564;Vireo philadelphicus;Philadelphia Vireo;Vireo philadelphicus;Aves;Passeriformes
+17566;Vireo solitarius;Blue-headed Vireo;Vireo solitarius;Aves;Passeriformes
+17590;Vulpes vulpes;Red Fox;Vulpes vulpes;Mammalia;Carnivora
+17601;Xanthocephalus xanthocephalus;Yellow-headed Blackbird;Xanthocephalus xanthocephalus;Aves;Passeriformes
+17609;Xema sabini;Sabine's Gull;Xema sabini;Aves;Charadriiformes
+17645;Xenus cinereus;Terek Sandpiper;Xenus cinereus;Aves;Charadriiformes
+17648;Xestobium rufovillosum;Xestobium rufovillosum;Xestobium rufovillosum;Insecta;Coleoptera
+17755;Zenaida asiatica;White-winged Dove;Zenaida asiatica;Aves;Columbiformes
+17758;Zenaida macroura;Mourning Dove;Zenaida macroura;Aves;Columbiformes
+17795;Zonotrichia albicollis;White-throated Sparrow;Zonotrichia albicollis;Aves;Passeriformes
+17796;Zonotrichia atricapilla;Golden-crowned Sparrow;Zonotrichia atricapilla;Aves;Passeriformes
+17798;Zonotrichia leucophrys;White-crowned Sparrow;Zonotrichia leucophrys;Aves;Passeriformes
+17799;Zonotrichia querula;Harris's Sparrow;Zonotrichia querula;Aves;Passeriformes
+17804;Zoothera aurea;White's Thrush;Zoothera aurea;Aves;Passeriformes

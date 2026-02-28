@@ -3,9 +3,7 @@ package com.birdsong.analyzer.ml
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
-import android.util.Log
 import java.nio.ByteBuffer
-import kotlin.math.abs
 import kotlin.math.exp
 
 class BirdNetV24Classifier(
@@ -19,6 +17,11 @@ class BirdNetV24Classifier(
 ) : BirdClassifier {
 
     override val modelId: String = MODEL_ID
+    override val sampleRate: Int = 48_000
+    override val chunkDurationSeconds: Int = 3
+
+    @Volatile
+    override var metaProfile: MetaProfile? = null
 
     private val options = Interpreter.Options().apply { numThreads = tfliteThreads }
     private val audioInterpreter = Interpreter(audioModel, options)
@@ -28,36 +31,19 @@ class BirdNetV24Classifier(
         audioChunk: FloatArray,
         location: LocationMeta?,
     ): List<BirdDetection> = withContext(Dispatchers.Default) {
-        require(audioChunk.size == BirdClassifier.SAMPLES_PER_CHUNK) {
-            "Expected ${BirdClassifier.SAMPLES_PER_CHUNK} samples, got ${audioChunk.size}"
+        require(audioChunk.size == samplesPerChunk) {
+            "Expected $samplesPerChunk samples, got ${audioChunk.size}"
         }
-
-        // Log audio level for diagnostics
-        var sumSq = 0.0
-        var peak = 0f
-        for (s in audioChunk) {
-            sumSq += s * s
-            val a = abs(s)
-            if (a > peak) peak = a
-        }
-        val rms = kotlin.math.sqrt(sumSq / audioChunk.size)
-        //Log.d(TAG, "Chunk RMS=%.6f peak=%.6f (dBFS=%.1f)".format(rms, peak, 20 * kotlin.math.log10(rms.coerceAtLeast(1e-10))))
 
         val logits = runAudioModel(audioChunk)
 
         // Apply sigmoid — model outputs raw logits, not probabilities
         val scores = FloatArray(logits.size) { i -> sigmoid(logits[i]) }
 
-        // Diagnostic: log top-5 scores after sigmoid
-        val top5 = scores.indices.sortedByDescending { scores[it] }.take(3)
-        val top5Str = top5.joinToString { i ->
-            val (sci, common) = labels[i]
-            "$common(${String.format("%.3f", scores[i])})"
-        }
-            //Log.d(TAG, "Top-5 sigmoid: $top5Str")
-
-        if (location != null) {
-            applyMetaModel(location, scores)
+        val profile = metaProfile
+        when {
+            profile != null  -> profile.apply(scores, metaAlpha)
+            location != null -> applyMetaModel(location, scores)
         }
 
         buildDetections(scores)
@@ -116,7 +102,6 @@ class BirdNetV24Classifier(
     }
 
     companion object {
-        private const val TAG = "BirdNetClassifier"
         const val MODEL_ID = "BirdNET-V2.4-FP16"
         const val ASSET_BASE = "birdnet/v24"
         const val AUDIO_MODEL_PATH = "$ASSET_BASE/audio-model-fp16.tflite"
@@ -124,7 +109,7 @@ class BirdNetV24Classifier(
         const val DEFAULT_NUM_THREADS = 2
         const val DEFAULT_THRESHOLD = 0.1f
         const val DEFAULT_TOP_K = 10
-        const val DEFAULT_META_ALPHA = 0.15f
+        const val DEFAULT_META_ALPHA = 0.10f
 
         internal fun buildDetections(
             scores: FloatArray,

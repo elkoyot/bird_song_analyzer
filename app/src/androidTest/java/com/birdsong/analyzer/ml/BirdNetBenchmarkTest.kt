@@ -115,7 +115,7 @@ class BirdNetBenchmarkTest {
         else "нет"
         val t = BenchmarkLogger.logBegin(
             "Параллельный pipeline ($numWorkers воркера)",
-            "chunk: ${BirdClassifier.CHUNK_DURATION_SECONDS} с, порог: ${BenchmarkConfig.CONFIDENCE_THRESHOLD}, локация: $locationLabel",
+            "chunk: ${classifiers.first().chunkDurationSeconds} с, порог: ${BenchmarkConfig.CONFIDENCE_THRESHOLD}, локация: $locationLabel",
         )
 
         runBlocking {
@@ -127,7 +127,7 @@ class BirdNetBenchmarkTest {
                 try {
                     AudioFileDecoder.decodeChunked(
                         context, uri,
-                        hopSize = BirdClassifier.SAMPLES_PER_CHUNK, // 0% overlap for benchmark
+                        hopSize = classifiers.first().samplesPerChunk, // 0% overlap for benchmark
                     ) { chunkIndex, startTimeSec, chunk ->
                         totalChunks.incrementAndGet()
                         chunksChannel.trySendBlocking(
@@ -150,7 +150,7 @@ class BirdNetBenchmarkTest {
                             continue
                         }
 
-                        val endTimeSec = ic.startTimeSec + BirdClassifier.CHUNK_DURATION_SECONDS
+                        val endTimeSec = ic.startTimeSec + clf.chunkDurationSeconds
                         val classifyStart = System.currentTimeMillis()
                         val detections = clf.classify(processed.samples, location)
                         val classifyMs = System.currentTimeMillis() - classifyStart
@@ -239,7 +239,7 @@ class BirdNetBenchmarkTest {
 
         // Warmup: sequential dummy inference to trigger TFLite JIT before pipeline starts
         val warmupT = BenchmarkLogger.logBegin("TFLite warmup", "$count интерпретаторов")
-        val warmupChunk = FloatArray(BirdClassifier.SAMPLES_PER_CHUNK)
+        val warmupChunk = FloatArray(classifiers.first().samplesPerChunk)
         for ((i, clf) in classifiers.withIndex()) {
             val ms = System.currentTimeMillis()
             runBlocking { clf.classify(warmupChunk) }

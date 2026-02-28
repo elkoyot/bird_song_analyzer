@@ -10,6 +10,7 @@
     <!-- Live Detection -->
     <string name="detection_title">Live Detection</string>
     <string name="detection_idle">Press Start to begin</string>
+    <string name="detection_preparing">Preparing…</string>
     <string name="detection_analyzing">Analyzing…</string>
     <string name="detection_paused">Paused</string>
     <string name="detection_stopped">Session ended</string>
@@ -20,6 +21,13 @@
     <string name="btn_resume">Resume</string>
     <string name="btn_stop">Stop</string>
     <string name="btn_reset">Reset</string>
+    <string name="btn_compare_models">Compare Models</string>
+
+    <!-- Dual Detection -->
+    <string name="dual_detection_title">Compare Models</string>
+    <string name="dual_detection_birdnet">BirdNET V2.4</string>
+    <string name="dual_detection_v30">BirdNET V3.0</string>
+    <string name="dual_detection_v30_unavailable">Model not installed</string>
 
     <!-- Detail -->
     <string name="detail_confidence">Confidence: %1$d%%</string>
@@ -48,4 +56,12 @@
     <string name="settings_permission_not_granted">Not granted — tap to request</string>
     <string name="settings_permission_location_hint">Improves species detection accuracy</string>
     <string name="settings_about">About</string>
+    <string name="settings_country_region">Country / Region</string>
+    <string name="settings_select_country">Select Country</string>
+    <string name="settings_select_region">Select Region (%1$s)</string>
+    <string name="settings_model">Classifier Model</string>
+    <string name="settings_select_model">Select Model</string>
+    <string name="settings_model_birdnet">BirdNET V2.4 (6 522 species)</string>
+    <string name="settings_model_v30">BirdNET V3.0 EUNA (972 species)</string>
+    <string name="settings_model_not_available">Model not installed</string>
 </resources>

@@ -34,10 +34,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.birdsong.analyzer.R
 import com.birdsong.analyzer.presentation.detail.DetailScreen
+import com.birdsong.analyzer.presentation.detection.DualDetectionScreen
+import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
 import com.birdsong.analyzer.presentation.detection.LiveDetectionScreen
 import com.birdsong.analyzer.presentation.detection.LiveDetectionViewModel
 import com.birdsong.analyzer.presentation.history.HistoryScreen
 import com.birdsong.analyzer.presentation.settings.SettingsScreen
+import com.birdsong.analyzer.presentation.settings.SettingsViewModel
 
 private data class BottomNavItem<T : Any>(
     val route: T,
@@ -121,7 +124,7 @@ fun BirdSongNavHost() {
                     onResume = viewModel::onResume,
                     onStop = viewModel::onStop,
                     onReset = viewModel::onReset,
-                    onTestSample = viewModel::onTestSample,
+                    onCompareModels = { navController.navigate(DualDetectionRoute) },
                 )
             }
 
@@ -135,6 +138,10 @@ fun BirdSongNavHost() {
 
             composable<SettingsRoute> {
                 val context = LocalContext.current
+                val viewModel: SettingsViewModel = hiltViewModel()
+                val selectedCountry by viewModel.selectedCountry.collectAsStateWithLifecycle()
+                val selectedRegion by viewModel.selectedRegion.collectAsStateWithLifecycle()
+                val activeModel by viewModel.activeModel.collectAsStateWithLifecycle()
 
                 fun checkAudio() = ContextCompat.checkSelfPermission(
                     context, Manifest.permission.RECORD_AUDIO,
@@ -158,12 +165,51 @@ fun BirdSongNavHost() {
                 SettingsScreen(
                     audioPermissionGranted = audioGranted,
                     locationPermissionGranted = locationGranted,
+                    countries = viewModel.countries,
+                    selectedCountry = selectedCountry,
+                    selectedRegion = selectedRegion,
+                    activeModel = activeModel,
+                    isV30Available = viewModel.isV30Available,
                     onRequestAudioPermission = {
                         audioLauncher.launch(Manifest.permission.RECORD_AUDIO)
                     },
                     onRequestLocationPermission = {
                         locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
                     },
+                    onCountrySelected = viewModel::selectCountry,
+                    onRegionSelected = viewModel::selectRegion,
+                    onModelSelected = viewModel::selectModel,
+                )
+            }
+
+            composable<DualDetectionRoute> {
+                val viewModel: DualDetectionViewModel = hiltViewModel()
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val context = LocalContext.current
+
+                val permissionLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission(),
+                ) { granted ->
+                    if (granted) viewModel.onStart()
+                }
+
+                DualDetectionScreen(
+                    uiState = uiState,
+                    onStart = {
+                        if (ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.RECORD_AUDIO,
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            viewModel.onStart()
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        }
+                    },
+                    onPause = viewModel::onPause,
+                    onResume = viewModel::onResume,
+                    onStop = viewModel::onStop,
+                    onReset = viewModel::onReset,
+                    onBack = { navController.popBackStack() },
                 )
             }
 

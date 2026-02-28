@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,7 +56,7 @@ import com.birdsong.analyzer.presentation.theme.ConfidenceHigh
 
 // --- UI State ---
 
-enum class DetectionState { IDLE, ANALYZING, PAUSED, STOPPED }
+enum class DetectionState { IDLE, PREPARING, ANALYZING, PAUSED, STOPPED }
 
 data class DetectedBirdUi(
     val id: String,
@@ -86,7 +87,7 @@ fun LiveDetectionScreen(
     onResume: () -> Unit = {},
     onStop: () -> Unit = {},
     onReset: () -> Unit = {},
-    onTestSample: () -> Unit = {},
+    onCompareModels: () -> Unit = {},
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -118,19 +119,15 @@ fun LiveDetectionScreen(
             onPause = onPause,
             onResume = onResume,
             onStop = onStop,
+            idleExtra = {
+                OutlinedButton(
+                    onClick = onCompareModels,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.btn_compare_models))
+                }
+            },
         )
-
-        // Debug: test with audio file
-        if (uiState.state == DetectionState.IDLE || uiState.state == DetectionState.STOPPED) {
-            OutlinedButton(
-                onClick = onTestSample,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-            ) {
-                Text("Test Sample")
-            }
-        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -154,7 +151,7 @@ fun LiveDetectionScreen(
                     Text(
                         text = when (uiState.state) {
                             DetectionState.IDLE -> stringResource(R.string.detection_idle)
-                            DetectionState.ANALYZING -> stringResource(R.string.detection_no_results)
+                            DetectionState.PREPARING -> stringResource(R.string.detection_preparing)
                             else -> stringResource(R.string.detection_no_results)
                         },
                         style = MaterialTheme.typography.bodyLarge,
@@ -185,7 +182,7 @@ fun LiveDetectionScreen(
 }
 
 @Composable
-private fun StatusBar(state: DetectionState, timer: String) {
+internal fun StatusBar(state: DetectionState, timer: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,15 +200,16 @@ private fun StatusBar(state: DetectionState, timer: String) {
         }
         Text(
             text = when (state) {
-                DetectionState.IDLE -> stringResource(R.string.detection_idle)
+                DetectionState.IDLE      -> stringResource(R.string.detection_idle)
+                DetectionState.PREPARING -> stringResource(R.string.detection_preparing)
                 DetectionState.ANALYZING -> stringResource(R.string.detection_analyzing)
-                DetectionState.PAUSED -> stringResource(R.string.detection_paused)
-                DetectionState.STOPPED -> stringResource(R.string.detection_stopped)
+                DetectionState.PAUSED    -> stringResource(R.string.detection_paused)
+                DetectionState.STOPPED   -> stringResource(R.string.detection_stopped)
             },
             style = MaterialTheme.typography.bodyLarge,
         )
         Spacer(modifier = Modifier.weight(1f))
-        if (state != DetectionState.IDLE) {
+        if (state != DetectionState.IDLE && state != DetectionState.PREPARING) {
             Text(
                 text = timer,
                 style = MaterialTheme.typography.titleMedium,
@@ -222,12 +220,13 @@ private fun StatusBar(state: DetectionState, timer: String) {
 }
 
 @Composable
-private fun ControlPanel(
+internal fun ControlPanel(
     state: DetectionState,
     onStart: () -> Unit,
     onPause: () -> Unit,
     onResume: () -> Unit,
     onStop: () -> Unit,
+    idleExtra: (@Composable RowScope.() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -239,7 +238,7 @@ private fun ControlPanel(
             DetectionState.IDLE, DetectionState.STOPPED -> {
                 Button(
                     onClick = onStart,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = if (idleExtra != null) Modifier.weight(1f) else Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                     ),
@@ -247,6 +246,16 @@ private fun ControlPanel(
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.btn_start))
+                }
+                idleExtra?.invoke(this@Row)
+            }
+            DetectionState.PREPARING -> {
+                Button(
+                    onClick = {},
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.detection_preparing))
                 }
             }
             DetectionState.ANALYZING -> {
@@ -296,7 +305,7 @@ private fun ControlPanel(
 }
 
 @Composable
-private fun AudioLevelBar(level: Float) {
+internal fun AudioLevelBar(level: Float) {
     // Map RMS to visual: RMS 0..0.3 → bar 0..1 (log-ish scale for better visibility)
     val dbfs = if (level > 1e-6f) (20 * kotlin.math.log10(level)).coerceAtLeast(-60f) else -60f
     val normalized = ((dbfs + 60f) / 60f).coerceIn(0f, 1f)

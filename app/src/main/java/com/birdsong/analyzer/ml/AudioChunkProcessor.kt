@@ -1,5 +1,6 @@
 package com.birdsong.analyzer.ml
 
+import android.util.Log
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sqrt
@@ -15,19 +16,47 @@ import kotlin.math.sqrt
  * 5. Post-filter silence check
  * 6. Peak normalization to [NORM_TARGET]
  */
-class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RATE) {
+enum class PreprocessingMode { FULL, LIGHT }
+
+class AudioChunkProcessor(
+    private val sampleRate: Int = 48_000,
+    private val mode: PreprocessingMode = PreprocessingMode.FULL,
+) {
 
     enum class SkipReason { SILENCE, CLIPPING, SPECTRAL_REJECT, POST_FILTER_SILENCE }
 
     data class Result(val samples: FloatArray, val rms: Float, val peak: Float)
 
-    private val bandpass = BandpassFilter(sampleRate, LOW_CUTOFF, HIGH_CUTOFF)
+    /* ── Diagnostic counters ── */
+    var totalChunks = 0; private set
+    var silenceRejects = 0; private set
+    var clippingRejects = 0; private set
+    var spectralRejects = 0; private set
+    var postFilterRejects = 0; private set
+    var passedChunks = 0; private set
+
+    fun resetStats() {
+        totalChunks = 0; silenceRejects = 0; clippingRejects = 0
+        spectralRejects = 0; postFilterRejects = 0; passedChunks = 0
+    }
+
+    fun statsLine(): String =
+        "total=$totalChunks passed=$passedChunks " +
+            "silence=$silenceRejects clip=$clippingRejects " +
+            "spectral=$spectralRejects postFilter=$postFilterRejects"
+
+    private val bandpass by lazy { BandpassFilter(sampleRate, LOW_CUTOFF, HIGH_CUTOFF) }
 
     /**
      * Process a raw audio chunk. Returns [Result] with filtered+normalized samples,
      * or null if the chunk should be skipped (silence, clipping, non-bird noise).
+     *
+     * [PreprocessingMode.FULL] — silence + clipping + spectral + bandpass + normalization (BirdNET)
+     * [PreprocessingMode.LIGHT] — silence + clipping + normalization (models with built-in STFT)
      */
     fun process(chunk: FloatArray): Result? {
+        totalChunks++
+
         // 1. Compute RMS and peak
         var sumSq = 0.0
         var peak = 0f
@@ -39,13 +68,30 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
         val rms = sqrt(sumSq / chunk.size).toFloat()
 
         // 1a. Silence check
-        if (rms < SILENCE_RMS_THRESHOLD) return null
+        if (rms < SILENCE_RMS_THRESHOLD) {
+            silenceRejects++
+            Log.d(TAG, "SKIP silence: rms=%.5f peak=%.4f [%s]".format(rms, peak, statsLine()))
+            return null
+        }
 
         // 2. Clipping check
-        if (peak > CLIPPING_PEAK_THRESHOLD && rms > CLIPPING_RMS_THRESHOLD) return null
+        if (peak > CLIPPING_PEAK_THRESHOLD && rms > CLIPPING_RMS_THRESHOLD) {
+            clippingRejects++
+            Log.d(TAG, "SKIP clipping: rms=%.4f peak=%.4f [%s]".format(rms, peak, statsLine()))
+            return null
+        }
 
+        return if (mode == PreprocessingMode.FULL) processFull(chunk, rms, peak)
+               else processLight(chunk, rms, peak)
+    }
+
+    private fun processFull(chunk: FloatArray, rms: Float, peak: Float): Result? {
         // 3. Spectral check via Goertzel at 4 bands
-        if (!passesSpectralCheck(chunk)) return null
+        if (!passesSpectralCheck(chunk)) {
+            spectralRejects++
+            Log.d(TAG, "SKIP spectral: rms=%.4f peak=%.4f [%s]".format(rms, peak, statsLine()))
+            return null
+        }
 
         // 4. Bandpass filter
         val filtered = bandpass.apply(chunk)
@@ -56,7 +102,12 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
             val a = abs(s)
             if (a > postPeak) postPeak = a
         }
-        if (postPeak < POST_FILTER_SILENCE_THRESHOLD) return null
+        if (postPeak < POST_FILTER_SILENCE_THRESHOLD) {
+            postFilterRejects++
+            Log.d(TAG, "SKIP postFilter: postPeak=%.5f rms=%.4f [%s]"
+                .format(postPeak, rms, statsLine()))
+            return null
+        }
 
         // 6. Peak normalization
         val normalized = if (postPeak in POST_FILTER_SILENCE_THRESHOLD..NORM_TARGET) {
@@ -66,7 +117,22 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
             filtered
         }
 
-        // Compute output stats
+        return finalize(normalized, rms, peak)
+    }
+
+    private fun processLight(chunk: FloatArray, rms: Float, peak: Float): Result? {
+        // LIGHT mode: only peak normalization (no bandpass/spectral)
+        val normalized = if (peak in POST_FILTER_SILENCE_THRESHOLD..NORM_TARGET) {
+            val gain = NORM_TARGET / peak
+            FloatArray(chunk.size) { i -> (chunk[i] * gain).coerceIn(-1f, 1f) }
+        } else {
+            chunk.copyOf()
+        }
+
+        return finalize(normalized, rms, peak)
+    }
+
+    private fun finalize(normalized: FloatArray, inRms: Float, inPeak: Float): Result {
         var outSumSq = 0.0
         var outPeak = 0f
         for (s in normalized) {
@@ -76,33 +142,45 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
         }
         val outRms = sqrt(outSumSq / normalized.size).toFloat()
 
+        passedChunks++
+        Log.d(TAG, "PASS: inRms=%.4f inPeak=%.4f → outRms=%.4f outPeak=%.4f [%s]"
+            .format(inRms, inPeak, outRms, outPeak, statsLine()))
+
         return Result(normalized, outRms, outPeak)
     }
 
     /**
-     * Spectral check using Goertzel algorithm at 4 frequency bands.
-     * Rejects chunks where >80% of energy is at non-bird frequencies
-     * (below ~200 Hz or above ~10 kHz).
+     * Spectral check using Goertzel algorithm at 5 frequency bands.
+     * Rejects chunks where ≥95% of energy is at non-bird frequencies.
      *
      * Bands:
      *   100 Hz  — non-bird noise (motors, HVAC, wind, 50/60 Hz hum harmonics)
-     *   500 Hz  — low-frequency birds (pigeons ~120 Hz harmonics, owls ~300-500 Hz)
+     *   250 Hz  — low-frequency birds: owls fundamental (200-400 Hz)
+     *   500 Hz  — low-frequency birds: pigeons, owl harmonics
      *   3000 Hz — typical bird vocalizations
      *   12000 Hz — above most bird song (electronics, insects)
      */
     private fun passesSpectralCheck(chunk: FloatArray): Boolean {
-        val lowEnergy = goertzelEnergy(chunk, 100f)       // non-bird low-frequency noise
-        val birdLowEnergy = goertzelEnergy(chunk, 500f)   // low-freq birds: pigeons, owls
-        val birdMidEnergy = goertzelEnergy(chunk, 3000f)  // typical bird vocalizations
-        val highEnergy = goertzelEnergy(chunk, 12000f)    // above most bird song
+        val lowEnergy = goertzelEnergy(chunk, 100f)        // non-bird low-frequency noise
+        val birdOwlEnergy = goertzelEnergy(chunk, 250f)    // owls: eagle-owl ~300, tawny ~440
+        val birdLowEnergy = goertzelEnergy(chunk, 500f)    // pigeons, owl harmonics
+        val birdMidEnergy = goertzelEnergy(chunk, 3000f)   // typical bird vocalizations
+        val highEnergy = goertzelEnergy(chunk, 12000f)     // above most bird song
 
-        val totalEnergy = lowEnergy + birdLowEnergy + birdMidEnergy + highEnergy
+        val totalEnergy = lowEnergy + birdOwlEnergy + birdLowEnergy + birdMidEnergy + highEnergy
         if (totalEnergy < 1e-12) return true // negligible energy at all bands — let silence check handle it
 
         val lowRatio = lowEnergy / totalEnergy
         val highRatio = highEnergy / totalEnergy
 
-        return lowRatio < SPECTRAL_REJECT_RATIO && highRatio < SPECTRAL_REJECT_RATIO
+        val passes = lowRatio < SPECTRAL_REJECT_RATIO && highRatio < SPECTRAL_REJECT_RATIO
+        if (!passes) {
+            Log.d(TAG, "Spectral detail: low100=%.2f%% owl250=%.2f%% bird500=%.2f%% bird3k=%.2f%% high12k=%.2f%%"
+                .format(lowRatio * 100, birdOwlEnergy / totalEnergy * 100,
+                    birdLowEnergy / totalEnergy * 100,
+                    birdMidEnergy / totalEnergy * 100, highRatio * 100))
+        }
+        return passes
     }
 
     /**
@@ -128,13 +206,14 @@ class AudioChunkProcessor(private val sampleRate: Int = BirdClassifier.SAMPLE_RA
     }
 
     companion object {
-        const val SILENCE_RMS_THRESHOLD = 0.005f
+        private const val TAG = "AudioChunkProcessor"
+        const val SILENCE_RMS_THRESHOLD = 0.001f
         const val CLIPPING_PEAK_THRESHOLD = 0.99f
         const val CLIPPING_RMS_THRESHOLD = 0.3f
-        const val SPECTRAL_REJECT_RATIO = 0.80
+        const val SPECTRAL_REJECT_RATIO = 0.98
         const val LOW_CUTOFF = 80f
         const val HIGH_CUTOFF = 15_000f
-        const val NORM_TARGET = 0.5f
+        const val NORM_TARGET = 0.9f
         const val POST_FILTER_SILENCE_THRESHOLD = 0.001f
     }
 }

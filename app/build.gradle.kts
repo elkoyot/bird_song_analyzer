@@ -56,7 +56,7 @@ android {
     }
 
     androidResources {
-        noCompress += listOf("tflite")
+        noCompress += listOf("tflite", "onnx")
     }
 }
 
@@ -107,6 +107,9 @@ dependencies {
     // TensorFlow Lite
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.support)
+
+    // ONNX Runtime
+    implementation(libs.onnxruntime.android)
 
     // Testing
     testImplementation(libs.junit5.api)
