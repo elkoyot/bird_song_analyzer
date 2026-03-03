@@ -24,7 +24,8 @@ local.properties
 /app/src/androidTest/assets/
 
 # Claude Code local settings
-/.claude/
+/.claude/*
+!/.claude/ways/
 
 # Nested git repo (empty)
 /bird_song_analyzer/
