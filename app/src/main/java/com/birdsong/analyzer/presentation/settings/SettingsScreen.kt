@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
@@ -32,9 +30,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.birdsong.analyzer.R
-import com.birdsong.analyzer.ml.BoundingBox
-import com.birdsong.analyzer.ml.CountryConfig
-import com.birdsong.analyzer.ml.displayName
 import com.birdsong.analyzer.presentation.theme.BirdSongTheme
 import com.birdsong.analyzer.presentation.theme.ConfidenceHigh
 
@@ -45,9 +40,7 @@ fun SettingsScreen(
     currentTheme: String = "System",
     audioPermissionGranted: Boolean = false,
     locationPermissionGranted: Boolean = false,
-    countries: List<CountryConfig> = emptyList(),
-    selectedCountry: CountryConfig? = null,
-    selectedRegion: CountryConfig? = null,
+    locationLabel: String = "\u2014",
     activeModel: String = "birdnet_v24",
     isV30Available: Boolean = false,
     onLanguageClick: () -> Unit = {},
@@ -55,12 +48,9 @@ fun SettingsScreen(
     onRequestAudioPermission: () -> Unit = {},
     onRequestLocationPermission: () -> Unit = {},
     onAboutClick: () -> Unit = {},
-    onCountrySelected: (String) -> Unit = {},
-    onRegionSelected: (String?) -> Unit = {},
+    onLocationClick: () -> Unit = {},
     onModelSelected: (String) -> Unit = {},
 ) {
-    var showCountryDialog by remember { mutableStateOf(false) }
-    var showRegionDialog by remember { mutableStateOf<CountryConfig?>(null) }
     var showModelDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -82,11 +72,10 @@ fun SettingsScreen(
         )
         HorizontalDivider()
 
-        val countryLabel = buildCountryLabel(selectedCountry, selectedRegion)
         SettingsItem(
             title = stringResource(R.string.settings_country_region),
-            subtitle = countryLabel,
-            onClick = { showCountryDialog = true },
+            subtitle = locationLabel,
+            onClick = onLocationClick,
         )
         HorizontalDivider()
 
@@ -136,123 +125,6 @@ fun SettingsScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp),
-        )
-    }
-
-    // Country picker dialog
-    if (showCountryDialog) {
-        AlertDialog(
-            onDismissRequest = { showCountryDialog = false },
-            title = { Text(stringResource(R.string.settings_select_country)) },
-            text = {
-                LazyColumn {
-                    items(countries) { country ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    showCountryDialog = false
-                                    if (country.regions.isNotEmpty()) {
-                                        showRegionDialog = country
-                                    } else {
-                                        onCountrySelected(country.code)
-                                        onRegionSelected(null)
-                                    }
-                                }
-                                .padding(vertical = 12.dp, horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = country.displayName(),
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f),
-                            )
-                            if (selectedCountry?.code == country.code) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = ConfidenceHigh,
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showCountryDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
-
-    // Region picker dialog
-    showRegionDialog?.let { country ->
-        AlertDialog(
-            onDismissRequest = { showRegionDialog = null },
-            title = { Text(stringResource(R.string.settings_select_region, country.displayName())) },
-            text = {
-                LazyColumn {
-                    item {
-                        // "Whole country" option
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    showRegionDialog = null
-                                    onCountrySelected(country.code)
-                                    onRegionSelected(null)
-                                }
-                                .padding(vertical = 12.dp, horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = country.displayName(),
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f),
-                            )
-                            if (selectedCountry?.code == country.code && selectedRegion == null) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = ConfidenceHigh,
-                                )
-                            }
-                        }
-                    }
-                    items(country.regions) { region ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    showRegionDialog = null
-                                    onCountrySelected(country.code)
-                                    onRegionSelected(region.code)
-                                }
-                                .padding(vertical = 12.dp, horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = region.displayName(),
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f),
-                            )
-                            if (selectedRegion?.code == region.code) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = ConfidenceHigh,
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showRegionDialog = null }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
         )
     }
 
@@ -315,11 +187,6 @@ fun SettingsScreen(
             },
         )
     }
-}
-
-private fun buildCountryLabel(country: CountryConfig?, region: CountryConfig?): String {
-    if (country == null) return "—"
-    return if (region != null) "${country.displayName()} · ${region.displayName()}" else country.displayName()
 }
 
 @Composable
@@ -408,28 +275,12 @@ private fun SettingsItem(
 
 // --- Previews ---
 
-private val previewCountries = listOf(
-    CountryConfig(
-        code = "BY", nameRu = "Беларусь", nameEn = "Belarus",
-        bbox = BoundingBox(51.2f, 56.2f, 23.2f, 32.8f),
-    ),
-    CountryConfig(
-        code = "RU", nameRu = "Россия", nameEn = "Russia",
-        bbox = BoundingBox(41.0f, 77.0f, 27.0f, 169.0f),
-        regions = listOf(
-            CountryConfig("RU-NW", "Северо-Западный", "Northwestern Russia",
-                BoundingBox(56.5f, 70.0f, 26.0f, 60.0f)),
-        ),
-    ),
-)
-
 @Preview(showBackground = true, showSystemUi = true, name = "Settings — no permissions")
 @Composable
 private fun PreviewSettings() {
     BirdSongTheme {
         SettingsScreen(
-            countries = previewCountries,
-            selectedCountry = previewCountries.first(),
+            locationLabel = "Беларусь",
         )
     }
 }
@@ -441,8 +292,7 @@ private fun PreviewSettingsGranted() {
         SettingsScreen(
             audioPermissionGranted = true,
             locationPermissionGranted = true,
-            countries = previewCountries,
-            selectedCountry = previewCountries.first(),
+            locationLabel = "Беларусь",
         )
     }
 }
@@ -456,9 +306,7 @@ private fun PreviewSettingsDark() {
             currentTheme = "Тёмная",
             audioPermissionGranted = true,
             locationPermissionGranted = false,
-            countries = previewCountries,
-            selectedCountry = previewCountries[1],
-            selectedRegion = previewCountries[1].regions.first(),
+            locationLabel = "Россия \u00b7 Центральный",
         )
     }
 }

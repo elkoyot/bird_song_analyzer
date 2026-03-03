@@ -9,13 +9,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.birdsong.analyzer.data.PreferencesRepository
+import com.birdsong.analyzer.data.repository.GeoRepository
 import com.birdsong.analyzer.ml.AudioFileDecoder
 import com.birdsong.analyzer.ml.BirdDetection
 import com.birdsong.analyzer.ml.BirdDetectionPipeline
+import com.birdsong.analyzer.ml.BoundingBox
 import com.birdsong.analyzer.ml.ClassifierFactory
 import com.birdsong.analyzer.ml.DetectionAggregator
-import com.birdsong.analyzer.ml.CountryConfig
-import com.birdsong.analyzer.ml.CountryConfigLoader
 import com.birdsong.analyzer.ml.FamilyTaxonomy
 import com.birdsong.analyzer.ml.LocationMeta
 import com.birdsong.analyzer.ml.MetaProfile
@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -49,7 +48,7 @@ class LiveDetectionViewModel @Inject constructor(
     private val classifierFactory: ClassifierFactory,
     private val metaProfileBuilder: MetaProfileBuilder,
     private val prefsRepo: PreferencesRepository,
-    private val countries: List<CountryConfig>,
+    private val geoRepository: GeoRepository,
     private val familyTaxonomy: FamilyTaxonomy,
 ) : ViewModel() {
 
@@ -81,14 +80,13 @@ class LiveDetectionViewModel @Inject constructor(
     private fun buildMetaProfileAsync() {
         metaProfileJob = viewModelScope.launch {
             try {
-                val code = prefsRepo.countryCode.first()
-                val region = prefsRepo.regionCode.first()
-                val config = CountryConfigLoader.findByCode(countries, code, region) ?: return@launch
-                Log.d(TAG, "Building MetaProfile for ${config.nameEn} (${config.code})")
-                val profile = metaProfileBuilder.build(config.bbox, config.bufferDeg)
+                val geo = geoRepository.resolveCurrentGeo() ?: return@launch
+                Log.d(TAG, "Building MetaProfile for ${geo.nameEn} (${geo.code})")
+                val bbox = BoundingBox(geo.minLat!!, geo.maxLat!!, geo.minLon!!, geo.maxLon!!)
+                val profile = metaProfileBuilder.build(bbox, geo.bufferDeg)
                 cachedMetaProfile = profile
                 pipeline.classifier.metaProfile = profile
-                Log.d(TAG, "MetaProfile ready for ${config.nameEn}")
+                Log.d(TAG, "MetaProfile ready for ${geo.nameEn}")
             } catch (e: Exception) {
                 Log.e(TAG, "MetaProfile build failed", e)
             }

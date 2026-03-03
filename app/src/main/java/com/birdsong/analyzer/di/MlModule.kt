@@ -5,8 +5,6 @@ import com.birdsong.analyzer.ml.AudioChunkProcessor
 import com.birdsong.analyzer.ml.BirdClassifier
 import com.birdsong.analyzer.ml.PreprocessingMode
 import com.birdsong.analyzer.ml.BirdNetV24Classifier
-import com.birdsong.analyzer.ml.CountryConfig
-import com.birdsong.analyzer.ml.CountryConfigLoader
 import com.birdsong.analyzer.ml.FamilyTaxonomy
 import com.birdsong.analyzer.ml.LabelParser
 import com.birdsong.analyzer.ml.MetaProfileBuilder
@@ -48,11 +46,6 @@ object MlModule {
         val path = "${BirdNetV24Classifier.ASSET_BASE}/labels/ru.txt"
         return context.assets.open(path).use { LabelParser.load(it) }
     }
-
-    @Provides
-    @Singleton
-    fun provideCountries(@ApplicationContext context: Context): List<CountryConfig> =
-        CountryConfigLoader.load(context)
 
     @Provides
     @Singleton

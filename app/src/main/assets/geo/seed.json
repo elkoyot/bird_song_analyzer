@@ -1,0 +1,375 @@
+{
+  "continents": [
+    {
+      "code": "EU",
+      "nameRu": "Европа",
+      "nameEn": "Europe",
+      "countries": [
+        {
+          "code": "BY",
+          "nameRu": "Беларусь",
+          "nameEn": "Belarus",
+          "bbox": { "minLat": 51.2, "maxLat": 56.2, "minLon": 23.2, "maxLon": 32.8 }
+        },
+        {
+          "code": "RU",
+          "nameRu": "Россия",
+          "nameEn": "Russia",
+          "bbox": { "minLat": 41.0, "maxLat": 77.0, "minLon": 27.0, "maxLon": 169.0 },
+          "bufferDeg": 3.0,
+          "regions": [
+            { "code": "RU-NW", "nameRu": "Северо-Западный", "nameEn": "Northwestern Russia", "bbox": { "minLat": 56.5, "maxLat": 70.0, "minLon": 26.0, "maxLon": 60.0 } },
+            { "code": "RU-C", "nameRu": "Центральный", "nameEn": "Central Russia", "bbox": { "minLat": 50.0, "maxLat": 60.0, "minLon": 30.0, "maxLon": 50.0 } },
+            { "code": "RU-S", "nameRu": "Южный", "nameEn": "Southern Russia", "bbox": { "minLat": 41.0, "maxLat": 52.0, "minLon": 37.0, "maxLon": 50.0 } },
+            { "code": "RU-VO", "nameRu": "Приволжский", "nameEn": "Volga Region", "bbox": { "minLat": 45.0, "maxLat": 60.0, "minLon": 44.0, "maxLon": 56.0 } },
+            { "code": "RU-UR", "nameRu": "Уральский", "nameEn": "Ural Region", "bbox": { "minLat": 50.0, "maxLat": 68.0, "minLon": 55.0, "maxLon": 67.0 } },
+            { "code": "RU-SB", "nameRu": "Сибирский", "nameEn": "Siberian Russia", "bbox": { "minLat": 49.0, "maxLat": 72.0, "minLon": 60.0, "maxLon": 99.0 } },
+            { "code": "RU-FE", "nameRu": "Дальневосточный", "nameEn": "Far Eastern Russia", "bbox": { "minLat": 42.0, "maxLat": 72.0, "minLon": 97.0, "maxLon": 169.0 } },
+            { "code": "RU-N", "nameRu": "Северный", "nameEn": "Northern Russia", "bbox": { "minLat": 62.0, "maxLat": 77.0, "minLon": 27.0, "maxLon": 68.0 } }
+          ]
+        },
+        {
+          "code": "UA",
+          "nameRu": "Украина",
+          "nameEn": "Ukraine",
+          "bbox": { "minLat": 44.4, "maxLat": 52.4, "minLon": 22.1, "maxLon": 40.2 }
+        },
+        {
+          "code": "MD",
+          "nameRu": "Молдова",
+          "nameEn": "Moldova",
+          "bbox": { "minLat": 45.5, "maxLat": 48.5, "minLon": 26.6, "maxLon": 30.2 }
+        },
+        {
+          "code": "GE",
+          "nameRu": "Грузия",
+          "nameEn": "Georgia",
+          "bbox": { "minLat": 41.0, "maxLat": 43.6, "minLon": 40.0, "maxLon": 46.7 }
+        },
+        {
+          "code": "AM",
+          "nameRu": "Армения",
+          "nameEn": "Armenia",
+          "bbox": { "minLat": 38.8, "maxLat": 41.3, "minLon": 43.5, "maxLon": 46.6 }
+        },
+        {
+          "code": "AZ",
+          "nameRu": "Азербайджан",
+          "nameEn": "Azerbaijan",
+          "bbox": { "minLat": 38.4, "maxLat": 41.9, "minLon": 44.7, "maxLon": 50.7 }
+        },
+        {
+          "code": "DE",
+          "nameRu": "Германия",
+          "nameEn": "Germany",
+          "bbox": { "minLat": 47.3, "maxLat": 55.1, "minLon": 5.9, "maxLon": 15.1 }
+        },
+        {
+          "code": "FR",
+          "nameRu": "Франция",
+          "nameEn": "France",
+          "bbox": { "minLat": 41.3, "maxLat": 51.1, "minLon": -5.2, "maxLon": 9.6 }
+        },
+        {
+          "code": "GB",
+          "nameRu": "Великобритания",
+          "nameEn": "United Kingdom",
+          "bbox": { "minLat": 49.9, "maxLat": 60.9, "minLon": -8.7, "maxLon": 2.0 }
+        },
+        {
+          "code": "ES",
+          "nameRu": "Испания",
+          "nameEn": "Spain",
+          "bbox": { "minLat": 36.0, "maxLat": 43.8, "minLon": -9.3, "maxLon": 4.3 }
+        },
+        {
+          "code": "PT",
+          "nameRu": "Португалия",
+          "nameEn": "Portugal",
+          "bbox": { "minLat": 37.0, "maxLat": 42.2, "minLon": -9.5, "maxLon": -6.2 }
+        },
+        {
+          "code": "IT",
+          "nameRu": "Италия",
+          "nameEn": "Italy",
+          "bbox": { "minLat": 36.6, "maxLat": 47.1, "minLon": 6.6, "maxLon": 18.5 }
+        },
+        {
+          "code": "NL",
+          "nameRu": "Нидерланды",
+          "nameEn": "Netherlands",
+          "bbox": { "minLat": 50.7, "maxLat": 53.6, "minLon": 3.4, "maxLon": 7.2 }
+        },
+        {
+          "code": "BE",
+          "nameRu": "Бельгия",
+          "nameEn": "Belgium",
+          "bbox": { "minLat": 49.5, "maxLat": 51.5, "minLon": 2.5, "maxLon": 6.4 }
+        },
+        {
+          "code": "LU",
+          "nameRu": "Люксембург",
+          "nameEn": "Luxembourg",
+          "bbox": { "minLat": 49.4, "maxLat": 50.2, "minLon": 5.7, "maxLon": 6.5 }
+        },
+        {
+          "code": "AT",
+          "nameRu": "Австрия",
+          "nameEn": "Austria",
+          "bbox": { "minLat": 46.4, "maxLat": 49.0, "minLon": 9.5, "maxLon": 17.2 }
+        },
+        {
+          "code": "CH",
+          "nameRu": "Швейцария",
+          "nameEn": "Switzerland",
+          "bbox": { "minLat": 45.8, "maxLat": 47.8, "minLon": 5.9, "maxLon": 10.5 }
+        },
+        {
+          "code": "SE",
+          "nameRu": "Швеция",
+          "nameEn": "Sweden",
+          "bbox": { "minLat": 55.3, "maxLat": 69.1, "minLon": 11.1, "maxLon": 24.2 }
+        },
+        {
+          "code": "NO",
+          "nameRu": "Норвегия",
+          "nameEn": "Norway",
+          "bbox": { "minLat": 57.9, "maxLat": 71.2, "minLon": 4.5, "maxLon": 31.1 }
+        },
+        {
+          "code": "DK",
+          "nameRu": "Дания",
+          "nameEn": "Denmark",
+          "bbox": { "minLat": 54.6, "maxLat": 57.8, "minLon": 8.1, "maxLon": 15.2 }
+        },
+        {
+          "code": "FI",
+          "nameRu": "Финляндия",
+          "nameEn": "Finland",
+          "bbox": { "minLat": 59.8, "maxLat": 70.1, "minLon": 20.0, "maxLon": 31.6 }
+        },
+        {
+          "code": "IS",
+          "nameRu": "Исландия",
+          "nameEn": "Iceland",
+          "bbox": { "minLat": 63.4, "maxLat": 66.6, "minLon": -24.5, "maxLon": -13.5 }
+        },
+        {
+          "code": "PL",
+          "nameRu": "Польша",
+          "nameEn": "Poland",
+          "bbox": { "minLat": 49.0, "maxLat": 54.9, "minLon": 14.1, "maxLon": 24.2 }
+        },
+        {
+          "code": "CZ",
+          "nameRu": "Чехия",
+          "nameEn": "Czech Republic",
+          "bbox": { "minLat": 48.5, "maxLat": 51.1, "minLon": 12.1, "maxLon": 18.9 }
+        },
+        {
+          "code": "SK",
+          "nameRu": "Словакия",
+          "nameEn": "Slovakia",
+          "bbox": { "minLat": 47.7, "maxLat": 49.6, "minLon": 16.8, "maxLon": 22.6 }
+        },
+        {
+          "code": "HU",
+          "nameRu": "Венгрия",
+          "nameEn": "Hungary",
+          "bbox": { "minLat": 45.7, "maxLat": 48.6, "minLon": 16.1, "maxLon": 22.9 }
+        },
+        {
+          "code": "RO",
+          "nameRu": "Румыния",
+          "nameEn": "Romania",
+          "bbox": { "minLat": 43.6, "maxLat": 48.3, "minLon": 20.2, "maxLon": 30.0 }
+        },
+        {
+          "code": "BG",
+          "nameRu": "Болгария",
+          "nameEn": "Bulgaria",
+          "bbox": { "minLat": 41.2, "maxLat": 44.2, "minLon": 22.4, "maxLon": 28.6 }
+        },
+        {
+          "code": "HR",
+          "nameRu": "Хорватия",
+          "nameEn": "Croatia",
+          "bbox": { "minLat": 42.4, "maxLat": 46.6, "minLon": 13.5, "maxLon": 19.4 }
+        },
+        {
+          "code": "SI",
+          "nameRu": "Словения",
+          "nameEn": "Slovenia",
+          "bbox": { "minLat": 45.4, "maxLat": 46.9, "minLon": 13.4, "maxLon": 16.6 }
+        },
+        {
+          "code": "RS",
+          "nameRu": "Сербия",
+          "nameEn": "Serbia",
+          "bbox": { "minLat": 42.2, "maxLat": 46.2, "minLon": 19.0, "maxLon": 23.0 }
+        },
+        {
+          "code": "BA",
+          "nameRu": "Босния и Герцеговина",
+          "nameEn": "Bosnia and Herzegovina",
+          "bbox": { "minLat": 42.6, "maxLat": 45.3, "minLon": 15.7, "maxLon": 19.7 }
+        },
+        {
+          "code": "MK",
+          "nameRu": "Северная Македония",
+          "nameEn": "North Macedonia",
+          "bbox": { "minLat": 41.0, "maxLat": 42.4, "minLon": 20.5, "maxLon": 23.0 }
+        },
+        {
+          "code": "AL",
+          "nameRu": "Албания",
+          "nameEn": "Albania",
+          "bbox": { "minLat": 39.6, "maxLat": 42.7, "minLon": 19.3, "maxLon": 21.1 }
+        },
+        {
+          "code": "ME",
+          "nameRu": "Черногория",
+          "nameEn": "Montenegro",
+          "bbox": { "minLat": 41.9, "maxLat": 43.6, "minLon": 18.4, "maxLon": 20.4 }
+        },
+        {
+          "code": "EE",
+          "nameRu": "Эстония",
+          "nameEn": "Estonia",
+          "bbox": { "minLat": 57.5, "maxLat": 59.7, "minLon": 21.8, "maxLon": 28.2 }
+        },
+        {
+          "code": "LV",
+          "nameRu": "Латвия",
+          "nameEn": "Latvia",
+          "bbox": { "minLat": 55.7, "maxLat": 58.1, "minLon": 20.9, "maxLon": 28.2 }
+        },
+        {
+          "code": "LT",
+          "nameRu": "Литва",
+          "nameEn": "Lithuania",
+          "bbox": { "minLat": 53.9, "maxLat": 56.5, "minLon": 21.0, "maxLon": 26.8 }
+        },
+        {
+          "code": "GR",
+          "nameRu": "Греция",
+          "nameEn": "Greece",
+          "bbox": { "minLat": 34.8, "maxLat": 41.8, "minLon": 20.0, "maxLon": 26.7 }
+        },
+        {
+          "code": "TR",
+          "nameRu": "Турция",
+          "nameEn": "Turkey",
+          "bbox": { "minLat": 36.0, "maxLat": 42.1, "minLon": 26.0, "maxLon": 44.8 }
+        }
+      ]
+    },
+    {
+      "code": "AS",
+      "nameRu": "Азия",
+      "nameEn": "Asia",
+      "countries": [
+        {
+          "code": "KZ",
+          "nameRu": "Казахстан",
+          "nameEn": "Kazakhstan",
+          "bbox": { "minLat": 40.5, "maxLat": 55.5, "minLon": 49.0, "maxLon": 87.5 },
+          "bufferDeg": 3.0,
+          "regions": [
+            { "code": "KZ-N", "nameRu": "Северный", "nameEn": "Northern Kazakhstan", "bbox": { "minLat": 49.0, "maxLat": 55.5, "minLon": 60.0, "maxLon": 82.0 } },
+            { "code": "KZ-C", "nameRu": "Центральный", "nameEn": "Central Kazakhstan", "bbox": { "minLat": 42.0, "maxLat": 51.0, "minLon": 61.0, "maxLon": 77.0 } },
+            { "code": "KZ-S", "nameRu": "Южный", "nameEn": "Southern Kazakhstan", "bbox": { "minLat": 40.5, "maxLat": 45.0, "minLon": 65.0, "maxLon": 80.0 } },
+            { "code": "KZ-E", "nameRu": "Восточный", "nameEn": "Eastern Kazakhstan", "bbox": { "minLat": 45.0, "maxLat": 52.0, "minLon": 77.0, "maxLon": 87.5 } },
+            { "code": "KZ-W", "nameRu": "Западный", "nameEn": "Western Kazakhstan", "bbox": { "minLat": 41.0, "maxLat": 52.0, "minLon": 49.0, "maxLon": 62.0 } }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "AF",
+      "nameRu": "Африка",
+      "nameEn": "Africa",
+      "countries": [
+        {
+          "code": "ZA",
+          "nameRu": "Южная Африка",
+          "nameEn": "South Africa",
+          "bbox": { "minLat": -34.8, "maxLat": -22.1, "minLon": 16.5, "maxLon": 32.9 }
+        }
+      ]
+    },
+    {
+      "code": "NA",
+      "nameRu": "Северная Америка",
+      "nameEn": "North America",
+      "countries": [
+        {
+          "code": "US",
+          "nameRu": "США",
+          "nameEn": "United States",
+          "bbox": { "minLat": 24.5, "maxLat": 49.4, "minLon": -124.8, "maxLon": -66.9 }
+        }
+      ]
+    },
+    {
+      "code": "SA",
+      "nameRu": "Южная Америка",
+      "nameEn": "South America",
+      "countries": [
+        {
+          "code": "BR",
+          "nameRu": "Бразилия",
+          "nameEn": "Brazil",
+          "bbox": { "minLat": -33.7, "maxLat": 5.3, "minLon": -73.9, "maxLon": -34.8 }
+        }
+      ]
+    },
+    {
+      "code": "OC",
+      "nameRu": "Океания",
+      "nameEn": "Oceania",
+      "countries": [
+        {
+          "code": "AU",
+          "nameRu": "Австралия",
+          "nameEn": "Australia",
+          "bbox": { "minLat": -43.6, "maxLat": -10.7, "minLon": 113.2, "maxLon": 153.6 }
+        }
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "birdnet_v24",
+      "name": "BirdNET V2.4",
+      "runtime": "tflite",
+      "audioPath": "birdnet/v24/audio-model-fp16.tflite",
+      "metaModelPath": "birdnet/v24/meta-model.tflite",
+      "labelsPath": "birdnet/v24/labels/ru.txt",
+      "sampleRate": 48000,
+      "chunkSeconds": 3,
+      "speciesCount": 6522,
+      "isBundled": true
+    },
+    {
+      "id": "birdnet_v30_euna",
+      "name": "BirdNET V3.0 EUNA",
+      "runtime": "onnx",
+      "audioPath": "models/birdnet_v30/birdnet_v30_euna.onnx",
+      "labelsPath": "birdnet/v30/labels.csv",
+      "sampleRate": 32000,
+      "chunkSeconds": 5,
+      "speciesCount": 972,
+      "isBundled": false
+    }
+  ],
+  "geoModels": [
+    { "geoCode": "EU", "modelId": "birdnet_v24", "isDefault": true },
+    { "geoCode": "EU", "modelId": "birdnet_v30_euna" },
+    { "geoCode": "AS", "modelId": "birdnet_v24", "isDefault": true },
+    { "geoCode": "AF", "modelId": "birdnet_v24", "isDefault": true },
+    { "geoCode": "NA", "modelId": "birdnet_v24", "isDefault": true },
+    { "geoCode": "SA", "modelId": "birdnet_v24", "isDefault": true },
+    { "geoCode": "OC", "modelId": "birdnet_v24", "isDefault": true }
+  ]
+}

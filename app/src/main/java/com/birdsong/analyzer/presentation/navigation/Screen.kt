@@ -22,3 +22,6 @@ object DualDetectionRoute
 
 @Serializable
 object FileAnalysisRoute
+
+@Serializable
+object LocationPickerRoute

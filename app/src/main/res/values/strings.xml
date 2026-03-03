@@ -72,6 +72,11 @@
     <string name="settings_model_v30">BirdNET V3.0 EUNA (972 species)</string>
     <string name="settings_model_not_available">Model not installed</string>
 
+    <!-- Location Picker -->
+    <string name="location_picker_title">Location</string>
+    <string name="location_select_continent">Select continent</string>
+    <string name="location_all_country">All %1$s</string>
+
     <!-- File Analysis -->
     <string name="file_analysis_title">Detection</string>
     <string name="file_analysis_select">Select audio file</string>

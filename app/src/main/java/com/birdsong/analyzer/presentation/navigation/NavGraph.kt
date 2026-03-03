@@ -16,6 +16,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,8 @@ import com.birdsong.analyzer.presentation.detection.FileAnalysisScreen
 import com.birdsong.analyzer.presentation.detection.FileAnalysisViewModel
 import com.birdsong.analyzer.presentation.detection.HomeScreen
 import com.birdsong.analyzer.presentation.history.HistoryScreen
+import com.birdsong.analyzer.presentation.location.LocationPickerScreen
+import com.birdsong.analyzer.presentation.location.LocationPickerViewModel
 import com.birdsong.analyzer.presentation.settings.SettingsScreen
 import com.birdsong.analyzer.presentation.settings.SettingsViewModel
 
@@ -145,8 +148,7 @@ fun BirdSongNavHost() {
             composable<SettingsRoute> {
                 val context = LocalContext.current
                 val viewModel: SettingsViewModel = hiltViewModel()
-                val selectedCountry by viewModel.selectedCountry.collectAsStateWithLifecycle()
-                val selectedRegion by viewModel.selectedRegion.collectAsStateWithLifecycle()
+                val locationLabel by viewModel.locationLabel.collectAsStateWithLifecycle()
                 val activeModel by viewModel.activeModel.collectAsStateWithLifecycle()
 
                 fun checkAudio() = ContextCompat.checkSelfPermission(
@@ -171,9 +173,7 @@ fun BirdSongNavHost() {
                 SettingsScreen(
                     audioPermissionGranted = audioGranted,
                     locationPermissionGranted = locationGranted,
-                    countries = viewModel.countries,
-                    selectedCountry = selectedCountry,
-                    selectedRegion = selectedRegion,
+                    locationLabel = locationLabel,
                     activeModel = activeModel,
                     isV30Available = viewModel.isV30Available,
                     onRequestAudioPermission = {
@@ -182,9 +182,26 @@ fun BirdSongNavHost() {
                     onRequestLocationPermission = {
                         locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
                     },
-                    onCountrySelected = viewModel::selectCountry,
-                    onRegionSelected = viewModel::selectRegion,
+                    onLocationClick = { navController.navigate(LocationPickerRoute) },
                     onModelSelected = viewModel::selectModel,
+                )
+            }
+
+            composable<LocationPickerRoute> {
+                val viewModel: LocationPickerViewModel = hiltViewModel()
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                LaunchedEffect(uiState.done) {
+                    if (uiState.done) navController.popBackStack()
+                }
+
+                LocationPickerScreen(
+                    uiState = uiState,
+                    onSelectContinent = viewModel::selectContinent,
+                    onSelectCountry = viewModel::selectCountry,
+                    onSelectRegion = viewModel::selectRegion,
+                    onBack = { navController.popBackStack() },
+                    onGoBack = viewModel::goBack,
                 )
             }
 

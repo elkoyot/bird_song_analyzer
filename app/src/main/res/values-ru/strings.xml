@@ -51,6 +51,11 @@
     <string name="settings_permissions">Разрешения</string>
     <string name="settings_about">О приложении</string>
 
+    <!-- Location Picker -->
+    <string name="location_picker_title">Местоположение</string>
+    <string name="location_select_continent">Выберите континент</string>
+    <string name="location_all_country">Вся %1$s</string>
+
     <!-- File Analysis -->
     <string name="file_analysis_title">Определение</string>
     <string name="file_analysis_select">Выбрать аудиофайл</string>
