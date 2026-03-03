@@ -22,33 +22,48 @@ Bird Song Analyzer — Android-приложение для определени�
 - Навигация: Jetpack Navigation Compose (type-safe routes)
 - Локальная БД: Room (SQLite)
 - Preferences: DataStore
-- ML: TensorFlow Lite (BirdNET)
+- ML: TensorFlow Lite (BirdNET V2.4) + ONNX Runtime (BirdNET V3.0 EUNA)
 - Аудио: AudioRecord API
 - Async: Kotlin Coroutines + Flow
 - Изображения: Coil
-- Min SDK: Android 11 (API 30), Target: Android 14 (API 34)
+- Min SDK: Android 11 (API 30), Target: Android 14 (API 34), Compile SDK: 35
 
 **Структура пакетов:**
 ```
 com.birdsong.analyzer/
-├── data/           # Room DAO, DataStore, repository impl
-├── domain/         # Models, UseCases, repository interfaces
-├── presentation/   # Compose UI (detection, detail, history, settings, theme, common)
-├── ml/             # BirdNET classifier, AudioChunkProcessor, BandpassFilter, DetectionAggregator
-├── service/        # Foreground Service для непрерывной записи
-└── di/             # Hilt модули
+├── data/
+│   ├── local/          # Room DB (GeoDatabase, GeoDao, GeoSeedLoader)
+│   ├── model/          # Room entities (GeoEntity, MlModelEntity, GeoModelEntity)
+│   ├── repository/     # GeoRepository
+│   └── PreferencesRepository.kt  # DataStore (countryCode, regionCode, activeModel)
+├── presentation/
+│   ├── navigation/     # Screen routes, NavGraph (BirdSongNavHost)
+│   ├── detection/      # Home, LiveDetection, DualDetection, FileAnalysis screens + VMs
+│   ├── detail/         # DetailScreen
+│   ├── history/        # HistoryScreen
+│   ├── location/       # LocationPickerScreen + VM (continent → country → region)
+│   ├── settings/       # SettingsScreen + VM
+│   └── theme/          # Color, Theme, Typography
+├── ml/                 # BirdNET V2.4/V3.0 classifiers, AudioChunkProcessor, pipeline, aggregator
+├── service/            # AudioRecorder (@Singleton, не Service)
+└── di/                 # AppModule, MlModule (Hilt)
 ```
 
 ## Data Storage (ADR-005)
 
 Только локальное хранение, без бэкенда и синхронизации:
-- **Room:** ObservationEntity, SpeciesEntity
-- **Internal Storage:** аудиофайлы (OGG Opus)
-- **DataStore:** настройки (язык, тема, параметры записи)
+- **Room (GeoDatabase):** GeoEntity (континенты/страны/регионы), MlModelEntity (ML-модели), GeoModelEntity (связь гео↔модель). ObservationEntity/SpeciesEntity — запланированы, но ещё не реализованы
+- **Internal Storage:** аудиофайлы (OGG Opus) — запланировано
+- **DataStore:** настройки (countryCode, regionCode, activeModel)
 
-## ML Model (ADR-003)
+## ML Models (ADR-003)
 
-BirdNET V2.4 FP16 через TFLite. Лицензия CC BY-NC-SA 4.0 (некоммерческая) — перед монетизацией нужно получить коммерческую лицензию или обучить свою модель. Pipeline: AudioChunkProcessor (пре-фильтрация, bandpass 80 Гц – 15 кГц, нормализация) → BirdNetV24Classifier (inference + sigmoid + meta-model) → DetectionAggregator (sliding window, подтверждение ≥2 chunk-ов, фильтрация не-птиц). Benchmark: 100% recall на 44 видах.
+Dual-classifier система:
+
+**BirdNET V2.4** — TFLite FP16, 48 kHz / 3 s, 6521 классов. Лицензия CC BY-NC-SA 4.0 (некоммерческая).
+**BirdNET V3.0 EUNA** — ONNX Runtime, 32 kHz / 5 s, 1225 классов (972 Aves). Лицензия CC BY-SA 4.0 (коммерция ОК). Модель не в assets — sideload через `adb push` в `filesDir/models/birdnet_v30/`.
+
+Pipeline: AudioChunkProcessor (FULL: silence/clipping/spectral check, bandpass 80 Гц – 15 кГц, нормализация) → Classifier (logits → sigmoid → MetaProfile geo-filter) → DetectionAggregator (sliding window=8, avg-top-3, подтверждение ≥2 chunk-ов, фильтрация не-птиц). Benchmark V2.4: 100% recall на 44 видах.
 
 ## Audio Format (ADR-004)
 
@@ -80,9 +95,10 @@ OGG Opus, 44.1/48 kHz, моно, 64-96 kbps. ~0.5-0.7 MB/мин. Максима�
 |-------|-----|----------|
 | Home | Tab (Bottom Nav) | Хаб с плитками режимов (Live Detection, File Analysis) |
 | History | Tab (Bottom Nav) | Сохранённые наблюдения, фильтры, удаление |
-| Settings | Tab (Bottom Nav) | Язык (RU/EN), тема, разрешения |
-| Live Detection | Push screen | Непрерывный анализ + лента обнаружений |
-| File Analysis | Push screen | Анализ загруженного аудиофайла |
+| Settings | Tab (Bottom Nav) | Модель, локация, разрешения |
+| Live Detection | Push screen | Dual-model анализ (V2.4 + V3.0) + лента обнаружений |
+| File Analysis | Push screen | Concurrent анализ файла двумя моделями + timeline |
+| Location Picker | Push screen | Выбор региона: континент → страна → регион |
 | Detail | Push screen | Детали вида + плеер аудиофрагмента |
 
 **GPS:** опционально (null если недоступен). **Хранилище:** автоудаление старых при 10 000 записей или < 100 MB.
