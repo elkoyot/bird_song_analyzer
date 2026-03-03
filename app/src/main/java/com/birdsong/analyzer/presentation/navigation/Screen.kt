@@ -3,6 +3,9 @@ package com.birdsong.analyzer.presentation.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
+object HomeRoute
+
+@Serializable
 object LiveDetectionRoute
 
 @Serializable

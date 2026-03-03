@@ -7,8 +7,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -39,6 +39,7 @@ import com.birdsong.analyzer.presentation.detection.DualDetectionScreen
 import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
 import com.birdsong.analyzer.presentation.detection.FileAnalysisScreen
 import com.birdsong.analyzer.presentation.detection.FileAnalysisViewModel
+import com.birdsong.analyzer.presentation.detection.HomeScreen
 import com.birdsong.analyzer.presentation.history.HistoryScreen
 import com.birdsong.analyzer.presentation.settings.SettingsScreen
 import com.birdsong.analyzer.presentation.settings.SettingsViewModel
@@ -50,7 +51,7 @@ private data class BottomNavItem<T : Any>(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(LiveDetectionRoute, Icons.Default.GraphicEq, R.string.nav_detection),
+    BottomNavItem(HomeRoute, Icons.Default.Home, R.string.nav_home),
     BottomNavItem(HistoryRoute, Icons.Default.History, R.string.nav_history),
     BottomNavItem(SettingsRoute, Icons.Default.Settings, R.string.nav_settings),
 )
@@ -92,9 +93,16 @@ fun BirdSongNavHost() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = LiveDetectionRoute,
+            startDestination = HomeRoute,
             modifier = Modifier.padding(innerPadding),
         ) {
+            composable<HomeRoute> {
+                HomeScreen(
+                    onNavigateToLiveDetection = { navController.navigate(LiveDetectionRoute) },
+                    onNavigateToFileAnalysis = { navController.navigate(FileAnalysisRoute) },
+                )
+            }
+
             composable<LiveDetectionRoute> {
                 val viewModel: DualDetectionViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -122,7 +130,7 @@ fun BirdSongNavHost() {
                     onResume = viewModel::onResume,
                     onStop = viewModel::onStop,
                     onReset = viewModel::onReset,
-                    onSelectFile = { navController.navigate(FileAnalysisRoute) },
+                    onBack = { navController.popBackStack() },
                 )
             }
 

@@ -49,7 +49,6 @@ fun DualDetectionScreen(
     onStop: () -> Unit = {},
     onReset: () -> Unit = {},
     onBack: (() -> Unit)? = null,
-    onSelectFile: (() -> Unit)? = null,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -76,16 +75,6 @@ fun DualDetectionScreen(
             onPause = onPause,
             onResume = onResume,
             onStop = onStop,
-            idleExtra = if (onSelectFile != null) {
-                {
-                    OutlinedButton(
-                        onClick = onSelectFile,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(stringResource(R.string.file_analysis_select))
-                    }
-                }
-            } else null,
         )
 
         Spacer(modifier = Modifier.height(8.dp))

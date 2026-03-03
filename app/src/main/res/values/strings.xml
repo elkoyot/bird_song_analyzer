@@ -3,9 +3,16 @@
     <string name="app_name">Bird Song Analyzer</string>
 
     <!-- Bottom Navigation -->
+    <string name="nav_home">Home</string>
     <string name="nav_detection">Detection</string>
     <string name="nav_history">History</string>
     <string name="nav_settings">Settings</string>
+
+    <!-- Home Screen -->
+    <string name="home_live_title">Live Detection</string>
+    <string name="home_live_subtitle">Identify birds in real time</string>
+    <string name="home_file_title">File Analysis</string>
+    <string name="home_file_subtitle">Upload a recording and discover species</string>
 
     <!-- Live Detection -->
     <string name="detection_title">Live Detection</string>

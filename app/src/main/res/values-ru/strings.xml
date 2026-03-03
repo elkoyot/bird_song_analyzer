@@ -3,9 +3,16 @@
     <string name="app_name">Bird Song Analyzer</string>
 
     <!-- Bottom Navigation -->
+    <string name="nav_home">Главная</string>
     <string name="nav_detection">Определение</string>
     <string name="nav_history">История</string>
     <string name="nav_settings">Настройки</string>
+
+    <!-- Home Screen -->
+    <string name="home_live_title">Живое определение</string>
+    <string name="home_live_subtitle">Определяй птиц в реальном времени</string>
+    <string name="home_file_title">Анализ файла</string>
+    <string name="home_file_subtitle">Загрузи запись и узнай виды</string>
 
     <!-- Live Detection -->
     <string name="detection_title">Определение</string>
