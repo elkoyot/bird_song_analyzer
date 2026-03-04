@@ -7,7 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -34,14 +33,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.birdsong.analyzer.R
 import com.birdsong.analyzer.presentation.detail.DetailScreen
+import com.birdsong.analyzer.presentation.detail.DetailUiState
 import com.birdsong.analyzer.presentation.detection.DualDetectionScreen
 import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
 import com.birdsong.analyzer.presentation.detection.FileAnalysisScreen
 import com.birdsong.analyzer.presentation.detection.FileAnalysisViewModel
 import com.birdsong.analyzer.presentation.detection.HomeScreen
-import com.birdsong.analyzer.presentation.history.HistoryScreen
 import com.birdsong.analyzer.presentation.location.LocationPickerScreen
 import com.birdsong.analyzer.presentation.location.LocationPickerViewModel
 import com.birdsong.analyzer.presentation.settings.SettingsScreen
@@ -55,7 +55,6 @@ private data class BottomNavItem<T : Any>(
 
 private val bottomNavItems = listOf(
     BottomNavItem(HomeRoute, Icons.Default.Home, R.string.nav_home),
-    BottomNavItem(HistoryRoute, Icons.Default.History, R.string.nav_history),
     BottomNavItem(SettingsRoute, Icons.Default.Settings, R.string.nav_settings),
 )
 
@@ -102,7 +101,7 @@ fun BirdSongNavHost() {
             composable<HomeRoute> {
                 HomeScreen(
                     onNavigateToLiveDetection = { navController.navigate(LiveDetectionRoute) },
-                    onNavigateToFileAnalysis = { navController.navigate(FileAnalysisRoute) },
+                    onNavigateToFileAnalysis = { navController.navigate(FileAnalysisRoute()) },
                 )
             }
 
@@ -134,14 +133,6 @@ fun BirdSongNavHost() {
                     onStop = viewModel::onStop,
                     onReset = viewModel::onReset,
                     onBack = { navController.popBackStack() },
-                )
-            }
-
-            composable<HistoryRoute> {
-                HistoryScreen(
-                    onObservationClick = { observationId ->
-                        navController.navigate(DetailRoute(observationId))
-                    },
                 )
             }
 
@@ -205,10 +196,17 @@ fun BirdSongNavHost() {
                 )
             }
 
-            composable<FileAnalysisRoute> {
+            composable<FileAnalysisRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<FileAnalysisRoute>()
                 val viewModel: FileAnalysisViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val recentAnalyses by viewModel.recentAnalyses.collectAsStateWithLifecycle()
                 val context = LocalContext.current
+
+                // Load from history if analysisId is provided
+                LaunchedEffect(route.analysisId) {
+                    route.analysisId?.let { viewModel.loadFromHistory(it) }
+                }
 
                 val filePickerLauncher = rememberLauncherForActivityResult(
                     ActivityResultContracts.GetContent(),
@@ -219,19 +217,47 @@ fun BirdSongNavHost() {
                             ?.use { cursor ->
                                 if (cursor.moveToFirst()) cursor.getString(0) else null
                             } ?: uri.lastPathSegment ?: "audio"
-                        viewModel.analyzeFile(uri, name)
+                        viewModel.selectFile(uri, name)
                     }
                 }
 
                 FileAnalysisScreen(
                     uiState = uiState,
+                    recentAnalyses = recentAnalyses,
                     onSelectFile = { filePickerLauncher.launch("audio/*") },
+                    onStartAnalysis = viewModel::startAnalysis,
+                    onPause = viewModel::pauseAnalysis,
+                    onResume = viewModel::resumeAnalysis,
+                    onCancel = viewModel::cancelAnalysis,
+                    onSelectSpecies = viewModel::selectSpecies,
+                    onSpeciesClick = { sciName, commonName ->
+                        navController.navigate(
+                            DetailRoute(
+                                commonName = commonName,
+                                scientificName = sciName,
+                            ),
+                        )
+                    },
+                    onLoadFromHistory = { id ->
+                        viewModel.loadFromHistory(id)
+                    },
+                    onDeleteHistory = viewModel::deleteFromHistory,
+                    onPickLocation = { navController.navigate(LocationPickerRoute) },
                     onBack = { navController.popBackStack() },
                 )
             }
 
-            composable<DetailRoute> {
+            composable<DetailRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<DetailRoute>()
                 DetailScreen(
+                    uiState = DetailUiState(
+                        commonName = route.commonName,
+                        scientificName = route.scientificName,
+                        confidence = maxOf(
+                            if (route.v24Confidence >= 0) route.v24Confidence else 0,
+                            if (route.v30Confidence >= 0) route.v30Confidence else 0,
+                        ),
+                    ),
                     onBack = { navController.popBackStack() },
                 )
             }

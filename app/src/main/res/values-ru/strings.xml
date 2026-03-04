@@ -57,9 +57,23 @@
     <string name="location_all_country">Вся %1$s</string>
 
     <!-- File Analysis -->
-    <string name="file_analysis_title">Определение</string>
+    <string name="file_analysis_title">Анализ файла</string>
     <string name="file_analysis_select">Выбрать аудиофайл</string>
     <string name="file_analysis_idle">Выберите аудиофайл для анализа</string>
     <string name="file_analysis_done">Анализ завершён</string>
     <string name="file_analysis_error">Ошибка анализа: %1$s</string>
+    <string name="file_analysis_preparing">Чтение файла…</string>
+    <string name="file_analysis_start">Начать анализ</string>
+    <string name="file_analysis_cancel">Отмена</string>
+    <string name="file_analysis_geo_warning">Выберите регион для точности</string>
+    <string name="file_analysis_recent">Недавние</string>
+    <string name="file_analysis_species_count">Виды (%1$d)</string>
+    <string name="file_analysis_detections_badge">%1$d обнаружений</string>
+    <string name="file_analysis_species_label">%1$d видов</string>
+    <string name="btn_cancel">Отмена</string>
+
+    <!-- Accessibility -->
+    <string name="cd_back">Назад</string>
+    <string name="cd_details">Подробнее</string>
+    <string name="cd_delete">Удалить</string>
 </resources>

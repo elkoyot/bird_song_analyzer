@@ -7,6 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -285,8 +287,10 @@ class BirdDetectionPipeline @Inject constructor(
         classifierFactory: ClassifierFactory,
         numWorkers: Int = 2,
         location: LocationMeta? = null,
+        pauseState: StateFlow<Boolean>? = null,
         onProgress: ((DetailedProgress) -> Unit)? = null,
         onChunkResult: (suspend (ChunkDetectionRecord) -> Unit)? = null,
+        onRawChunk: ((chunkIndex: Int, startTimeSec: Float, samples: FloatArray) -> Unit)? = null,
     ): FileAnalysisResult {
         val workerClassifiers = mutableListOf<BirdClassifier>()
         try {
@@ -297,7 +301,7 @@ class BirdDetectionPipeline @Inject constructor(
 
             return runDetailedAnalysis(
                 context, uri, allClassifiers, processor, classifier, location,
-                onProgress, onChunkResult,
+                pauseState, onProgress, onChunkResult, onRawChunk,
             )
         } finally {
             for (clf in workerClassifiers) {
@@ -315,8 +319,10 @@ class BirdDetectionPipeline @Inject constructor(
         processor: AudioChunkProcessor,
         primaryClassifier: BirdClassifier,
         location: LocationMeta?,
+        pauseState: StateFlow<Boolean>?,
         onProgress: ((DetailedProgress) -> Unit)?,
         onChunkResult: (suspend (ChunkDetectionRecord) -> Unit)?,
+        onRawChunk: ((chunkIndex: Int, startTimeSec: Float, samples: FloatArray) -> Unit)?,
     ): FileAnalysisResult = coroutineScope {
         val totalChunksCounter = AtomicInteger(0)
         val processedCounter = AtomicInteger(0)
@@ -335,6 +341,7 @@ class BirdDetectionPipeline @Inject constructor(
                     chunkSize = primaryClassifier.samplesPerChunk,
                 ) { chunkIndex, startTimeSec, chunk ->
                     totalChunksCounter.incrementAndGet()
+                    onRawChunk?.invoke(chunkIndex, startTimeSec, chunk)
                     chunksChannel.trySendBlocking(
                         IndexedChunk(chunkIndex, startTimeSec, chunk)
                     ).getOrThrow()
@@ -348,6 +355,8 @@ class BirdDetectionPipeline @Inject constructor(
         val workers = classifiers.map { clf ->
             launch(Dispatchers.Default) {
                 for (ic in chunksChannel) {
+                    // Suspend while paused
+                    pauseState?.first { !it }
                     val processed = processor.process(ic.samples)
                     if (processed == null) {
                         resultsChannel.send(ChunkDetections(ic.chunkIndex, ic.startTimeSec, null, 0))

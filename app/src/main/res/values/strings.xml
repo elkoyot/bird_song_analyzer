@@ -78,9 +78,23 @@
     <string name="location_all_country">All %1$s</string>
 
     <!-- File Analysis -->
-    <string name="file_analysis_title">Detection</string>
+    <string name="file_analysis_title">File Analysis</string>
     <string name="file_analysis_select">Select audio file</string>
     <string name="file_analysis_idle">Select an audio file to analyze</string>
     <string name="file_analysis_done">Analysis complete</string>
     <string name="file_analysis_error">Analysis error: %1$s</string>
+    <string name="file_analysis_preparing">Reading file…</string>
+    <string name="file_analysis_start">Start Analysis</string>
+    <string name="file_analysis_cancel">Cancel</string>
+    <string name="file_analysis_geo_warning">Select region for better accuracy</string>
+    <string name="file_analysis_recent">Recent</string>
+    <string name="file_analysis_species_count">Species (%1$d)</string>
+    <string name="file_analysis_detections_badge">%1$d detections</string>
+    <string name="file_analysis_species_label">%1$d species</string>
+    <string name="btn_cancel">Cancel</string>
+
+    <!-- Accessibility -->
+    <string name="cd_back">Back</string>
+    <string name="cd_details">Details</string>
+    <string name="cd_delete">Delete</string>
 </resources>

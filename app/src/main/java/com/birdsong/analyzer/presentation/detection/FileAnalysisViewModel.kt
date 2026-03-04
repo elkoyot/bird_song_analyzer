@@ -2,9 +2,13 @@ package com.birdsong.analyzer.presentation.detection
 
 import android.content.Context
 import android.net.Uri
+import android.text.format.Formatter
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.birdsong.analyzer.data.model.FileAnalysisEntity
+import com.birdsong.analyzer.data.model.FileDetectionEntity
+import com.birdsong.analyzer.data.repository.FileAnalysisRepository
 import com.birdsong.analyzer.data.repository.GeoRepository
 import com.birdsong.analyzer.ml.BirdDetectionPipeline
 import com.birdsong.analyzer.ml.BoundingBox
@@ -12,20 +16,44 @@ import com.birdsong.analyzer.ml.ClassifierFactory
 import com.birdsong.analyzer.ml.MetaProfile
 import com.birdsong.analyzer.ml.MetaProfileBuilder
 import com.birdsong.analyzer.ml.TimelineBuilder
+import com.birdsong.analyzer.ml.TimelineSegment
+import com.birdsong.analyzer.ml.IncrementalWaveformBuilder
+import com.birdsong.analyzer.ml.WaveformData
+import com.birdsong.analyzer.ml.WaveformExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.withLock
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.math.max
 import kotlin.math.roundToInt
 
-enum class FileAnalysisState { IDLE, ANALYZING, DONE, ERROR }
+data class FileAnalysisHistoryItem(
+    val id: String,
+    val fileName: String,
+    val date: String,
+    val speciesCount: Int,
+    val regionLabel: String,
+    val durationLabel: String,
+)
+
+enum class FileAnalysisState { IDLE, ANALYZING, PAUSED, DONE, ERROR }
 
 data class ModelProgress(
     val chunksProcessed: Int = 0,
@@ -36,20 +64,66 @@ data class FileTimelineBirdUi(
     val id: String,
     val commonName: String,
     val scientificName: String,
+    val startTimeSec: Float,
+    val endTimeSec: Float,
     val timeRange: String,
     val v24Confidence: Int?,
     val v30Confidence: Int?,
 )
 
+data class SpeciesSegmentUi(
+    val startSec: Float,
+    val endSec: Float,
+    val timeRange: String,
+)
+
+data class FileSpeciesSummary(
+    val scientificName: String,
+    val commonName: String,
+    val maxV24Confidence: Int?,
+    val maxV30Confidence: Int?,
+    val detectionCount: Int,
+    val segments: List<SpeciesSegmentUi>,
+)
+
 data class FileAnalysisUiState(
     val state: FileAnalysisState = FileAnalysisState.IDLE,
     val fileName: String = "",
+    val fileDurationSec: Float = 0f,
+    val fileSizeLabel: String = "",
     val v24Progress: ModelProgress = ModelProgress(),
     val v30Progress: ModelProgress = ModelProgress(),
     val timelineBirds: List<FileTimelineBirdUi> = emptyList(),
+    val speciesSummaries: List<FileSpeciesSummary> = emptyList(),
+    val selectedSpecies: String? = null,
+    val waveformAmplitudes: FloatArray? = null,
+    val waveformProgress: Float = 0f,
+    val progressLabel: String = "",
     val v30Available: Boolean = false,
+    val geoLabel: String = "—",
+    val geoConfigured: Boolean = false,
     val errorMessage: String = "",
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is FileAnalysisUiState) return false
+        return state == other.state && fileName == other.fileName &&
+            fileDurationSec == other.fileDurationSec && fileSizeLabel == other.fileSizeLabel &&
+            v24Progress == other.v24Progress && v30Progress == other.v30Progress &&
+            timelineBirds == other.timelineBirds && speciesSummaries == other.speciesSummaries &&
+            selectedSpecies == other.selectedSpecies &&
+            (waveformAmplitudes === other.waveformAmplitudes ||
+                waveformAmplitudes != null && other.waveformAmplitudes != null &&
+                waveformAmplitudes.contentEquals(other.waveformAmplitudes)) &&
+            waveformProgress == other.waveformProgress &&
+            progressLabel == other.progressLabel &&
+            v30Available == other.v30Available && geoLabel == other.geoLabel &&
+            geoConfigured == other.geoConfigured &&
+            errorMessage == other.errorMessage
+    }
+
+    override fun hashCode(): Int = state.hashCode() * 31 + fileName.hashCode()
+}
 
 @HiltViewModel
 class FileAnalysisViewModel @Inject constructor(
@@ -58,12 +132,29 @@ class FileAnalysisViewModel @Inject constructor(
     private val classifierFactory: ClassifierFactory,
     private val metaProfileBuilder: MetaProfileBuilder,
     private val geoRepository: GeoRepository,
+    private val fileAnalysisRepository: FileAnalysisRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FileAnalysisUiState(
         v30Available = classifierFactory.isBirdNetV30Available(),
     ))
     val uiState: StateFlow<FileAnalysisUiState> = _uiState.asStateFlow()
+
+    val recentAnalyses: StateFlow<List<FileAnalysisHistoryItem>> =
+        fileAnalysisRepository.getAllSummaries()
+            .map { summaries ->
+                summaries.map { s ->
+                    FileAnalysisHistoryItem(
+                        id = s.id,
+                        fileName = s.fileName,
+                        date = formatDate(s.createdAt),
+                        speciesCount = s.speciesCount,
+                        regionLabel = s.regionLabel ?: "—",
+                        durationLabel = formatMmSs(s.durationSec),
+                    )
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private var metaProfileJob: Job? = null
     private var analysisJob: Job? = null
@@ -78,8 +169,16 @@ class FileAnalysisViewModel @Inject constructor(
     private var v24ChunkDuration = 0f
     private var v30ChunkDuration = 0f
 
+    private val _isPaused = MutableStateFlow(false)
+    private var pendingTimelineRebuild = false
+
+    private var currentUri: Uri? = null
+    private var currentFileSize: Long = 0L
+    private var waveformBuilder: IncrementalWaveformBuilder? = null
+
     init {
         buildMetaProfileAsync()
+        observeGeo()
     }
 
     private fun buildMetaProfileAsync() {
@@ -96,8 +195,60 @@ class FileAnalysisViewModel @Inject constructor(
         }
     }
 
-    fun analyzeFile(uri: Uri, fileName: String) {
+    private fun observeGeo() {
+        viewModelScope.launch {
+            geoRepository.currentSelectionDisplay.collect { label ->
+                _uiState.update { it.copy(geoLabel = label) }
+            }
+        }
+        viewModelScope.launch {
+            geoRepository.countryCode.collect { code ->
+                _uiState.update { it.copy(geoConfigured = code.isNotEmpty()) }
+            }
+        }
+    }
+
+    fun selectFile(uri: Uri, fileName: String) {
         analysisJob?.cancel()
+        _isPaused.value = false
+        currentUri = uri
+        waveformBuilder = null
+
+        viewModelScope.launch {
+            try {
+                val (duration, fileSize) = withContext(Dispatchers.IO) {
+                    WaveformExtractor.extractDuration(context, uri) to
+                        WaveformExtractor.extractFileSize(context, uri)
+                }
+                currentFileSize = fileSize
+                _uiState.update {
+                    FileAnalysisUiState(
+                        state = FileAnalysisState.IDLE,
+                        fileName = fileName,
+                        fileDurationSec = duration,
+                        fileSizeLabel = Formatter.formatFileSize(context, fileSize),
+                        v30Available = classifierFactory.isBirdNetV30Available(),
+                        geoLabel = it.geoLabel,
+                        geoConfigured = it.geoConfigured,
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "selectFile failed", e)
+                _uiState.update {
+                    it.copy(
+                        state = FileAnalysisState.ERROR,
+                        errorMessage = e.message ?: "Failed to read file",
+                    )
+                }
+            }
+        }
+    }
+
+    fun startAnalysis() {
+        val uri = currentUri ?: return
+        analysisJob?.cancel()
+        _isPaused.value = false
+
         analysisJob = viewModelScope.launch {
             v24Records.clear()
             v30Records.clear()
@@ -106,10 +257,14 @@ class FileAnalysisViewModel @Inject constructor(
 
             val v30Available = classifierFactory.isBirdNetV30Available()
             _uiState.update {
-                FileAnalysisUiState(
+                it.copy(
                     state = FileAnalysisState.ANALYZING,
-                    fileName = fileName,
                     v30Available = v30Available,
+                    timelineBirds = emptyList(),
+                    speciesSummaries = emptyList(),
+                    selectedSpecies = null,
+                    waveformAmplitudes = null,
+                    waveformProgress = 0f,
                 )
             }
 
@@ -126,6 +281,19 @@ class FileAnalysisViewModel @Inject constructor(
                 v24ChunkDuration = v24Classifier.chunkDurationSeconds.toFloat()
                 v30ChunkDuration = v30Classifier?.chunkDurationSeconds?.toFloat() ?: 0f
 
+                val fileDuration = _uiState.value.fileDurationSec
+                val estimatedChunks = if (v24ChunkDuration > 0f) {
+                    kotlin.math.ceil(fileDuration / v24ChunkDuration).toInt().coerceAtLeast(1)
+                } else 1
+                val builder = IncrementalWaveformBuilder(
+                    totalChunks = estimatedChunks,
+                )
+                waveformBuilder = builder
+                var waveformChunkCount = 0
+
+                // Show empty waveform immediately so UI has the full-width frame
+                _uiState.update { it.copy(waveformAmplitudes = FloatArray(400)) }
+
                 val v24Processor = classifierFactory.createProcessor(v24Classifier)
                 val v30Processor = v30Classifier?.let { classifierFactory.createProcessor(it) }
 
@@ -137,17 +305,33 @@ class FileAnalysisViewModel @Inject constructor(
                         processor = v24Processor,
                         classifierFactory = classifierFactory,
                         numWorkers = 1,
+                        pauseState = _isPaused,
                         onProgress = { progress ->
                             _uiState.update {
-                                it.copy(v24Progress = ModelProgress(
-                                    chunksProcessed = progress.processedChunks,
-                                    totalChunks = progress.totalChunks,
-                                ))
+                                it.copy(
+                                    v24Progress = ModelProgress(
+                                        chunksProcessed = progress.processedChunks,
+                                        totalChunks = progress.totalChunks,
+                                    ),
+                                )
                             }
+                            updateWaveformProgress()
                         },
                         onChunkResult = { record ->
                             recordsMutex.withLock { v24Records.add(record) }
-                            rebuildTimeline()
+                            pendingTimelineRebuild = true
+                        },
+                        onRawChunk = { _, _, samples ->
+                            builder.addChunk(samples)
+                            waveformChunkCount++
+                            if (waveformChunkCount % WAVEFORM_SNAPSHOT_INTERVAL == 0) {
+                                val snapshot = builder.snapshot()
+                                _uiState.update { it.copy(waveformAmplitudes = snapshot) }
+                                if (pendingTimelineRebuild) {
+                                    pendingTimelineRebuild = false
+                                    viewModelScope.launch { rebuildTimeline() }
+                                }
+                            }
                         },
                     )
                 }
@@ -161,17 +345,21 @@ class FileAnalysisViewModel @Inject constructor(
                             processor = v30Processor,
                             classifierFactory = classifierFactory,
                             numWorkers = 1,
+                            pauseState = _isPaused,
                             onProgress = { progress ->
                                 _uiState.update {
-                                    it.copy(v30Progress = ModelProgress(
-                                        chunksProcessed = progress.processedChunks,
-                                        totalChunks = progress.totalChunks,
-                                    ))
+                                    it.copy(
+                                        v30Progress = ModelProgress(
+                                            chunksProcessed = progress.processedChunks,
+                                            totalChunks = progress.totalChunks,
+                                        ),
+                                    )
                                 }
+                                updateWaveformProgress()
                             },
                             onChunkResult = { record ->
                                 recordsMutex.withLock { v30Records.add(record) }
-                                rebuildTimeline()
+                                pendingTimelineRebuild = true
                             },
                         )
                     }
@@ -181,21 +369,134 @@ class FileAnalysisViewModel @Inject constructor(
                 v30Job?.join()
 
                 rebuildTimeline()
-                _uiState.update { it.copy(state = FileAnalysisState.DONE) }
-                Log.d(TAG, "File analysis done: ${_uiState.value.timelineBirds.size} timeline segments")
-            } catch (e: Exception) {
-                Log.e(TAG, "File analysis failed", e)
                 _uiState.update {
                     it.copy(
-                        state = FileAnalysisState.ERROR,
-                        errorMessage = e.message ?: "Unknown error",
+                        state = FileAnalysisState.DONE,
+                        waveformProgress = 1f,
+                        waveformAmplitudes = builder.build(),
                     )
+                }
+                Log.d(TAG, "File analysis done: ${_uiState.value.timelineBirds.size} timeline segments")
+
+                saveToHistory()
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    // Cancelled by user — keep results if any
+                    if (_uiState.value.timelineBirds.isNotEmpty()) {
+                        _uiState.update { it.copy(state = FileAnalysisState.DONE) }
+                        saveToHistory()
+                    } else {
+                        _uiState.update { it.copy(state = FileAnalysisState.IDLE) }
+                    }
+                } else {
+                    Log.e(TAG, "File analysis failed", e)
+                    _uiState.update {
+                        it.copy(
+                            state = FileAnalysisState.ERROR,
+                            errorMessage = e.message ?: "Unknown error",
+                        )
+                    }
                 }
             } finally {
                 v24Classifier.close()
                 v30Classifier?.close()
             }
         }
+    }
+
+    fun pauseAnalysis() {
+        _isPaused.value = true
+        _uiState.update { it.copy(state = FileAnalysisState.PAUSED) }
+    }
+
+    fun resumeAnalysis() {
+        _isPaused.value = false
+        _uiState.update { it.copy(state = FileAnalysisState.ANALYZING) }
+    }
+
+    fun cancelAnalysis() {
+        _isPaused.value = false
+        analysisJob?.cancel()
+    }
+
+    fun selectSpecies(scientificName: String?) {
+        val current = _uiState.value.selectedSpecies
+        val newSelection = if (current == scientificName) null else scientificName
+        _uiState.update { it.copy(selectedSpecies = newSelection) }
+    }
+
+    fun loadFromHistory(analysisId: String) {
+        viewModelScope.launch {
+            try {
+                val analysis = fileAnalysisRepository.getAnalysisById(analysisId) ?: return@launch
+                val detections = fileAnalysisRepository.getDetectionsForAnalysis(analysisId)
+
+                val amplitudes = analysis.waveformData?.let { bytes ->
+                    WaveformData.fromByteArray(bytes, analysis.durationSec, analysis.fileSizeBytes)
+                        .amplitudes
+                }
+
+                val summaries = buildSpeciesSummaries(detections.map { det ->
+                    TimelineSegment(
+                        scientificName = det.scientificName,
+                        commonName = det.commonName,
+                        startTimeSec = det.startTimeSec,
+                        endTimeSec = det.endTimeSec,
+                        v24Confidence = det.v24Confidence,
+                        v30Confidence = det.v30Confidence,
+                    )
+                })
+
+                val birds = detections.mapIndexed { idx, det ->
+                    FileTimelineBirdUi(
+                        id = "${det.scientificName}_$idx",
+                        commonName = det.commonName,
+                        scientificName = det.scientificName,
+                        startTimeSec = det.startTimeSec,
+                        endTimeSec = det.endTimeSec,
+                        timeRange = formatTimeRange(det.startTimeSec, det.endTimeSec),
+                        v24Confidence = det.v24Confidence?.let { (it * 100).roundToInt() },
+                        v30Confidence = det.v30Confidence?.let { (it * 100).roundToInt() },
+                    )
+                }
+
+                _uiState.update {
+                    FileAnalysisUiState(
+                        state = FileAnalysisState.DONE,
+                        fileName = analysis.fileName,
+                        fileDurationSec = analysis.durationSec,
+                        fileSizeLabel = Formatter.formatFileSize(context, analysis.fileSizeBytes),
+                        waveformAmplitudes = amplitudes,
+                        waveformProgress = 1f,
+                        timelineBirds = birds,
+                        speciesSummaries = summaries,
+                        v30Available = analysis.v30Available,
+                        geoLabel = analysis.regionLabel ?: "—",
+                        geoConfigured = it.geoConfigured,
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "loadFromHistory failed", e)
+            }
+        }
+    }
+
+    private fun updateWaveformProgress() {
+        val state = _uiState.value
+        val fileDuration = state.fileDurationSec
+        if (fileDuration <= 0f) return
+
+        // Processed seconds = chunks done × chunk duration
+        val v24Sec = state.v24Progress.chunksProcessed * v24ChunkDuration
+        val v30Sec = if (state.v30Available && v30ChunkDuration > 0f) {
+            state.v30Progress.chunksProcessed * v30ChunkDuration
+        } else fileDuration // no V3.0 → not a bottleneck
+
+        // Progress = slowest model's processed seconds / file duration
+        val processedSec = kotlin.math.min(v24Sec, v30Sec)
+        val progress = (processedSec / fileDuration).coerceIn(0f, 1f)
+        val label = "${(progress * 100).roundToInt()}%"
+        _uiState.update { it.copy(waveformProgress = progress, progressLabel = label) }
     }
 
     private suspend fun rebuildTimeline() {
@@ -221,24 +522,100 @@ class FileAnalysisViewModel @Inject constructor(
             .filter { seg ->
                 val v24 = seg.v24Confidence
                 val v30 = seg.v30Confidence
-                // Show if at least one model is highly confident
                 (v24 != null && v24 >= HIGH_CONFIDENCE) ||
                     (v30 != null && v30 >= HIGH_CONFIDENCE) ||
-                    // Or both models detected above minimum threshold
                     (v24 != null && v24 >= MIN_CONFIDENCE && v30 != null && v30 >= MIN_CONFIDENCE)
             }
+
         val birds = segments.mapIndexed { idx, seg ->
             FileTimelineBirdUi(
                 id = "${seg.scientificName}_$idx",
                 commonName = seg.commonName,
                 scientificName = seg.scientificName,
+                startTimeSec = seg.startTimeSec,
+                endTimeSec = seg.endTimeSec,
                 timeRange = formatTimeRange(seg.startTimeSec, seg.endTimeSec),
                 v24Confidence = seg.v24Confidence?.let { (it * 100).roundToInt() },
                 v30Confidence = seg.v30Confidence?.let { (it * 100).roundToInt() },
             )
         }
 
-        _uiState.update { it.copy(timelineBirds = birds) }
+        val summaries = buildSpeciesSummaries(segments)
+
+        _uiState.update { it.copy(timelineBirds = birds, speciesSummaries = summaries) }
+    }
+
+    private fun buildSpeciesSummaries(
+        segments: List<TimelineSegment>,
+    ): List<FileSpeciesSummary> {
+        return segments.groupBy { it.scientificName }.map { (sciName, segs) ->
+            val first = segs.first()
+            FileSpeciesSummary(
+                scientificName = sciName,
+                commonName = first.commonName,
+                maxV24Confidence = segs.mapNotNull { it.v24Confidence }
+                    .maxOrNull()?.let { (it * 100).roundToInt() },
+                maxV30Confidence = segs.mapNotNull { it.v30Confidence }
+                    .maxOrNull()?.let { (it * 100).roundToInt() },
+                detectionCount = segs.size,
+                segments = segs.map { seg ->
+                    SpeciesSegmentUi(
+                        startSec = seg.startTimeSec,
+                        endSec = seg.endTimeSec,
+                        timeRange = formatTimeRange(seg.startTimeSec, seg.endTimeSec),
+                    )
+                },
+            )
+        }
+    }
+
+    private suspend fun saveToHistory() {
+        try {
+            val state = _uiState.value
+            val uri = currentUri ?: return
+            val analysisId = UUID.randomUUID().toString()
+
+            val geoLabel = state.geoLabel.takeIf { it != "—" }
+            val regionCode = geoRepository.regionCode.first()
+                ?: geoRepository.countryCode.first().takeIf { it.isNotEmpty() }
+
+            val waveformAmplitudes = waveformBuilder?.build()
+            val waveformBytes = waveformAmplitudes?.let {
+                WaveformData(it, state.fileDurationSec, currentFileSize).toByteArray()
+            }
+
+            val entity = FileAnalysisEntity(
+                id = analysisId,
+                fileName = state.fileName,
+                fileUri = uri.toString(),
+                durationSec = state.fileDurationSec,
+                fileSizeBytes = currentFileSize,
+                regionCode = regionCode,
+                regionLabel = geoLabel,
+                v30Available = state.v30Available,
+                waveformData = waveformBytes,
+                createdAt = System.currentTimeMillis(),
+                speciesCount = state.speciesSummaries.size,
+            )
+
+            val detections = state.timelineBirds.map { bird ->
+                FileDetectionEntity(
+                    id = UUID.randomUUID().toString(),
+                    analysisId = analysisId,
+                    scientificName = bird.scientificName,
+                    commonName = bird.commonName,
+                    startTimeSec = bird.startTimeSec,
+                    endTimeSec = bird.endTimeSec,
+                    v24Confidence = bird.v24Confidence?.let { it / 100f },
+                    v30Confidence = bird.v30Confidence?.let { it / 100f },
+                )
+            }
+
+            fileAnalysisRepository.saveAnalysis(entity, detections)
+            Log.d(TAG, "Saved analysis $analysisId with ${detections.size} detections")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save analysis to history", e)
+        }
     }
 
     private fun formatTimeRange(startSec: Float, endSec: Float): String {
@@ -250,9 +627,21 @@ class FileAnalysisViewModel @Inject constructor(
         return "%d:%02d".format(sec / 60, sec % 60)
     }
 
+    fun deleteFromHistory(id: String) {
+        viewModelScope.launch {
+            fileAnalysisRepository.deleteAnalysis(id)
+        }
+    }
+
+    private fun formatDate(epochMs: Long): String {
+        val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        return fmt.format(Date(epochMs))
+    }
+
     companion object {
         private const val TAG = "FileAnalysisVM"
         private const val HIGH_CONFIDENCE = 0.8f
         private const val MIN_CONFIDENCE = 0.4f
+        private const val WAVEFORM_SNAPSHOT_INTERVAL = 5
     }
 }

@@ -1,5 +1,6 @@
 package com.birdsong.analyzer.presentation.detection
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,19 +10,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AudioFile
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -40,7 +49,17 @@ import com.birdsong.analyzer.presentation.theme.BirdSongTheme
 @Composable
 fun FileAnalysisScreen(
     uiState: FileAnalysisUiState = FileAnalysisUiState(),
+    recentAnalyses: List<FileAnalysisHistoryItem> = emptyList(),
     onSelectFile: () -> Unit = {},
+    onStartAnalysis: () -> Unit = {},
+    onPause: () -> Unit = {},
+    onResume: () -> Unit = {},
+    onCancel: () -> Unit = {},
+    onSelectSpecies: (String?) -> Unit = {},
+    onSpeciesClick: (scientificName: String, commonName: String) -> Unit = { _, _ -> },
+    onLoadFromHistory: (String) -> Unit = {},
+    onDeleteHistory: (String) -> Unit = {},
+    onPickLocation: () -> Unit = {},
     onBack: () -> Unit = {},
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -48,58 +67,180 @@ fun FileAnalysisScreen(
             title = { Text(stringResource(R.string.file_analysis_title)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                 }
             },
         )
 
-        // Select file button
-        if (uiState.state != FileAnalysisState.ANALYZING) {
+        // File info + geo (compact row)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (uiState.fileName.isNotEmpty()) {
+                Column(modifier = Modifier.weight(1f, fill = false)) {
+                    Text(
+                        text = uiState.fileName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (uiState.fileDurationSec > 0f) {
+                        Text(
+                            text = "${formatDuration(uiState.fileDurationSec)} · ${uiState.fileSizeLabel}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            if (uiState.geoConfigured) {
+                AssistChip(
+                    onClick = onPickLocation,
+                    label = { Text(uiState.geoLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    leadingIcon = {
+                        Icon(Icons.Default.LocationOn, contentDescription = null,
+                            modifier = Modifier.height(18.dp))
+                    },
+                )
+            } else {
+                AssistChip(
+                    onClick = onPickLocation,
+                    label = { Text(stringResource(R.string.file_analysis_geo_warning)) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Warning, contentDescription = null,
+                            modifier = Modifier.height(18.dp))
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        labelColor = MaterialTheme.colorScheme.onErrorContainer,
+                        leadingIconContentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    ),
+                )
+            }
+
+            // V3.0 unavailable notice
+            if (!uiState.v30Available &&
+                uiState.state in listOf(FileAnalysisState.ANALYZING, FileAnalysisState.DONE, FileAnalysisState.PAUSED)
+            ) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.dual_detection_v30_unavailable),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        // Select file button (only in IDLE or initial)
+        if (uiState.state == FileAnalysisState.IDLE || uiState.state == FileAnalysisState.ERROR) {
             Button(
                 onClick = onSelectFile,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
             ) {
                 Icon(Icons.Default.AudioFile, contentDescription = null)
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.file_analysis_select))
             }
         }
 
-        // Progress
-        if (uiState.state == FileAnalysisState.ANALYZING) {
-            val v24 = uiState.v24Progress
-            val v30 = uiState.v30Progress
-            val totalProcessed = v24.chunksProcessed + v30.chunksProcessed
-            val totalChunks = v24.totalChunks + v30.totalChunks
+        // Waveform
+        if (uiState.waveformAmplitudes != null) {
+            val markers = if (uiState.selectedSpecies != null) {
+                uiState.speciesSummaries
+                    .find { it.scientificName == uiState.selectedSpecies }
+                    ?.segments?.map { seg ->
+                        WaveformMarker(
+                            startSec = seg.startSec,
+                            endSec = seg.endSec,
+                            label = seg.timeRange,
+                        )
+                    } ?: emptyList()
+            } else emptyList()
 
-            if (totalChunks > 0) {
-                LinearProgressIndicator(
-                    progress = { totalProcessed.toFloat() / totalChunks },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            } else {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
-
-            val progressText = if (uiState.v30Available) {
-                "V2.4: ${v24.chunksProcessed}/${v24.totalChunks} | V3.0: ${v30.chunksProcessed}/${v30.totalChunks}"
-            } else {
-                "V2.4: ${v24.chunksProcessed}/${v24.totalChunks}"
-            }
-            Text(
-                text = progressText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp),
+            WaveformView(
+                amplitudes = uiState.waveformAmplitudes,
+                durationSec = uiState.fileDurationSec,
+                progress = uiState.waveformProgress,
+                progressLabel = uiState.progressLabel,
+                markers = markers,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
             )
+
+            // Detection count for selected species
+            if (uiState.selectedSpecies != null) {
+                val selected = uiState.speciesSummaries
+                    .find { it.scientificName == uiState.selectedSpecies }
+                if (selected != null) {
+                    Text(
+                        text = stringResource(
+                            R.string.file_analysis_detections_badge,
+                            selected.detectionCount,
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+            }
+        }
+
+        // Controls
+        when (uiState.state) {
+            FileAnalysisState.IDLE -> {
+                if (uiState.fileName.isNotEmpty()) {
+                    Button(
+                        onClick = onStartAnalysis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                    ) {
+                        Text(stringResource(R.string.file_analysis_start))
+                    }
+                }
+            }
+            FileAnalysisState.ANALYZING, FileAnalysisState.PAUSED -> {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (uiState.state == FileAnalysisState.PAUSED) {
+                        Button(
+                            onClick = onResume,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.btn_resume))
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = onPause,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.btn_pause))
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = onCancel,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
+                    ) {
+                        Text(stringResource(R.string.btn_cancel))
+                    }
+                }
+            }
+            else -> {}
         }
 
         // Error
@@ -108,58 +249,55 @@ fun FileAnalysisScreen(
                 text = stringResource(R.string.file_analysis_error, uiState.errorMessage),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
-
-        // File name
-        if (uiState.fileName.isNotEmpty()) {
-            Text(
-                text = uiState.fileName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
 
-        // V3.0 unavailable notice (during analysis and after)
-        if ((uiState.state == FileAnalysisState.ANALYZING || uiState.state == FileAnalysisState.DONE)
-            && !uiState.v30Available
-        ) {
+        // Species summary header
+        if (uiState.speciesSummaries.isNotEmpty()) {
             Text(
-                text = stringResource(R.string.dual_detection_v30_unavailable),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
-
-        // Detected birds header
-        if (uiState.timelineBirds.isNotEmpty()) {
-            Text(
-                text = stringResource(R.string.detection_detected_count, uiState.timelineBirds.size),
+                text = stringResource(R.string.file_analysis_species_count, uiState.speciesSummaries.size),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
 
-        // Timeline bird list or idle/done empty text
+        // Species summary list
         LazyColumn(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            if (uiState.timelineBirds.isEmpty() && uiState.state == FileAnalysisState.IDLE) {
-                item {
-                    Text(
-                        text = stringResource(R.string.file_analysis_idle),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 32.dp, horizontal = 4.dp),
-                    )
+            if (uiState.speciesSummaries.isEmpty() && uiState.state == FileAnalysisState.IDLE
+                && uiState.fileName.isEmpty()
+            ) {
+                if (recentAnalyses.isEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.file_analysis_idle),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 32.dp, horizontal = 4.dp),
+                        )
+                    }
+                } else {
+                    item {
+                        Text(
+                            text = stringResource(R.string.file_analysis_recent),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp),
+                        )
+                    }
+                    items(recentAnalyses, key = { it.id }) { item ->
+                        RecentAnalysisCard(
+                            item = item,
+                            onClick = { onLoadFromHistory(item.id) },
+                            onDelete = { onDeleteHistory(item.id) },
+                        )
+                    }
                 }
             }
-            if (uiState.timelineBirds.isEmpty() && uiState.state == FileAnalysisState.DONE) {
+            if (uiState.speciesSummaries.isEmpty() && uiState.state == FileAnalysisState.DONE) {
                 item {
                     Text(
                         text = stringResource(R.string.detection_no_results),
@@ -169,18 +307,36 @@ fun FileAnalysisScreen(
                     )
                 }
             }
-            items(uiState.timelineBirds, key = { it.id }) { bird ->
-                TimelineBirdCard(bird = bird)
+            items(uiState.speciesSummaries, key = { it.scientificName }) { summary ->
+                SpeciesSummaryCard(
+                    summary = summary,
+                    isSelected = summary.scientificName == uiState.selectedSpecies,
+                    onTap = { onSelectSpecies(summary.scientificName) },
+                    onDetailClick = { onSpeciesClick(summary.scientificName, summary.commonName) },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun TimelineBirdCard(bird: FileTimelineBirdUi) {
+private fun SpeciesSummaryCard(
+    summary: FileSpeciesSummary,
+    isSelected: Boolean,
+    onTap: () -> Unit,
+    onDetailClick: () -> Unit,
+) {
+    val containerColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onTap),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 2.dp else 1.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
     ) {
         Column(
             modifier = Modifier
@@ -193,14 +349,14 @@ private fun TimelineBirdCard(bird: FileTimelineBirdUi) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = bird.commonName,
+                    text = summary.commonName,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                ConfidenceLabels(bird.v24Confidence, bird.v30Confidence)
+                ConfidenceLabels(summary.maxV24Confidence, summary.maxV30Confidence)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -208,7 +364,7 @@ private fun TimelineBirdCard(bird: FileTimelineBirdUi) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = bird.scientificName,
+                    text = summary.scientificName,
                     style = MaterialTheme.typography.labelSmall,
                     fontStyle = FontStyle.Italic,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -216,60 +372,164 @@ private fun TimelineBirdCard(bird: FileTimelineBirdUi) {
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
+                IconButton(onClick = onDetailClick, modifier = Modifier.height(32.dp).width(32.dp)) {
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = stringResource(R.string.cd_details),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentAnalysisCard(
+    item: FileAnalysisHistoryItem,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = bird.timeRange,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = item.fileName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.file_analysis_species_label, item.speciesCount),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                    )
+                    Text(
+                        text = item.durationLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = item.date,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = item.regionLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.cd_delete),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
     }
 }
 
+private fun formatDuration(totalSec: Float): String {
+    val sec = totalSec.toInt()
+    return "%d:%02d".format(sec / 60, sec % 60)
+}
+
 // --- Previews ---
 
-private val previewTimeline = listOf(
-    FileTimelineBirdUi("1", "Great Tit", "Parus major", "0:00 – 0:20", v24Confidence = 92, v30Confidence = 78),
-    FileTimelineBirdUi("2", "Chaffinch", "Fringilla coelebs", "0:21 – 0:35", v24Confidence = 85, v30Confidence = null),
-    FileTimelineBirdUi("3", "Great Tit", "Parus major", "0:36 – 0:52", v24Confidence = 88, v30Confidence = 71),
-    FileTimelineBirdUi("4", "Eurasian Blue Tit", "Cyanistes caeruleus", "0:40 – 0:55", v24Confidence = null, v30Confidence = 65),
+private val previewSummaries = listOf(
+    FileSpeciesSummary(
+        scientificName = "Parus major",
+        commonName = "Great Tit",
+        maxV24Confidence = 92,
+        maxV30Confidence = 78,
+        detectionCount = 3,
+        segments = listOf(
+            SpeciesSegmentUi(0f, 3f, "0:00 – 0:03"),
+            SpeciesSegmentUi(15f, 20f, "0:15 – 0:20"),
+            SpeciesSegmentUi(36f, 42f, "0:36 – 0:42"),
+        ),
+    ),
+    FileSpeciesSummary(
+        scientificName = "Fringilla coelebs",
+        commonName = "Chaffinch",
+        maxV24Confidence = 85,
+        maxV30Confidence = null,
+        detectionCount = 1,
+        segments = listOf(SpeciesSegmentUi(21f, 35f, "0:21 – 0:35")),
+    ),
 )
 
-@Preview(showBackground = true, showSystemUi = true, name = "Idle")
+private val previewWaveform = FloatArray(400) { i ->
+    val t = i / 400f
+    (kotlin.math.sin(t * 20f).toFloat() * 0.5f + 0.5f) * 0.8f + 0.1f
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Idle - No File")
 @Composable
-private fun PreviewIdle() {
+private fun PreviewIdleNoFile() {
     BirdSongTheme {
         FileAnalysisScreen()
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, name = "Analyzing - Both models")
+@Preview(showBackground = true, showSystemUi = true, name = "Idle - File Ready")
 @Composable
-private fun PreviewAnalyzingBoth() {
+private fun PreviewIdleReady() {
     BirdSongTheme {
         FileAnalysisScreen(
             uiState = FileAnalysisUiState(
-                state = FileAnalysisState.ANALYZING,
-                fileName = "recording_2026-02-28.ogg",
-                v24Progress = ModelProgress(chunksProcessed = 12, totalChunks = 48),
-                v30Progress = ModelProgress(chunksProcessed = 5, totalChunks = 24),
-                timelineBirds = previewTimeline.take(2),
-                v30Available = true,
+                state = FileAnalysisState.IDLE,
+                fileName = "recording_2026-03-04.ogg",
+                fileDurationSec = 45f,
+                fileSizeLabel = "320 KB",
+                waveformAmplitudes = previewWaveform,
+                geoLabel = "Belarus · Minsk",
+                geoConfigured = true,
             ),
         )
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, name = "Analyzing - V2.4 only")
+@Preview(showBackground = true, showSystemUi = true, name = "Analyzing")
 @Composable
-private fun PreviewAnalyzingV24Only() {
+private fun PreviewAnalyzing() {
     BirdSongTheme {
         FileAnalysisScreen(
             uiState = FileAnalysisUiState(
                 state = FileAnalysisState.ANALYZING,
-                fileName = "recording_2026-02-28.ogg",
-                v24Progress = ModelProgress(chunksProcessed = 12, totalChunks = 48),
-                v30Available = false,
+                fileName = "recording_2026-03-04.ogg",
+                fileDurationSec = 45f,
+                fileSizeLabel = "320 KB",
+                waveformAmplitudes = previewWaveform,
+                waveformProgress = 0.4f,
+                v24Progress = ModelProgress(12, 30),
+                v30Progress = ModelProgress(5, 15),
+                v30Available = true,
+                speciesSummaries = previewSummaries.take(1),
+                geoLabel = "Belarus · Minsk",
+                geoConfigured = true,
             ),
         )
     }
@@ -282,24 +542,29 @@ private fun PreviewDone() {
         FileAnalysisScreen(
             uiState = FileAnalysisUiState(
                 state = FileAnalysisState.DONE,
-                fileName = "recording_2026-02-28.ogg",
-                timelineBirds = previewTimeline,
+                fileName = "recording_2026-03-04.ogg",
+                fileDurationSec = 45f,
+                fileSizeLabel = "320 KB",
+                waveformAmplitudes = previewWaveform,
+                waveformProgress = 1f,
                 v30Available = true,
+                speciesSummaries = previewSummaries,
+                selectedSpecies = "Parus major",
+                geoLabel = "Belarus · Minsk",
+                geoConfigured = true,
             ),
         )
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, name = "Done - V3.0 Unavailable")
+@Preview(showBackground = true, showSystemUi = true, name = "No Geo")
 @Composable
-private fun PreviewDoneNoV30() {
+private fun PreviewNoGeo() {
     BirdSongTheme {
         FileAnalysisScreen(
             uiState = FileAnalysisUiState(
-                state = FileAnalysisState.DONE,
-                fileName = "recording_2026-02-28.ogg",
-                timelineBirds = previewTimeline.map { it.copy(v30Confidence = null) },
-                v30Available = false,
+                state = FileAnalysisState.IDLE,
+                geoConfigured = false,
             ),
         )
     }

@@ -118,6 +118,7 @@ OGG Opus, 44.1/48 kHz, моно, 64-96 kbps. ~0.5-0.7 MB/мин. Максима�
 
 ## Performance Requirements
 
+- **UI responsiveness:** интерфейс должен быть отзывчивым без фризов и залипаний. Никаких тяжёлых операций на Main thread. Room-запросы, ML inference, файловые операции — только на Dispatchers.IO/Default. LazyColumn и recomposition не должны блокировать UI frame (16 ms budget).
 - Распознавание chunk: < 3 секунд
 - APK: < 150 MB (включая ML-модель)
 - RAM: < 200 MB в активном режиме
