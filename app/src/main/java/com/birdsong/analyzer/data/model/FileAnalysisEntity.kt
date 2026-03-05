@@ -17,6 +17,7 @@ data class FileAnalysisEntity(
     @ColumnInfo(name = "waveform_data") val waveformData: ByteArray?,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "species_count") val speciesCount: Int,
+    @ColumnInfo(name = "analysis_duration_ms", defaultValue = "0") val analysisDurationMs: Long = 0,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

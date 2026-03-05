@@ -16,10 +16,18 @@ import com.birdsong.analyzer.data.model.MlModelEntity
         FileAnalysisEntity::class,
         FileDetectionEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun geoDao(): GeoDao
     abstract fun fileAnalysisDao(): FileAnalysisDao
+
+    companion object {
+        val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE file_analysis ADD COLUMN analysis_duration_ms INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+    }
 }

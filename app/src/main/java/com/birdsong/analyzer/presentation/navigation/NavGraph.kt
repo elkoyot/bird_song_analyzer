@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -42,6 +43,8 @@ import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
 import com.birdsong.analyzer.presentation.detection.FileAnalysisScreen
 import com.birdsong.analyzer.presentation.detection.FileAnalysisViewModel
 import com.birdsong.analyzer.presentation.detection.HomeScreen
+import com.birdsong.analyzer.presentation.history.HistoryScreen
+import com.birdsong.analyzer.presentation.history.HistoryViewModel
 import com.birdsong.analyzer.presentation.location.LocationPickerScreen
 import com.birdsong.analyzer.presentation.location.LocationPickerViewModel
 import com.birdsong.analyzer.presentation.settings.SettingsScreen
@@ -55,6 +58,7 @@ private data class BottomNavItem<T : Any>(
 
 private val bottomNavItems = listOf(
     BottomNavItem(HomeRoute, Icons.Default.Home, R.string.nav_home),
+    BottomNavItem(HistoryRoute, Icons.Default.History, R.string.nav_history),
     BottomNavItem(SettingsRoute, Icons.Default.Settings, R.string.nav_settings),
 )
 
@@ -136,6 +140,19 @@ fun BirdSongNavHost() {
                 )
             }
 
+            composable<HistoryRoute> {
+                val viewModel: HistoryViewModel = hiltViewModel()
+                val analyses by viewModel.analyses.collectAsStateWithLifecycle()
+
+                HistoryScreen(
+                    analyses = analyses,
+                    onAnalysisClick = { analysisId ->
+                        navController.navigate(FileAnalysisRoute(analysisId = analysisId))
+                    },
+                    onDelete = viewModel::deleteAnalysis,
+                )
+            }
+
             composable<SettingsRoute> {
                 val context = LocalContext.current
                 val viewModel: SettingsViewModel = hiltViewModel()
@@ -200,7 +217,6 @@ fun BirdSongNavHost() {
                 val route = backStackEntry.toRoute<FileAnalysisRoute>()
                 val viewModel: FileAnalysisViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                val recentAnalyses by viewModel.recentAnalyses.collectAsStateWithLifecycle()
                 val context = LocalContext.current
 
                 // Load from history if analysisId is provided
@@ -223,7 +239,6 @@ fun BirdSongNavHost() {
 
                 FileAnalysisScreen(
                     uiState = uiState,
-                    recentAnalyses = recentAnalyses,
                     onSelectFile = { filePickerLauncher.launch("audio/*") },
                     onStartAnalysis = viewModel::startAnalysis,
                     onPause = viewModel::pauseAnalysis,
@@ -238,10 +253,7 @@ fun BirdSongNavHost() {
                             ),
                         )
                     },
-                    onLoadFromHistory = { id ->
-                        viewModel.loadFromHistory(id)
-                    },
-                    onDeleteHistory = viewModel::deleteFromHistory,
+                    onLoadWaveform = viewModel::loadWaveform,
                     onPickLocation = { navController.navigate(LocationPickerRoute) },
                     onBack = { navController.popBackStack() },
                 )

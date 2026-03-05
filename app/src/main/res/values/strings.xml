@@ -48,6 +48,7 @@
     <string name="history_title">History</string>
     <string name="history_empty">No observations yet</string>
     <string name="history_delete_confirm">Delete this observation?</string>
+    <string name="history_analysis_time">analysis %1$s</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -91,6 +92,7 @@
     <string name="file_analysis_species_count">Species (%1$d)</string>
     <string name="file_analysis_detections_badge">%1$d detections</string>
     <string name="file_analysis_species_label">%1$d species</string>
+    <string name="file_analysis_show_waveform">Show waveform</string>
     <string name="btn_cancel">Cancel</string>
 
     <!-- Accessibility -->

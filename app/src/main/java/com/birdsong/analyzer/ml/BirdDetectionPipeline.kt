@@ -136,6 +136,7 @@ class BirdDetectionPipeline @Inject constructor(
         val processedChunks: Int,
         val totalChunks: Int,
         val avgChunkMs: Long,
+        val lastProcessedTimeSec: Float,
     )
 
     /**
@@ -377,9 +378,13 @@ class BirdDetectionPipeline @Inject constructor(
         }
 
         // Collector: collect per-chunk records + report progress
+        var maxProcessedTimeSec = 0f
         for (result in resultsChannel) {
             val processed = processedCounter.incrementAndGet()
             totalClassifyMs += result.classifyMs
+            if (result.startTimeSec > maxProcessedTimeSec) {
+                maxProcessedTimeSec = result.startTimeSec
+            }
 
             if (result.detections != null && result.detections.isNotEmpty()) {
                 val record = ChunkDetectionRecord(
@@ -397,6 +402,7 @@ class BirdDetectionPipeline @Inject constructor(
                     processedChunks = processed,
                     totalChunks = totalChunksCounter.get(),
                     avgChunkMs = avgMs,
+                    lastProcessedTimeSec = maxProcessedTimeSec,
                 )
             )
         }

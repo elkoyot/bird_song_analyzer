@@ -78,7 +78,7 @@ object AppModule {
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         lateinit var database: AppDatabase
         database = Room.databaseBuilder(context, AppDatabase::class.java, "geo.db")
-            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
             .fallbackToDestructiveMigrationFrom(1)
             .addCallback(object : RoomDatabase.Callback() {
                 override fun onOpen(db: SupportSQLiteDatabase) {

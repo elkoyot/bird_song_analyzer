@@ -9,6 +9,9 @@ object HomeRoute
 object LiveDetectionRoute
 
 @Serializable
+object HistoryRoute
+
+@Serializable
 object SettingsRoute
 
 @Serializable

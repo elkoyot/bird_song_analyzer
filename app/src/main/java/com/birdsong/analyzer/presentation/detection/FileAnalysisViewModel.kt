@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -58,6 +59,7 @@ enum class FileAnalysisState { IDLE, ANALYZING, PAUSED, DONE, ERROR }
 data class ModelProgress(
     val chunksProcessed: Int = 0,
     val totalChunks: Int = 0,
+    val lastProcessedTimeSec: Float = 0f,
 )
 
 data class FileTimelineBirdUi(
@@ -102,6 +104,7 @@ data class FileAnalysisUiState(
     val v30Available: Boolean = false,
     val geoLabel: String = "—",
     val geoConfigured: Boolean = false,
+    val hasWaveformData: Boolean = false,
     val errorMessage: String = "",
 ) {
     override fun equals(other: Any?): Boolean {
@@ -119,6 +122,7 @@ data class FileAnalysisUiState(
             progressLabel == other.progressLabel &&
             v30Available == other.v30Available && geoLabel == other.geoLabel &&
             geoConfigured == other.geoConfigured &&
+            hasWaveformData == other.hasWaveformData &&
             errorMessage == other.errorMessage
     }
 
@@ -175,6 +179,7 @@ class FileAnalysisViewModel @Inject constructor(
     private var currentUri: Uri? = null
     private var currentFileSize: Long = 0L
     private var waveformBuilder: IncrementalWaveformBuilder? = null
+    private var analysisStartTimeMs: Long = 0L
 
     init {
         buildMetaProfileAsync()
@@ -255,6 +260,7 @@ class FileAnalysisViewModel @Inject constructor(
             v24ChunkDuration = 0f
             v30ChunkDuration = 0f
 
+            analysisStartTimeMs = System.currentTimeMillis()
             val v30Available = classifierFactory.isBirdNetV30Available()
             _uiState.update {
                 it.copy(
@@ -270,6 +276,8 @@ class FileAnalysisViewModel @Inject constructor(
 
             val v24Classifier = classifierFactory.createBirdNet()
             val v30Classifier = if (v30Available) classifierFactory.createBirdNetV30() else null
+            var v24Job: Job? = null
+            var v30Job: Job? = null
 
             try {
                 metaProfileJob?.join()
@@ -297,7 +305,7 @@ class FileAnalysisViewModel @Inject constructor(
                 val v24Processor = classifierFactory.createProcessor(v24Classifier)
                 val v30Processor = v30Classifier?.let { classifierFactory.createProcessor(it) }
 
-                val v24Job = launch {
+                v24Job = launch {
                     pipeline.analyzeFileDetailed(
                         context = context,
                         uri = uri,
@@ -312,6 +320,7 @@ class FileAnalysisViewModel @Inject constructor(
                                     v24Progress = ModelProgress(
                                         chunksProcessed = progress.processedChunks,
                                         totalChunks = progress.totalChunks,
+                                        lastProcessedTimeSec = progress.lastProcessedTimeSec,
                                     ),
                                 )
                             }
@@ -325,8 +334,8 @@ class FileAnalysisViewModel @Inject constructor(
                             builder.addChunk(samples)
                             waveformChunkCount++
                             if (waveformChunkCount % WAVEFORM_SNAPSHOT_INTERVAL == 0) {
-                                val snapshot = builder.snapshot()
-                                _uiState.update { it.copy(waveformAmplitudes = snapshot) }
+                                val waveformSnapshot = builder.snapshot()
+                                _uiState.update { it.copy(waveformAmplitudes = waveformSnapshot) }
                                 if (pendingTimelineRebuild) {
                                     pendingTimelineRebuild = false
                                     viewModelScope.launch { rebuildTimeline() }
@@ -336,7 +345,7 @@ class FileAnalysisViewModel @Inject constructor(
                     )
                 }
 
-                val v30Job = if (v30Classifier != null && v30Processor != null) {
+                v30Job = if (v30Classifier != null && v30Processor != null) {
                     launch {
                         pipeline.analyzeFileDetailed(
                             context = context,
@@ -352,6 +361,7 @@ class FileAnalysisViewModel @Inject constructor(
                                         v30Progress = ModelProgress(
                                             chunksProcessed = progress.processedChunks,
                                             totalChunks = progress.totalChunks,
+                                            lastProcessedTimeSec = progress.lastProcessedTimeSec,
                                         ),
                                     )
                                 }
@@ -384,7 +394,7 @@ class FileAnalysisViewModel @Inject constructor(
                     // Cancelled by user — keep results if any
                     if (_uiState.value.timelineBirds.isNotEmpty()) {
                         _uiState.update { it.copy(state = FileAnalysisState.DONE) }
-                        saveToHistory()
+                        viewModelScope.launch { saveToHistory() }
                     } else {
                         _uiState.update { it.copy(state = FileAnalysisState.IDLE) }
                     }
@@ -398,6 +408,11 @@ class FileAnalysisViewModel @Inject constructor(
                     }
                 }
             } finally {
+                // Wait for workers to finish native calls before closing classifiers
+                withContext(NonCancellable) {
+                    v24Job?.join()
+                    v30Job?.join()
+                }
                 v24Classifier.close()
                 v30Classifier?.close()
             }
@@ -473,10 +488,29 @@ class FileAnalysisViewModel @Inject constructor(
                         v30Available = analysis.v30Available,
                         geoLabel = analysis.regionLabel ?: "—",
                         geoConfigured = it.geoConfigured,
+                        hasWaveformData = analysis.waveformData != null && amplitudes == null,
                     )
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "loadFromHistory failed", e)
+            }
+        }
+    }
+
+    fun loadWaveform() {
+        viewModelScope.launch {
+            try {
+                val state = _uiState.value
+                if (state.state != FileAnalysisState.DONE) return@launch
+                val analysis = fileAnalysisRepository.getAllSummaries()
+                    .first().firstOrNull { it.fileName == state.fileName } ?: return@launch
+                val full = fileAnalysisRepository.getAnalysisById(analysis.id) ?: return@launch
+                val amplitudes = full.waveformData?.let { bytes ->
+                    WaveformData.fromByteArray(bytes, full.durationSec, full.fileSizeBytes).amplitudes
+                }
+                _uiState.update { it.copy(waveformAmplitudes = amplitudes, hasWaveformData = false) }
+            } catch (e: Exception) {
+                Log.e(TAG, "loadWaveform failed", e)
             }
         }
     }
@@ -486,14 +520,14 @@ class FileAnalysisViewModel @Inject constructor(
         val fileDuration = state.fileDurationSec
         if (fileDuration <= 0f) return
 
-        // Processed seconds = chunks done × chunk duration
-        val v24Sec = state.v24Progress.chunksProcessed * v24ChunkDuration
-        val v30Sec = if (state.v30Available && v30ChunkDuration > 0f) {
-            state.v30Progress.chunksProcessed * v30ChunkDuration
+        // End of analyzed region = last chunk position + chunk duration
+        val v24EndSec = state.v24Progress.lastProcessedTimeSec + v24ChunkDuration
+        val v30EndSec = if (state.v30Available && v30ChunkDuration > 0f) {
+            state.v30Progress.lastProcessedTimeSec + v30ChunkDuration
         } else fileDuration // no V3.0 → not a bottleneck
 
-        // Progress = slowest model's processed seconds / file duration
-        val processedSec = kotlin.math.min(v24Sec, v30Sec)
+        // Progress = slowest model's position / file duration
+        val processedSec = kotlin.math.min(v24EndSec, v30EndSec)
         val progress = (processedSec / fileDuration).coerceIn(0f, 1f)
         val label = "${(progress * 100).roundToInt()}%"
         _uiState.update { it.copy(waveformProgress = progress, progressLabel = label) }
@@ -584,6 +618,8 @@ class FileAnalysisViewModel @Inject constructor(
                 WaveformData(it, state.fileDurationSec, currentFileSize).toByteArray()
             }
 
+            val analysisDuration = System.currentTimeMillis() - analysisStartTimeMs
+
             val entity = FileAnalysisEntity(
                 id = analysisId,
                 fileName = state.fileName,
@@ -596,6 +632,7 @@ class FileAnalysisViewModel @Inject constructor(
                 waveformData = waveformBytes,
                 createdAt = System.currentTimeMillis(),
                 speciesCount = state.speciesSummaries.size,
+                analysisDurationMs = analysisDuration,
             )
 
             val detections = state.timelineBirds.map { bird ->

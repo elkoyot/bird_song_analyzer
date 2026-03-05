@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AssistChip
@@ -49,7 +48,6 @@ import com.birdsong.analyzer.presentation.theme.BirdSongTheme
 @Composable
 fun FileAnalysisScreen(
     uiState: FileAnalysisUiState = FileAnalysisUiState(),
-    recentAnalyses: List<FileAnalysisHistoryItem> = emptyList(),
     onSelectFile: () -> Unit = {},
     onStartAnalysis: () -> Unit = {},
     onPause: () -> Unit = {},
@@ -57,8 +55,7 @@ fun FileAnalysisScreen(
     onCancel: () -> Unit = {},
     onSelectSpecies: (String?) -> Unit = {},
     onSpeciesClick: (scientificName: String, commonName: String) -> Unit = { _, _ -> },
-    onLoadFromHistory: (String) -> Unit = {},
-    onDeleteHistory: (String) -> Unit = {},
+    onLoadWaveform: () -> Unit = {},
     onPickLocation: () -> Unit = {},
     onBack: () -> Unit = {},
 ) {
@@ -149,6 +146,18 @@ fun FileAnalysisScreen(
                 Icon(Icons.Default.AudioFile, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.file_analysis_select))
+            }
+        }
+
+        // Load waveform button (history items without preloaded waveform)
+        if (uiState.hasWaveformData && uiState.waveformAmplitudes == null) {
+            OutlinedButton(
+                onClick = onLoadWaveform,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+            ) {
+                Text(stringResource(R.string.file_analysis_show_waveform))
             }
         }
 
@@ -271,30 +280,13 @@ fun FileAnalysisScreen(
             if (uiState.speciesSummaries.isEmpty() && uiState.state == FileAnalysisState.IDLE
                 && uiState.fileName.isEmpty()
             ) {
-                if (recentAnalyses.isEmpty()) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.file_analysis_idle),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 32.dp, horizontal = 4.dp),
-                        )
-                    }
-                } else {
-                    item {
-                        Text(
-                            text = stringResource(R.string.file_analysis_recent),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp),
-                        )
-                    }
-                    items(recentAnalyses, key = { it.id }) { item ->
-                        RecentAnalysisCard(
-                            item = item,
-                            onClick = { onLoadFromHistory(item.id) },
-                            onDelete = { onDeleteHistory(item.id) },
-                        )
-                    }
+                item {
+                    Text(
+                        text = stringResource(R.string.file_analysis_idle),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 32.dp, horizontal = 4.dp),
+                    )
                 }
             }
             if (uiState.speciesSummaries.isEmpty() && uiState.state == FileAnalysisState.DONE) {
@@ -379,73 +371,6 @@ private fun SpeciesSummaryCard(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecentAnalysisCard(
-    item: FileAnalysisHistoryItem,
-    onClick: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.fileName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = stringResource(R.string.file_analysis_species_label, item.speciesCount),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    Text(
-                        text = item.durationLabel,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = item.date,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = item.regionLabel,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.cd_delete),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }
