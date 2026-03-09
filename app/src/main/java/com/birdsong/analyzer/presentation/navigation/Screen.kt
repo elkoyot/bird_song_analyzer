@@ -3,13 +3,19 @@ package com.birdsong.analyzer.presentation.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
+object SplashRoute
+
+@Serializable
+object PermissionRoute
+
+@Serializable
+object MainGraph
+
+@Serializable
 object HomeRoute
 
 @Serializable
 object LiveDetectionRoute
-
-@Serializable
-object HistoryRoute
 
 @Serializable
 object SettingsRoute

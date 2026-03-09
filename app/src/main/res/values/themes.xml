@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.BirdSongAnalyzer" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.BirdSongAnalyzer" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Dark window background prevents white flash before Compose first frame -->
+        <item name="android:windowBackground">#050C18</item>
+    </style>
 </resources>

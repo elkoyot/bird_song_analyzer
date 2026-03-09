@@ -1,13 +1,14 @@
 package com.birdsong.analyzer.presentation.navigation
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -24,16 +25,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.birdsong.analyzer.R
 import com.birdsong.analyzer.presentation.detail.DetailScreen
@@ -43,12 +47,14 @@ import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
 import com.birdsong.analyzer.presentation.detection.FileAnalysisScreen
 import com.birdsong.analyzer.presentation.detection.FileAnalysisViewModel
 import com.birdsong.analyzer.presentation.detection.HomeScreen
-import com.birdsong.analyzer.presentation.history.HistoryScreen
 import com.birdsong.analyzer.presentation.history.HistoryViewModel
 import com.birdsong.analyzer.presentation.location.LocationPickerScreen
 import com.birdsong.analyzer.presentation.location.LocationPickerViewModel
 import com.birdsong.analyzer.presentation.settings.SettingsScreen
 import com.birdsong.analyzer.presentation.settings.SettingsViewModel
+import com.birdsong.analyzer.presentation.splash.PermissionScreen
+import com.birdsong.analyzer.presentation.splash.SplashScreen
+import com.birdsong.analyzer.presentation.splash.SplashViewModel
 
 private data class BottomNavItem<T : Any>(
     val route: T,
@@ -58,7 +64,6 @@ private data class BottomNavItem<T : Any>(
 
 private val bottomNavItems = listOf(
     BottomNavItem(HomeRoute, Icons.Default.Home, R.string.nav_home),
-    BottomNavItem(HistoryRoute, Icons.Default.History, R.string.nav_history),
     BottomNavItem(SettingsRoute, Icons.Default.Settings, R.string.nav_settings),
 )
 
@@ -82,7 +87,7 @@ fun BirdSongNavHost() {
                             selected = selected,
                             onClick = {
                                 navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
+                                    popUpTo<HomeRoute> {
                                         saveState = true
                                     }
                                     launchSingleTop = true
@@ -99,179 +104,250 @@ fun BirdSongNavHost() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = HomeRoute,
+            startDestination = SplashRoute,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable<HomeRoute> {
-                HomeScreen(
-                    onNavigateToLiveDetection = { navController.navigate(LiveDetectionRoute) },
-                    onNavigateToFileAnalysis = { navController.navigate(FileAnalysisRoute()) },
-                )
-            }
+            // ── Onboarding (top-level, outside MainGraph) ────────────────
 
-            composable<LiveDetectionRoute> {
-                val viewModel: DualDetectionViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            composable<SplashRoute> {
+                val viewModel: SplashViewModel = hiltViewModel()
+                val state by viewModel.uiState.collectAsStateWithLifecycle()
                 val context = LocalContext.current
 
-                val permissionLauncher = rememberLauncherForActivityResult(
-                    ActivityResultContracts.RequestPermission(),
-                ) { granted ->
-                    if (granted) viewModel.onStart()
-                }
+                LaunchedEffect(state.done) {
+                    if (state.done) {
+                        val granted = ContextCompat.checkSelfPermission(
+                            context, Manifest.permission.RECORD_AUDIO,
+                        ) == PackageManager.PERMISSION_GRANTED
 
-                DualDetectionScreen(
-                    uiState = uiState,
-                    onStart = {
-                        if (ContextCompat.checkSelfPermission(
-                                context, Manifest.permission.RECORD_AUDIO,
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            viewModel.onStart()
-                        } else {
-                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        val target = if (granted) HomeRoute else PermissionRoute
+                        navController.navigate(target) {
+                            popUpTo(SplashRoute) { inclusive = true }
                         }
-                    },
-                    onPause = viewModel::onPause,
-                    onResume = viewModel::onResume,
-                    onStop = viewModel::onStop,
-                    onReset = viewModel::onReset,
-                    onBack = { navController.popBackStack() },
-                )
-            }
-
-            composable<HistoryRoute> {
-                val viewModel: HistoryViewModel = hiltViewModel()
-                val analyses by viewModel.analyses.collectAsStateWithLifecycle()
-
-                HistoryScreen(
-                    analyses = analyses,
-                    onAnalysisClick = { analysisId ->
-                        navController.navigate(FileAnalysisRoute(analysisId = analysisId))
-                    },
-                    onDelete = viewModel::deleteAnalysis,
-                )
-            }
-
-            composable<SettingsRoute> {
-                val context = LocalContext.current
-                val viewModel: SettingsViewModel = hiltViewModel()
-                val locationLabel by viewModel.locationLabel.collectAsStateWithLifecycle()
-                val activeModel by viewModel.activeModel.collectAsStateWithLifecycle()
-
-                fun checkAudio() = ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.RECORD_AUDIO,
-                ) == PackageManager.PERMISSION_GRANTED
-
-                fun checkLocation() = ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.ACCESS_COARSE_LOCATION,
-                ) == PackageManager.PERMISSION_GRANTED
-
-                var audioGranted by remember { mutableStateOf(checkAudio()) }
-                var locationGranted by remember { mutableStateOf(checkLocation()) }
-
-                val audioLauncher = rememberLauncherForActivityResult(
-                    ActivityResultContracts.RequestPermission(),
-                ) { audioGranted = checkAudio() }
-
-                val locationLauncher = rememberLauncherForActivityResult(
-                    ActivityResultContracts.RequestPermission(),
-                ) { locationGranted = checkLocation() }
-
-                SettingsScreen(
-                    audioPermissionGranted = audioGranted,
-                    locationPermissionGranted = locationGranted,
-                    locationLabel = locationLabel,
-                    activeModel = activeModel,
-                    isV30Available = viewModel.isV30Available,
-                    onRequestAudioPermission = {
-                        audioLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    },
-                    onRequestLocationPermission = {
-                        locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-                    },
-                    onLocationClick = { navController.navigate(LocationPickerRoute) },
-                    onModelSelected = viewModel::selectModel,
-                )
-            }
-
-            composable<LocationPickerRoute> {
-                val viewModel: LocationPickerViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-                LaunchedEffect(uiState.done) {
-                    if (uiState.done) navController.popBackStack()
-                }
-
-                LocationPickerScreen(
-                    uiState = uiState,
-                    onSelectContinent = viewModel::selectContinent,
-                    onSelectCountry = viewModel::selectCountry,
-                    onSelectRegion = viewModel::selectRegion,
-                    onBack = { navController.popBackStack() },
-                    onGoBack = viewModel::goBack,
-                )
-            }
-
-            composable<FileAnalysisRoute> { backStackEntry ->
-                val route = backStackEntry.toRoute<FileAnalysisRoute>()
-                val viewModel: FileAnalysisViewModel = hiltViewModel()
-                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                val context = LocalContext.current
-
-                // Load from history if analysisId is provided
-                LaunchedEffect(route.analysisId) {
-                    route.analysisId?.let { viewModel.loadFromHistory(it) }
-                }
-
-                val filePickerLauncher = rememberLauncherForActivityResult(
-                    ActivityResultContracts.GetContent(),
-                ) { uri ->
-                    if (uri != null) {
-                        val name = context.contentResolver
-                            .query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                            ?.use { cursor ->
-                                if (cursor.moveToFirst()) cursor.getString(0) else null
-                            } ?: uri.lastPathSegment ?: "audio"
-                        viewModel.selectFile(uri, name)
                     }
                 }
 
-                FileAnalysisScreen(
-                    uiState = uiState,
-                    onSelectFile = { filePickerLauncher.launch("audio/*") },
-                    onStartAnalysis = viewModel::startAnalysis,
-                    onPause = viewModel::pauseAnalysis,
-                    onResume = viewModel::resumeAnalysis,
-                    onCancel = viewModel::cancelAnalysis,
-                    onSelectSpecies = viewModel::selectSpecies,
-                    onSpeciesClick = { sciName, commonName ->
-                        navController.navigate(
-                            DetailRoute(
-                                commonName = commonName,
-                                scientificName = sciName,
-                            ),
-                        )
+                SplashScreen(state = state)
+            }
+
+            composable<PermissionRoute> {
+                val context = LocalContext.current
+                var denied by remember { mutableStateOf(false) }
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                // Auto-navigate when permission is granted via Settings and user returns
+                LaunchedEffect(lifecycleOwner) {
+                    lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                        val granted = ContextCompat.checkSelfPermission(
+                            context, Manifest.permission.RECORD_AUDIO,
+                        ) == PackageManager.PERMISSION_GRANTED
+                        if (granted) {
+                            navController.navigate(HomeRoute) {
+                                popUpTo(PermissionRoute) { inclusive = true }
+                            }
+                        }
+                    }
+                }
+
+                val launcher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission(),
+                ) { granted ->
+                    if (granted) {
+                        navController.navigate(HomeRoute) {
+                            popUpTo(PermissionRoute) { inclusive = true }
+                        }
+                    } else {
+                        denied = true
+                    }
+                }
+
+                PermissionScreen(
+                    denied = denied,
+                    onRequestPermission = {
+                        if (denied) {
+                            // Permanently denied — open system settings
+                            val intent = Intent(
+                                android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", context.packageName, null),
+                            )
+                            context.startActivity(intent)
+                        } else {
+                            launcher.launch(Manifest.permission.RECORD_AUDIO)
+                        }
                     },
-                    onLoadWaveform = viewModel::loadWaveform,
-                    onPickLocation = { navController.navigate(LocationPickerRoute) },
-                    onBack = { navController.popBackStack() },
+                    onSkip = { denied = true },
                 )
             }
 
-            composable<DetailRoute> { backStackEntry ->
-                val route = backStackEntry.toRoute<DetailRoute>()
-                DetailScreen(
-                    uiState = DetailUiState(
-                        commonName = route.commonName,
-                        scientificName = route.scientificName,
-                        confidence = maxOf(
-                            if (route.v24Confidence >= 0) route.v24Confidence else 0,
-                            if (route.v30Confidence >= 0) route.v30Confidence else 0,
+            // ── Main app (nested graph — bottom nav popUpTo targets this) ─
+
+            navigation<MainGraph>(startDestination = HomeRoute) {
+
+                composable<HomeRoute> {
+                    HomeScreen(
+                        onNavigateToLiveDetection = { navController.navigate(LiveDetectionRoute) },
+                        onNavigateToFileAnalysis = { navController.navigate(FileAnalysisRoute()) },
+                    )
+                }
+
+                composable<LiveDetectionRoute> {
+                    val viewModel: DualDetectionViewModel = hiltViewModel()
+                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                    val context = LocalContext.current
+
+                    val permissionLauncher = rememberLauncherForActivityResult(
+                        ActivityResultContracts.RequestPermission(),
+                    ) { granted ->
+                        if (granted) viewModel.onStart()
+                    }
+
+                    DualDetectionScreen(
+                        uiState = uiState,
+                        onStart = {
+                            if (ContextCompat.checkSelfPermission(
+                                    context, Manifest.permission.RECORD_AUDIO,
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                viewModel.onStart()
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        },
+                        onPause = viewModel::onPause,
+                        onResume = viewModel::onResume,
+                        onStop = viewModel::onStop,
+                        onReset = viewModel::onReset,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable<SettingsRoute> {
+                    val context = LocalContext.current
+                    val viewModel: SettingsViewModel = hiltViewModel()
+                    val locationLabel by viewModel.locationLabel.collectAsStateWithLifecycle()
+                    val activeModel by viewModel.activeModel.collectAsStateWithLifecycle()
+
+                    fun checkAudio() = ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.RECORD_AUDIO,
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    fun checkLocation() = ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.ACCESS_COARSE_LOCATION,
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    var audioGranted by remember { mutableStateOf(checkAudio()) }
+                    var locationGranted by remember { mutableStateOf(checkLocation()) }
+
+                    val audioLauncher = rememberLauncherForActivityResult(
+                        ActivityResultContracts.RequestPermission(),
+                    ) { audioGranted = checkAudio() }
+
+                    val locationLauncher = rememberLauncherForActivityResult(
+                        ActivityResultContracts.RequestPermission(),
+                    ) { locationGranted = checkLocation() }
+
+                    SettingsScreen(
+                        audioPermissionGranted = audioGranted,
+                        locationPermissionGranted = locationGranted,
+                        locationLabel = locationLabel,
+                        activeModel = activeModel,
+                        isV30Available = viewModel.isV30Available,
+                        onRequestAudioPermission = {
+                            audioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        },
+                        onRequestLocationPermission = {
+                            locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                        },
+                        onLocationClick = { navController.navigate(LocationPickerRoute) },
+                        onModelSelected = viewModel::selectModel,
+                    )
+                }
+
+                composable<LocationPickerRoute> {
+                    val viewModel: LocationPickerViewModel = hiltViewModel()
+                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                    LaunchedEffect(uiState.done) {
+                        if (uiState.done) navController.popBackStack()
+                    }
+
+                    LocationPickerScreen(
+                        uiState = uiState,
+                        onSelectContinent = viewModel::selectContinent,
+                        onSelectCountry = viewModel::selectCountry,
+                        onSelectRegion = viewModel::selectRegion,
+                        onBack = { navController.popBackStack() },
+                        onGoBack = viewModel::goBack,
+                    )
+                }
+
+                composable<FileAnalysisRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<FileAnalysisRoute>()
+                    val viewModel: FileAnalysisViewModel = hiltViewModel()
+                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                    val historyViewModel: HistoryViewModel = hiltViewModel()
+                    val analyses by historyViewModel.analyses.collectAsStateWithLifecycle()
+                    val context = LocalContext.current
+
+                    // Load from history if analysisId is provided
+                    LaunchedEffect(route.analysisId) {
+                        route.analysisId?.let { viewModel.loadFromHistory(it) }
+                    }
+
+                    val filePickerLauncher = rememberLauncherForActivityResult(
+                        ActivityResultContracts.GetContent(),
+                    ) { uri ->
+                        if (uri != null) {
+                            val name = context.contentResolver
+                                .query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                                ?.use { cursor ->
+                                    if (cursor.moveToFirst()) cursor.getString(0) else null
+                                } ?: uri.lastPathSegment ?: "audio"
+                            viewModel.selectFile(uri, name)
+                        }
+                    }
+
+                    FileAnalysisScreen(
+                        uiState = uiState,
+                        analyses = analyses,
+                        onSelectFile = { filePickerLauncher.launch("audio/*") },
+                        onStartAnalysis = viewModel::startAnalysis,
+                        onPause = viewModel::pauseAnalysis,
+                        onResume = viewModel::resumeAnalysis,
+                        onCancel = viewModel::cancelAnalysis,
+                        onSelectSpecies = viewModel::selectSpecies,
+                        onSpeciesClick = { sciName, commonName ->
+                            navController.navigate(
+                                DetailRoute(
+                                    commonName = commonName,
+                                    scientificName = sciName,
+                                ),
+                            )
+                        },
+                        onLoadWaveform = viewModel::loadWaveform,
+                        onPickLocation = { navController.navigate(LocationPickerRoute) },
+                        onAnalysisClick = { analysisId ->
+                            viewModel.loadFromHistory(analysisId)
+                        },
+                        onDeleteAnalysis = historyViewModel::deleteAnalysis,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable<DetailRoute> { backStackEntry ->
+                    val route = backStackEntry.toRoute<DetailRoute>()
+                    DetailScreen(
+                        uiState = DetailUiState(
+                            commonName = route.commonName,
+                            scientificName = route.scientificName,
+                            confidence = maxOf(
+                                if (route.v24Confidence >= 0) route.v24Confidence else 0,
+                                if (route.v30Confidence >= 0) route.v30Confidence else 0,
+                            ),
                         ),
-                    ),
-                    onBack = { navController.popBackStack() },
-                )
+                        onBack = { navController.popBackStack() },
+                    )
+                }
             }
         }
     }

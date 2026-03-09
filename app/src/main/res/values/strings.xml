@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Bird Song Analyzer</string>
+    <string name="app_name">Avalga</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_loading">Загрузка моделей BirdNET…</string>
+
+    <!-- Permission Screen -->
+    <string name="permission_mic_title">Доступ к микрофону</string>
+    <string name="permission_mic_body">Avalga использует микрофон для захвата и анализа окружающих звуков с помощью нейросети BirdNET.</string>
+    <string name="permission_grant">Разрешить доступ</string>
+    <string name="permission_skip">Не сейчас</string>
+    <string name="permission_denied_title">Доступ закрыт</string>
+    <string name="permission_denied_body">Без доступа к микрофону Avalga не может анализировать звуки птиц.</string>
+    <string name="permission_open_settings">Открыть настройки</string>
+    <string name="permission_settings_hint">Настройки → Приложения → Avalga → Микрофон</string>
 
     <!-- Bottom Navigation -->
     <string name="nav_home">Home</string>
