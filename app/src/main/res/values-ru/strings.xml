@@ -7,6 +7,21 @@
     <string name="nav_detection">Определение</string>
     <string name="nav_history">История</string>
     <string name="nav_settings">Настройки</string>
+    <string name="nav_listen">Слушать</string>
+    <string name="nav_info">Инфо</string>
+    <string name="nav_profile">Профиль</string>
+
+    <!-- Mode Hub -->
+    <string name="hub_live_label">Живая детекция</string>
+    <string name="hub_live_desc">Анализ звука в реальном времени</string>
+    <string name="hub_file_label">Анализ файла</string>
+    <string name="hub_file_desc">Загрузить аудиозапись</string>
+    <string name="hub_trap_label">Умная ловушка</string>
+    <string name="hub_trap_desc">Авто-запись по расписанию</string>
+    <string name="hub_exp_label">Экспедиция</string>
+    <string name="hub_exp_desc">Совместный список в группе</string>
+    <string name="hub_soon">Скоро</string>
+    <string name="stub_in_development">Экран в разработке</string>
 
     <!-- Home Screen -->
     <string name="home_live_title">Живое определение</string>

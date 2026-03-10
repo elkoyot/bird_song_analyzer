@@ -2,6 +2,21 @@ package com.birdsong.analyzer.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
+// ── Hub / App-wide dark palette (matches prototype) ──────────────────────────
+object HubColors {
+    val Bg         = Color(0xFF050C18)
+    val BgCard     = Color(0xFF0A1524)
+    val BgEl       = Color(0xFF0F1E32)
+    val Accent     = Color(0xFFE8A020)
+    val Green      = Color(0xFF3DBA7E)
+    val Blue       = Color(0xFF4BA3C7)
+    val Purple     = Color(0xFF9B7FE8)
+    val TextPrimary   = Color(0xFFEEF2F0)
+    val TextSecondary = Color(0xFF6A8E85)
+    val TextMuted     = Color(0xFF243D50)
+    val Border     = Color(0xFF0F2035)
+}
+
 // Nature-inspired palette
 val Green40 = Color(0xFF2E7D32)
 val Green80 = Color(0xFFA5D6A7)

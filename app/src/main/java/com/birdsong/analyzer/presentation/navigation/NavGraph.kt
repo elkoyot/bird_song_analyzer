@@ -7,15 +7,33 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.birdsong.analyzer.presentation.theme.HubColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,8 +81,9 @@ private data class BottomNavItem<T : Any>(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(HomeRoute, Icons.Default.Home, R.string.nav_home),
-    BottomNavItem(SettingsRoute, Icons.Default.Settings, R.string.nav_settings),
+    BottomNavItem(HomeRoute, Icons.Default.Mic, R.string.nav_listen),
+    BottomNavItem(InfoRoute, Icons.Default.Info, R.string.nav_info),
+    BottomNavItem(ProfileRoute, Icons.Default.Person, R.string.nav_profile),
 )
 
 @Composable
@@ -348,6 +367,78 @@ fun BirdSongNavHost() {
                         onBack = { navController.popBackStack() },
                     )
                 }
+
+                composable<InfoRoute> {
+                    StubTabScreen(
+                        icon = "ℹ️",
+                        title = "Инфо / Справочник",
+                        id = "SCR-04",
+                        color = HubColors.Blue,
+                    )
+                }
+
+                composable<ProfileRoute> {
+                    StubTabScreen(
+                        icon = "👤",
+                        title = "Профиль",
+                        id = "SCR-08",
+                        color = HubColors.Accent,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StubTabScreen(icon: String, title: String, id: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(HubColors.Bg),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(color.copy(alpha = 0.1f))
+                    .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(24.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = icon, fontSize = 36.sp)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = title,
+                    color = HubColors.TextPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Экран в разработке",
+                    color = HubColors.TextMuted,
+                    fontSize = 13.sp,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .background(HubColors.BgEl, RoundedCornerShape(14.dp))
+                    .border(1.dp, color.copy(alpha = 0.27f), RoundedCornerShape(14.dp))
+                    .padding(horizontal = 18.dp, vertical = 8.dp),
+            ) {
+                Text(
+                    text = id,
+                    color = color.copy(alpha = 0.53f),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.2.sp,
+                )
             }
         }
     }

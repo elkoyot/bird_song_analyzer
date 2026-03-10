@@ -37,3 +37,9 @@ data class FileAnalysisRoute(val analysisId: String? = null)
 
 @Serializable
 object LocationPickerRoute
+
+@Serializable
+object InfoRoute
+
+@Serializable
+object ProfileRoute
