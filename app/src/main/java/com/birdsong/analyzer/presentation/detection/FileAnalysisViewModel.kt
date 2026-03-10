@@ -13,54 +13,87 @@ import com.birdsong.analyzer.data.repository.GeoRepository
 import com.birdsong.analyzer.ml.BirdDetectionPipeline
 import com.birdsong.analyzer.ml.BoundingBox
 import com.birdsong.analyzer.ml.ClassifierFactory
+import com.birdsong.analyzer.ml.IncrementalWaveformBuilder
 import com.birdsong.analyzer.ml.MetaProfile
 import com.birdsong.analyzer.ml.MetaProfileBuilder
+import com.birdsong.analyzer.ml.SpectrogramComputer
 import com.birdsong.analyzer.ml.TimelineBuilder
 import com.birdsong.analyzer.ml.TimelineSegment
-import com.birdsong.analyzer.ml.IncrementalWaveformBuilder
 import com.birdsong.analyzer.ml.WaveformData
 import com.birdsong.analyzer.ml.WaveformExtractor
+import com.birdsong.analyzer.service.AudioPlaybackManager
+import com.birdsong.analyzer.service.PlaybackState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.withLock
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
-import kotlin.math.max
+import kotlin.math.ceil
+import kotlin.math.min
 import kotlin.math.roundToInt
 
-data class FileAnalysisHistoryItem(
-    val id: String,
-    val fileName: String,
-    val date: String,
-    val speciesCount: Int,
-    val regionLabel: String,
-    val durationLabel: String,
-)
+// ── Phase ──
 
-enum class FileAnalysisState { IDLE, ANALYZING, PAUSED, DONE, ERROR }
+enum class FileAnalysisPhase { IDLE, READY, ANALYZING, PAUSED, DONE, ERROR }
+
+// ── Split UI state models ──
 
 data class ModelProgress(
     val chunksProcessed: Int = 0,
     val totalChunks: Int = 0,
     val lastProcessedTimeSec: Float = 0f,
 )
+
+data class FileAnalysisCoreState(
+    val phase: FileAnalysisPhase = FileAnalysisPhase.IDLE,
+    val fileName: String = "",
+    val fileDurationSec: Float = 0f,
+    val fileSizeLabel: String = "",
+    val fileDurationLabel: String = "",
+    val v30Available: Boolean = false,
+    val geoLabel: String = "\u2014",
+    val geoConfigured: Boolean = false,
+    val errorMessage: String = "",
+)
+
+data class AnalysisProgressState(
+    val v24Progress: ModelProgress = ModelProgress(),
+    val v30Progress: ModelProgress = ModelProgress(),
+    val progress: Float = 0f,
+    val elapsedSec: Int = 0,
+)
+
+data class SpectrogramUiState(
+    val columns: List<FloatArray> = emptyList(),
+    val birdMarkers: List<BirdMarker> = emptyList(),
+    val highlightedSpecies: String? = null,
+)
+
+data class TimelineUiState(
+    val timelineBirds: List<FileTimelineBirdUi> = emptyList(),
+    val speciesSummaries: List<FileSpeciesSummary> = emptyList(),
+)
+
+data class FilePlaybackUiState(
+    val isPlaying: Boolean = false,
+    val position: Float = 0f,
+    val positionLabel: String = "0:00",
+)
+
+// ── Shared UI models ──
 
 data class FileTimelineBirdUi(
     val id: String,
@@ -88,46 +121,13 @@ data class FileSpeciesSummary(
     val segments: List<SpeciesSegmentUi>,
 )
 
-data class FileAnalysisUiState(
-    val state: FileAnalysisState = FileAnalysisState.IDLE,
-    val fileName: String = "",
-    val fileDurationSec: Float = 0f,
-    val fileSizeLabel: String = "",
-    val v24Progress: ModelProgress = ModelProgress(),
-    val v30Progress: ModelProgress = ModelProgress(),
-    val timelineBirds: List<FileTimelineBirdUi> = emptyList(),
-    val speciesSummaries: List<FileSpeciesSummary> = emptyList(),
-    val selectedSpecies: String? = null,
-    val waveformAmplitudes: FloatArray? = null,
-    val waveformProgress: Float = 0f,
-    val progressLabel: String = "",
-    val v30Available: Boolean = false,
-    val geoLabel: String = "—",
-    val geoConfigured: Boolean = false,
-    val hasWaveformData: Boolean = false,
-    val errorMessage: String = "",
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is FileAnalysisUiState) return false
-        return state == other.state && fileName == other.fileName &&
-            fileDurationSec == other.fileDurationSec && fileSizeLabel == other.fileSizeLabel &&
-            v24Progress == other.v24Progress && v30Progress == other.v30Progress &&
-            timelineBirds == other.timelineBirds && speciesSummaries == other.speciesSummaries &&
-            selectedSpecies == other.selectedSpecies &&
-            (waveformAmplitudes === other.waveformAmplitudes ||
-                waveformAmplitudes != null && other.waveformAmplitudes != null &&
-                waveformAmplitudes.contentEquals(other.waveformAmplitudes)) &&
-            waveformProgress == other.waveformProgress &&
-            progressLabel == other.progressLabel &&
-            v30Available == other.v30Available && geoLabel == other.geoLabel &&
-            geoConfigured == other.geoConfigured &&
-            hasWaveformData == other.hasWaveformData &&
-            errorMessage == other.errorMessage
-    }
+data class BirdMarker(
+    val scientificName: String,
+    val position: Float,
+    val confidence: Float,
+)
 
-    override fun hashCode(): Int = state.hashCode() * 31 + fileName.hashCode()
-}
+// ── ViewModel ──
 
 @HiltViewModel
 class FileAnalysisViewModel @Inject constructor(
@@ -137,31 +137,33 @@ class FileAnalysisViewModel @Inject constructor(
     private val metaProfileBuilder: MetaProfileBuilder,
     private val geoRepository: GeoRepository,
     private val fileAnalysisRepository: FileAnalysisRepository,
+    val playbackManager: AudioPlaybackManager,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(FileAnalysisUiState(
+    // ── Split state flows ──
+
+    private val _coreState = MutableStateFlow(FileAnalysisCoreState(
         v30Available = classifierFactory.isBirdNetV30Available(),
     ))
-    val uiState: StateFlow<FileAnalysisUiState> = _uiState.asStateFlow()
+    val coreState: StateFlow<FileAnalysisCoreState> = _coreState.asStateFlow()
 
-    val recentAnalyses: StateFlow<List<FileAnalysisHistoryItem>> =
-        fileAnalysisRepository.getAllSummaries()
-            .map { summaries ->
-                summaries.map { s ->
-                    FileAnalysisHistoryItem(
-                        id = s.id,
-                        fileName = s.fileName,
-                        date = formatDate(s.createdAt),
-                        speciesCount = s.speciesCount,
-                        regionLabel = s.regionLabel ?: "—",
-                        durationLabel = formatMmSs(s.durationSec),
-                    )
-                }
-            }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    private val _progressState = MutableStateFlow(AnalysisProgressState())
+    val progressState: StateFlow<AnalysisProgressState> = _progressState.asStateFlow()
+
+    private val _spectrogramState = MutableStateFlow(SpectrogramUiState())
+    val spectrogramState: StateFlow<SpectrogramUiState> = _spectrogramState.asStateFlow()
+
+    private val _timelineState = MutableStateFlow(TimelineUiState())
+    val timelineState: StateFlow<TimelineUiState> = _timelineState.asStateFlow()
+
+    private val _playbackUiState = MutableStateFlow(FilePlaybackUiState())
+    val playbackUiState: StateFlow<FilePlaybackUiState> = _playbackUiState.asStateFlow()
+
+    // ── Internal state ──
 
     private var metaProfileJob: Job? = null
     private var analysisJob: Job? = null
+    private var elapsedJob: Job? = null
 
     @Volatile
     private var cachedMetaProfile: MetaProfile? = null
@@ -175,6 +177,7 @@ class FileAnalysisViewModel @Inject constructor(
 
     private val _isPaused = MutableStateFlow(false)
     private var pendingTimelineRebuild = false
+    private var v24ProgressCount = 0
 
     private var currentUri: Uri? = null
     private var currentFileSize: Long = 0L
@@ -184,6 +187,7 @@ class FileAnalysisViewModel @Inject constructor(
     init {
         buildMetaProfileAsync()
         observeGeo()
+        observePlayback()
     }
 
     private fun buildMetaProfileAsync() {
@@ -203,19 +207,43 @@ class FileAnalysisViewModel @Inject constructor(
     private fun observeGeo() {
         viewModelScope.launch {
             geoRepository.currentSelectionDisplay.collect { label ->
-                _uiState.update { it.copy(geoLabel = label) }
+                _coreState.update { it.copy(geoLabel = label) }
             }
         }
         viewModelScope.launch {
             geoRepository.countryCode.collect { code ->
-                _uiState.update { it.copy(geoConfigured = code.isNotEmpty()) }
+                _coreState.update { it.copy(geoConfigured = code.isNotEmpty()) }
             }
         }
     }
 
+    private fun observePlayback() {
+        viewModelScope.launch {
+            playbackManager.state.collect { state ->
+                _playbackUiState.update { it.copy(isPlaying = state == PlaybackState.PLAYING) }
+            }
+        }
+        viewModelScope.launch {
+            playbackManager.positionMs.collect { posMs ->
+                val dur = playbackManager.durationMs.value
+                if (dur > 0) {
+                    _playbackUiState.update {
+                        it.copy(
+                            position = (posMs.toFloat() / dur).coerceIn(0f, 1f),
+                            positionLabel = formatMmSs(posMs / 1000f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // ── File selection ──
+
     fun selectFile(uri: Uri, fileName: String) {
         analysisJob?.cancel()
         _isPaused.value = false
+        playbackManager.release()
         currentUri = uri
         waveformBuilder = null
 
@@ -226,22 +254,27 @@ class FileAnalysisViewModel @Inject constructor(
                         WaveformExtractor.extractFileSize(context, uri)
                 }
                 currentFileSize = fileSize
-                _uiState.update {
-                    FileAnalysisUiState(
-                        state = FileAnalysisState.IDLE,
+                _coreState.update {
+                    FileAnalysisCoreState(
+                        phase = FileAnalysisPhase.READY,
                         fileName = fileName,
                         fileDurationSec = duration,
                         fileSizeLabel = Formatter.formatFileSize(context, fileSize),
+                        fileDurationLabel = formatMmSs(duration),
                         v30Available = classifierFactory.isBirdNetV30Available(),
                         geoLabel = it.geoLabel,
                         geoConfigured = it.geoConfigured,
                     )
                 }
+                _progressState.value = AnalysisProgressState()
+                _spectrogramState.value = SpectrogramUiState()
+                _timelineState.value = TimelineUiState()
+                _playbackUiState.value = FilePlaybackUiState()
             } catch (e: Exception) {
                 Log.e(TAG, "selectFile failed", e)
-                _uiState.update {
+                _coreState.update {
                     it.copy(
-                        state = FileAnalysisState.ERROR,
+                        phase = FileAnalysisPhase.ERROR,
                         errorMessage = e.message ?: "Failed to read file",
                     )
                 }
@@ -249,35 +282,53 @@ class FileAnalysisViewModel @Inject constructor(
         }
     }
 
+    fun resetFile() {
+        analysisJob?.cancel()
+        _isPaused.value = false
+        playbackManager.release()
+        stopElapsedTimer()
+        currentUri = null
+        _coreState.update {
+            FileAnalysisCoreState(
+                v30Available = classifierFactory.isBirdNetV30Available(),
+                geoLabel = it.geoLabel,
+                geoConfigured = it.geoConfigured,
+            )
+        }
+        _progressState.value = AnalysisProgressState()
+        _spectrogramState.value = SpectrogramUiState()
+        _timelineState.value = TimelineUiState()
+        _playbackUiState.value = FilePlaybackUiState()
+    }
+
+    // ── Analysis ──
+
     fun startAnalysis() {
         val uri = currentUri ?: return
         analysisJob?.cancel()
         _isPaused.value = false
+        playbackManager.release()
 
         analysisJob = viewModelScope.launch {
             v24Records.clear()
             v30Records.clear()
             v24ChunkDuration = 0f
             v30ChunkDuration = 0f
+            v24ProgressCount = 0
+            pendingTimelineRebuild = false
 
             analysisStartTimeMs = System.currentTimeMillis()
             val v30Available = classifierFactory.isBirdNetV30Available()
-            _uiState.update {
-                it.copy(
-                    state = FileAnalysisState.ANALYZING,
-                    v30Available = v30Available,
-                    timelineBirds = emptyList(),
-                    speciesSummaries = emptyList(),
-                    selectedSpecies = null,
-                    waveformAmplitudes = null,
-                    waveformProgress = 0f,
-                )
+            _coreState.update {
+                it.copy(phase = FileAnalysisPhase.ANALYZING, v30Available = v30Available)
             }
+            _progressState.value = AnalysisProgressState()
+            _spectrogramState.value = SpectrogramUiState()
+            _timelineState.value = TimelineUiState()
+            startElapsedTimer()
 
             val v24Classifier = classifierFactory.createBirdNet()
             val v30Classifier = if (v30Available) classifierFactory.createBirdNetV30() else null
-            var v24Job: Job? = null
-            var v30Job: Job? = null
 
             try {
                 metaProfileJob?.join()
@@ -289,33 +340,43 @@ class FileAnalysisViewModel @Inject constructor(
                 v24ChunkDuration = v24Classifier.chunkDurationSeconds.toFloat()
                 v30ChunkDuration = v30Classifier?.chunkDurationSeconds?.toFloat() ?: 0f
 
-                val fileDuration = _uiState.value.fileDurationSec
+                val fileDuration = _coreState.value.fileDurationSec
                 val estimatedChunks = if (v24ChunkDuration > 0f) {
-                    kotlin.math.ceil(fileDuration / v24ChunkDuration).toInt().coerceAtLeast(1)
+                    ceil(fileDuration / v24ChunkDuration).toInt().coerceAtLeast(1)
                 } else 1
-                val builder = IncrementalWaveformBuilder(
-                    totalChunks = estimatedChunks,
-                )
-                waveformBuilder = builder
-                var waveformChunkCount = 0
 
-                // Show empty waveform immediately so UI has the full-width frame
-                _uiState.update { it.copy(waveformAmplitudes = FloatArray(400)) }
+                // 1. Async spectrogram/waveform via Channel (doesn't block producer)
+                val spectrogramChannel = Channel<FloatArray>(Channel.UNLIMITED)
+                val wfBuilder = IncrementalWaveformBuilder(totalChunks = estimatedChunks)
+                waveformBuilder = wfBuilder
 
+                val specJob = launch(Dispatchers.Default) {
+                    val specComputer = SpectrogramComputer()
+                    var rawChunkCount = 0
+                    for (samples in spectrogramChannel) {
+                        wfBuilder.addChunk(samples)
+                        specComputer.addChunk(samples)
+                        rawChunkCount++
+                        if (rawChunkCount % SPECTROGRAM_SNAPSHOT_INTERVAL == 0) {
+                            _spectrogramState.update { it.copy(columns = specComputer.snapshot()) }
+                        }
+                    }
+                    _spectrogramState.update { it.copy(columns = specComputer.build()) }
+                }
+
+                // 2. V2.4 streaming analysis (numWorkers=2, decodeChunked — no OOM)
                 val v24Processor = classifierFactory.createProcessor(v24Classifier)
-                val v30Processor = v30Classifier?.let { classifierFactory.createProcessor(it) }
-
-                v24Job = launch {
+                val v24Job = launch {
                     pipeline.analyzeFileDetailed(
                         context = context,
                         uri = uri,
                         classifier = v24Classifier,
                         processor = v24Processor,
                         classifierFactory = classifierFactory,
-                        numWorkers = 1,
+                        numWorkers = NUM_WORKERS,
                         pauseState = _isPaused,
                         onProgress = { progress ->
-                            _uiState.update {
+                            _progressState.update {
                                 it.copy(
                                     v24Progress = ModelProgress(
                                         chunksProcessed = progress.processedChunks,
@@ -324,28 +385,28 @@ class FileAnalysisViewModel @Inject constructor(
                                     ),
                                 )
                             }
-                            updateWaveformProgress()
+                            updateProgress()
+                            // Throttled timeline rebuild
+                            v24ProgressCount++
+                            if (pendingTimelineRebuild && v24ProgressCount % TIMELINE_REBUILD_INTERVAL == 0) {
+                                pendingTimelineRebuild = false
+                                viewModelScope.launch { rebuildTimeline() }
+                            }
                         },
                         onChunkResult = { record ->
+                            Log.d(TAG, "V2.4 chunk#${record.chunkIndex} @%.1fs: ${record.detections.size} det".format(record.startTimeSec))
                             recordsMutex.withLock { v24Records.add(record) }
                             pendingTimelineRebuild = true
                         },
                         onRawChunk = { _, _, samples ->
-                            builder.addChunk(samples)
-                            waveformChunkCount++
-                            if (waveformChunkCount % WAVEFORM_SNAPSHOT_INTERVAL == 0) {
-                                val waveformSnapshot = builder.snapshot()
-                                _uiState.update { it.copy(waveformAmplitudes = waveformSnapshot) }
-                                if (pendingTimelineRebuild) {
-                                    pendingTimelineRebuild = false
-                                    viewModelScope.launch { rebuildTimeline() }
-                                }
-                            }
+                            spectrogramChannel.trySend(samples)
                         },
                     )
                 }
 
-                v30Job = if (v30Classifier != null && v30Processor != null) {
+                // 3. V3.0 streaming analysis (numWorkers=2, separate decode)
+                val v30Job = if (v30Classifier != null) {
+                    val v30Processor = classifierFactory.createProcessor(v30Classifier)
                     launch {
                         pipeline.analyzeFileDetailed(
                             context = context,
@@ -353,10 +414,10 @@ class FileAnalysisViewModel @Inject constructor(
                             classifier = v30Classifier,
                             processor = v30Processor,
                             classifierFactory = classifierFactory,
-                            numWorkers = 1,
+                            numWorkers = NUM_WORKERS,
                             pauseState = _isPaused,
                             onProgress = { progress ->
-                                _uiState.update {
+                                _progressState.update {
                                     it.copy(
                                         v30Progress = ModelProgress(
                                             chunksProcessed = progress.processedChunks,
@@ -365,9 +426,10 @@ class FileAnalysisViewModel @Inject constructor(
                                         ),
                                     )
                                 }
-                                updateWaveformProgress()
+                                updateProgress()
                             },
                             onChunkResult = { record ->
+                                Log.d(TAG, "V3.0 chunk#${record.chunkIndex} @%.1fs: ${record.detections.size} det".format(record.startTimeSec))
                                 recordsMutex.withLock { v30Records.add(record) }
                                 pendingTimelineRebuild = true
                             },
@@ -377,79 +439,107 @@ class FileAnalysisViewModel @Inject constructor(
 
                 v24Job.join()
                 v30Job?.join()
+                spectrogramChannel.close()
+                specJob.join()
 
+                stopElapsedTimer()
                 rebuildTimeline()
-                _uiState.update {
-                    it.copy(
-                        state = FileAnalysisState.DONE,
-                        waveformProgress = 1f,
-                        waveformAmplitudes = builder.build(),
-                    )
-                }
-                Log.d(TAG, "File analysis done: ${_uiState.value.timelineBirds.size} timeline segments")
-
-                saveToHistory()
+                _coreState.update { it.copy(phase = FileAnalysisPhase.DONE) }
+                _progressState.update { it.copy(progress = 1f) }
+                Log.d(TAG, "File analysis done: ${_timelineState.value.timelineBirds.size} timeline segments")
             } catch (e: Exception) {
+                stopElapsedTimer()
                 if (e is kotlinx.coroutines.CancellationException) {
-                    // Cancelled by user — keep results if any
-                    if (_uiState.value.timelineBirds.isNotEmpty()) {
-                        _uiState.update { it.copy(state = FileAnalysisState.DONE) }
-                        viewModelScope.launch { saveToHistory() }
+                    if (_timelineState.value.timelineBirds.isNotEmpty()) {
+                        _coreState.update { it.copy(phase = FileAnalysisPhase.DONE) }
                     } else {
-                        _uiState.update { it.copy(state = FileAnalysisState.IDLE) }
+                        _coreState.update { it.copy(phase = FileAnalysisPhase.IDLE) }
                     }
                 } else {
                     Log.e(TAG, "File analysis failed", e)
-                    _uiState.update {
+                    _coreState.update {
                         it.copy(
-                            state = FileAnalysisState.ERROR,
+                            phase = FileAnalysisPhase.ERROR,
                             errorMessage = e.message ?: "Unknown error",
                         )
                     }
                 }
             } finally {
-                // Wait for workers to finish native calls before closing classifiers
                 withContext(NonCancellable) {
-                    v24Job?.join()
-                    v30Job?.join()
+                    v24Classifier.close()
+                    v30Classifier?.close()
                 }
-                v24Classifier.close()
-                v30Classifier?.close()
             }
         }
     }
 
     fun pauseAnalysis() {
         _isPaused.value = true
-        _uiState.update { it.copy(state = FileAnalysisState.PAUSED) }
+        _coreState.update { it.copy(phase = FileAnalysisPhase.PAUSED) }
     }
 
     fun resumeAnalysis() {
         _isPaused.value = false
-        _uiState.update { it.copy(state = FileAnalysisState.ANALYZING) }
+        _coreState.update { it.copy(phase = FileAnalysisPhase.ANALYZING) }
     }
 
-    fun cancelAnalysis() {
+    fun stopAnalysis() {
         _isPaused.value = false
+        stopElapsedTimer()
         analysisJob?.cancel()
     }
 
-    fun selectSpecies(scientificName: String?) {
-        val current = _uiState.value.selectedSpecies
-        val newSelection = if (current == scientificName) null else scientificName
-        _uiState.update { it.copy(selectedSpecies = newSelection) }
+    // ── Playback ──
+
+    fun togglePlayback() {
+        val uri = currentUri ?: return
+        when (playbackManager.state.value) {
+            PlaybackState.IDLE -> playbackManager.play(uri)
+            PlaybackState.PLAYING -> playbackManager.pause()
+            PlaybackState.PAUSED -> playbackManager.resume()
+        }
     }
+
+    fun seekPlayback(fraction: Float) {
+        playbackManager.seekToFraction(fraction.coerceIn(0f, 1f))
+    }
+
+    // ── Species highlight ──
+
+    fun highlightSpecies(scientificName: String?) {
+        val current = _spectrogramState.value.highlightedSpecies
+        val next = if (current == scientificName) null else scientificName
+        _spectrogramState.update { it.copy(highlightedSpecies = next) }
+        if (next != null) {
+            val bird = _timelineState.value.timelineBirds.firstOrNull { it.scientificName == next }
+            if (bird != null && _coreState.value.fileDurationSec > 0f) {
+                val fraction = bird.startTimeSec / _coreState.value.fileDurationSec
+                _playbackUiState.update { it.copy(position = fraction.coerceIn(0f, 1f)) }
+            }
+        }
+    }
+
+    // ── Save / Discard ──
+
+    fun saveAnalysis() {
+        viewModelScope.launch {
+            saveToHistory()
+            resetFile()
+        }
+    }
+
+    fun discardAnalysis() {
+        playbackManager.release()
+        resetFile()
+    }
+
+    // ── Load from history ──
 
     fun loadFromHistory(analysisId: String) {
         viewModelScope.launch {
             try {
                 val analysis = fileAnalysisRepository.getAnalysisById(analysisId) ?: return@launch
                 val detections = fileAnalysisRepository.getDetectionsForAnalysis(analysisId)
-
-                val amplitudes = analysis.waveformData?.let { bytes ->
-                    WaveformData.fromByteArray(bytes, analysis.durationSec, analysis.fileSizeBytes)
-                        .amplitudes
-                }
 
                 val summaries = buildSpeciesSummaries(detections.map { det ->
                     TimelineSegment(
@@ -475,63 +565,74 @@ class FileAnalysisViewModel @Inject constructor(
                     )
                 }
 
-                _uiState.update {
-                    FileAnalysisUiState(
-                        state = FileAnalysisState.DONE,
+                val markers = buildBirdMarkers(birds, analysis.durationSec)
+
+                if (analysis.fileUri.isNotEmpty()) {
+                    try { currentUri = Uri.parse(analysis.fileUri) } catch (_: Exception) {}
+                }
+
+                _coreState.update {
+                    FileAnalysisCoreState(
+                        phase = FileAnalysisPhase.DONE,
                         fileName = analysis.fileName,
                         fileDurationSec = analysis.durationSec,
                         fileSizeLabel = Formatter.formatFileSize(context, analysis.fileSizeBytes),
-                        waveformAmplitudes = amplitudes,
-                        waveformProgress = 1f,
-                        timelineBirds = birds,
-                        speciesSummaries = summaries,
+                        fileDurationLabel = formatMmSs(analysis.durationSec),
                         v30Available = analysis.v30Available,
-                        geoLabel = analysis.regionLabel ?: "—",
+                        geoLabel = analysis.regionLabel ?: "\u2014",
                         geoConfigured = it.geoConfigured,
-                        hasWaveformData = analysis.waveformData != null && amplitudes == null,
                     )
                 }
+                _progressState.update { it.copy(progress = 1f) }
+                _spectrogramState.value = SpectrogramUiState(birdMarkers = markers)
+                _timelineState.value = TimelineUiState(
+                    timelineBirds = birds,
+                    speciesSummaries = summaries,
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "loadFromHistory failed", e)
             }
         }
     }
 
-    fun loadWaveform() {
-        viewModelScope.launch {
-            try {
-                val state = _uiState.value
-                if (state.state != FileAnalysisState.DONE) return@launch
-                val analysis = fileAnalysisRepository.getAllSummaries()
-                    .first().firstOrNull { it.fileName == state.fileName } ?: return@launch
-                val full = fileAnalysisRepository.getAnalysisById(analysis.id) ?: return@launch
-                val amplitudes = full.waveformData?.let { bytes ->
-                    WaveformData.fromByteArray(bytes, full.durationSec, full.fileSizeBytes).amplitudes
+    // ── Elapsed timer ──
+
+    private fun startElapsedTimer() {
+        stopElapsedTimer()
+        elapsedJob = viewModelScope.launch {
+            while (true) {
+                delay(1000L)
+                if (_coreState.value.phase == FileAnalysisPhase.ANALYZING) {
+                    _progressState.update { it.copy(elapsedSec = it.elapsedSec + 1) }
                 }
-                _uiState.update { it.copy(waveformAmplitudes = amplitudes, hasWaveformData = false) }
-            } catch (e: Exception) {
-                Log.e(TAG, "loadWaveform failed", e)
             }
         }
     }
 
-    private fun updateWaveformProgress() {
-        val state = _uiState.value
-        val fileDuration = state.fileDurationSec
+    private fun stopElapsedTimer() {
+        elapsedJob?.cancel()
+        elapsedJob = null
+    }
+
+    // ── Progress ──
+
+    private fun updateProgress() {
+        val core = _coreState.value
+        val prog = _progressState.value
+        val fileDuration = core.fileDurationSec
         if (fileDuration <= 0f) return
 
-        // End of analyzed region = last chunk position + chunk duration
-        val v24EndSec = state.v24Progress.lastProcessedTimeSec + v24ChunkDuration
-        val v30EndSec = if (state.v30Available && v30ChunkDuration > 0f) {
-            state.v30Progress.lastProcessedTimeSec + v30ChunkDuration
-        } else fileDuration // no V3.0 → not a bottleneck
+        val v24EndSec = prog.v24Progress.lastProcessedTimeSec + v24ChunkDuration
+        val v30EndSec = if (core.v30Available && v30ChunkDuration > 0f) {
+            prog.v30Progress.lastProcessedTimeSec + v30ChunkDuration
+        } else fileDuration
 
-        // Progress = slowest model's position / file duration
-        val processedSec = kotlin.math.min(v24EndSec, v30EndSec)
+        val processedSec = min(v24EndSec, v30EndSec)
         val progress = (processedSec / fileDuration).coerceIn(0f, 1f)
-        val label = "${(progress * 100).roundToInt()}%"
-        _uiState.update { it.copy(waveformProgress = progress, progressLabel = label) }
+        _progressState.update { it.copy(progress = progress) }
     }
+
+    // ── Timeline ──
 
     private suspend fun rebuildTimeline() {
         val (v24Snapshot, v30Snapshot) = recordsMutex.withLock {
@@ -552,14 +653,17 @@ class FileAnalysisViewModel @Inject constructor(
             )
         } else null
 
-        val segments = TimelineBuilder.build(v24Partial, v30Partial)
-            .filter { seg ->
-                val v24 = seg.v24Confidence
-                val v30 = seg.v30Confidence
-                (v24 != null && v24 >= HIGH_CONFIDENCE) ||
-                    (v30 != null && v30 >= HIGH_CONFIDENCE) ||
-                    (v24 != null && v24 >= MIN_CONFIDENCE && v30 != null && v30 >= MIN_CONFIDENCE)
-            }
+        val allSegments = TimelineBuilder.build(v24Partial, v30Partial)
+
+        val segments = allSegments.filter { seg ->
+            val v24 = seg.v24Confidence
+            val v30 = seg.v30Confidence
+            (v24 != null && v24 >= HIGH_CONFIDENCE) ||
+                (v30 != null && v30 >= HIGH_CONFIDENCE) ||
+                (v24 != null && v24 >= MIN_CONFIDENCE && v30 != null && v30 >= MIN_CONFIDENCE)
+        }
+
+        Log.d(TAG, "Timeline: ${allSegments.size} raw -> ${segments.size} pass filter")
 
         val birds = segments.mapIndexed { idx, seg ->
             FileTimelineBirdUi(
@@ -575,8 +679,13 @@ class FileAnalysisViewModel @Inject constructor(
         }
 
         val summaries = buildSpeciesSummaries(segments)
+        val markers = buildBirdMarkers(birds, _coreState.value.fileDurationSec)
 
-        _uiState.update { it.copy(timelineBirds = birds, speciesSummaries = summaries) }
+        _timelineState.value = TimelineUiState(
+            timelineBirds = birds,
+            speciesSummaries = summaries,
+        )
+        _spectrogramState.update { it.copy(birdMarkers = markers) }
     }
 
     private fun buildSpeciesSummaries(
@@ -603,39 +712,57 @@ class FileAnalysisViewModel @Inject constructor(
         }
     }
 
+    private fun buildBirdMarkers(birds: List<FileTimelineBirdUi>, durationSec: Float): List<BirdMarker> {
+        if (durationSec <= 0f) return emptyList()
+        return birds.map { bird ->
+            val bestConf = maxOf(
+                bird.v24Confidence ?: 0,
+                bird.v30Confidence ?: 0,
+            ) / 100f
+            BirdMarker(
+                scientificName = bird.scientificName,
+                position = (bird.startTimeSec / durationSec).coerceIn(0f, 1f),
+                confidence = bestConf,
+            )
+        }
+    }
+
+    // ── Save to Room ──
+
     private suspend fun saveToHistory() {
         try {
-            val state = _uiState.value
+            val core = _coreState.value
+            val timeline = _timelineState.value
             val uri = currentUri ?: return
             val analysisId = UUID.randomUUID().toString()
 
-            val geoLabel = state.geoLabel.takeIf { it != "—" }
+            val geoLabel = core.geoLabel.takeIf { it != "\u2014" }
             val regionCode = geoRepository.regionCode.first()
                 ?: geoRepository.countryCode.first().takeIf { it.isNotEmpty() }
 
             val waveformAmplitudes = waveformBuilder?.build()
             val waveformBytes = waveformAmplitudes?.let {
-                WaveformData(it, state.fileDurationSec, currentFileSize).toByteArray()
+                WaveformData(it, core.fileDurationSec, currentFileSize).toByteArray()
             }
 
             val analysisDuration = System.currentTimeMillis() - analysisStartTimeMs
 
             val entity = FileAnalysisEntity(
                 id = analysisId,
-                fileName = state.fileName,
+                fileName = core.fileName,
                 fileUri = uri.toString(),
-                durationSec = state.fileDurationSec,
+                durationSec = core.fileDurationSec,
                 fileSizeBytes = currentFileSize,
                 regionCode = regionCode,
                 regionLabel = geoLabel,
-                v30Available = state.v30Available,
+                v30Available = core.v30Available,
                 waveformData = waveformBytes,
                 createdAt = System.currentTimeMillis(),
-                speciesCount = state.speciesSummaries.size,
+                speciesCount = timeline.speciesSummaries.size,
                 analysisDurationMs = analysisDuration,
             )
 
-            val detections = state.timelineBirds.map { bird ->
+            val detections = timeline.timelineBirds.map { bird ->
                 FileDetectionEntity(
                     id = UUID.randomUUID().toString(),
                     analysisId = analysisId,
@@ -655,8 +782,10 @@ class FileAnalysisViewModel @Inject constructor(
         }
     }
 
+    // ── Helpers ──
+
     private fun formatTimeRange(startSec: Float, endSec: Float): String {
-        return "${formatMmSs(startSec)} – ${formatMmSs(endSec)}"
+        return "${formatMmSs(startSec)} \u2013 ${formatMmSs(endSec)}"
     }
 
     private fun formatMmSs(totalSec: Float): String {
@@ -664,21 +793,17 @@ class FileAnalysisViewModel @Inject constructor(
         return "%d:%02d".format(sec / 60, sec % 60)
     }
 
-    fun deleteFromHistory(id: String) {
-        viewModelScope.launch {
-            fileAnalysisRepository.deleteAnalysis(id)
-        }
-    }
-
-    private fun formatDate(epochMs: Long): String {
-        val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-        return fmt.format(Date(epochMs))
+    override fun onCleared() {
+        super.onCleared()
+        playbackManager.release()
     }
 
     companion object {
         private const val TAG = "FileAnalysisVM"
-        private const val HIGH_CONFIDENCE = 0.8f
+        private const val HIGH_CONFIDENCE = 0.5f
         private const val MIN_CONFIDENCE = 0.4f
-        private const val WAVEFORM_SNAPSHOT_INTERVAL = 5
+        private const val SPECTROGRAM_SNAPSHOT_INTERVAL = 5
+        private const val TIMELINE_REBUILD_INTERVAL = 5
+        private const val NUM_WORKERS = 2
     }
 }

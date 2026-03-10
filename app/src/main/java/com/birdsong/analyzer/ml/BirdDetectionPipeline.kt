@@ -417,6 +417,153 @@ class BirdDetectionPipeline @Inject constructor(
         )
     }
 
+    // --- Audio-based analysis (pre-decoded, no file I/O) ---
+
+    /**
+     * Analyze pre-decoded audio: chunk → process → classify.
+     * Like [analyzeFileDetailed] but accepts raw PCM instead of a file URI.
+     * Enables single-decode dual-model: caller decodes once, resamples, and feeds both models.
+     */
+    suspend fun analyzeAudioDetailed(
+        audio: FloatArray,
+        sampleRate: Int,
+        classifier: BirdClassifier,
+        processor: AudioChunkProcessor,
+        classifierFactory: ClassifierFactory,
+        numWorkers: Int = 2,
+        pauseState: StateFlow<Boolean>? = null,
+        onProgress: ((DetailedProgress) -> Unit)? = null,
+        onChunkResult: (suspend (ChunkDetectionRecord) -> Unit)? = null,
+        onRawChunk: ((chunkIndex: Int, startTimeSec: Float, samples: FloatArray) -> Unit)? = null,
+    ): FileAnalysisResult {
+        val workerClassifiers = mutableListOf<BirdClassifier>()
+        try {
+            for (i in 1 until numWorkers) {
+                workerClassifiers.add(classifierFactory.createWorkerClassifier(classifier))
+            }
+            val allClassifiers = listOf(classifier) + workerClassifiers
+
+            return runAudioAnalysis(
+                audio, sampleRate, allClassifiers, processor, classifier,
+                pauseState, onProgress, onChunkResult, onRawChunk,
+            )
+        } finally {
+            for (clf in workerClassifiers) {
+                try { clf.close() } catch (e: Exception) {
+                    Log.w(TAG, "Failed to close worker classifier", e)
+                }
+            }
+        }
+    }
+
+    private suspend fun runAudioAnalysis(
+        audio: FloatArray,
+        sampleRate: Int,
+        classifiers: List<BirdClassifier>,
+        processor: AudioChunkProcessor,
+        primaryClassifier: BirdClassifier,
+        pauseState: StateFlow<Boolean>?,
+        onProgress: ((DetailedProgress) -> Unit)?,
+        onChunkResult: (suspend (ChunkDetectionRecord) -> Unit)?,
+        onRawChunk: ((chunkIndex: Int, startTimeSec: Float, samples: FloatArray) -> Unit)?,
+    ): FileAnalysisResult = coroutineScope {
+        val chunkSize = primaryClassifier.samplesPerChunk
+        val hopSize = chunkSize / 2
+        val totalChunksCounter = AtomicInteger(0)
+        val processedCounter = AtomicInteger(0)
+        var totalClassifyMs = 0L
+        val chunkRecords = mutableListOf<ChunkDetectionRecord>()
+
+        val chunksChannel = Channel<IndexedChunk>(capacity = 8)
+        val resultsChannel = Channel<ChunkDetections>(capacity = 8)
+
+        // Producer: chunk pre-decoded audio with 50% overlap
+        launch(Dispatchers.Default) {
+            try {
+                var offset = 0
+                var idx = 0
+                while (offset + chunkSize <= audio.size) {
+                    val startTimeSec = offset.toFloat() / sampleRate
+                    val chunk = audio.copyOfRange(offset, offset + chunkSize)
+                    totalChunksCounter.incrementAndGet()
+                    onRawChunk?.invoke(idx, startTimeSec, chunk)
+                    chunksChannel.send(IndexedChunk(idx, startTimeSec, chunk))
+                    offset += hopSize
+                    idx++
+                }
+                // Last partial chunk — pad with zeros
+                if (offset < audio.size) {
+                    val startTimeSec = offset.toFloat() / sampleRate
+                    val padded = FloatArray(chunkSize)
+                    audio.copyInto(padded, 0, offset, audio.size)
+                    totalChunksCounter.incrementAndGet()
+                    onRawChunk?.invoke(idx, startTimeSec, padded)
+                    chunksChannel.send(IndexedChunk(idx, startTimeSec, padded))
+                }
+            } finally {
+                chunksChannel.close()
+            }
+        }
+
+        // Workers (Default): process + classify
+        val workers = classifiers.map { clf ->
+            launch(Dispatchers.Default) {
+                for (ic in chunksChannel) {
+                    pauseState?.first { !it }
+                    val processed = processor.process(ic.samples)
+                    if (processed == null) {
+                        resultsChannel.send(ChunkDetections(ic.chunkIndex, ic.startTimeSec, null, 0))
+                        continue
+                    }
+                    val t0 = System.currentTimeMillis()
+                    val detections = clf.classify(processed.samples, null)
+                    val ms = System.currentTimeMillis() - t0
+                    resultsChannel.send(ChunkDetections(ic.chunkIndex, ic.startTimeSec, detections, ms))
+                }
+            }
+        }
+
+        launch { workers.forEach { it.join() }; resultsChannel.close() }
+
+        // Collector
+        var maxProcessedTimeSec = 0f
+        for (result in resultsChannel) {
+            val processed = processedCounter.incrementAndGet()
+            totalClassifyMs += result.classifyMs
+            if (result.startTimeSec > maxProcessedTimeSec) {
+                maxProcessedTimeSec = result.startTimeSec
+            }
+
+            if (result.detections != null && result.detections.isNotEmpty()) {
+                val record = ChunkDetectionRecord(
+                    chunkIndex = result.chunkIndex,
+                    startTimeSec = result.startTimeSec,
+                    detections = result.detections,
+                )
+                chunkRecords.add(record)
+                onChunkResult?.invoke(record)
+            }
+
+            onProgress?.invoke(
+                DetailedProgress(
+                    processedChunks = processed,
+                    totalChunks = totalChunksCounter.get(),
+                    avgChunkMs = if (processed > 0) totalClassifyMs / processed else 0L,
+                    lastProcessedTimeSec = maxProcessedTimeSec,
+                )
+            )
+        }
+
+        val chunkDuration = primaryClassifier.chunkDurationSeconds.toFloat()
+        Log.d(TAG, "analyzeAudioDetailed done: ${totalChunksCounter.get()} chunks, " +
+            "${classifiers.size} workers, ${chunkRecords.size} records with detections")
+
+        FileAnalysisResult(
+            chunkRecords = chunkRecords.sortedBy { it.chunkIndex },
+            chunkDurationSec = chunkDuration,
+        )
+    }
+
     companion object {
         private const val TAG = "BirdDetectionPipeline"
     }

@@ -66,6 +66,7 @@ import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
 import com.birdsong.analyzer.presentation.detection.FileAnalysisScreen
 import com.birdsong.analyzer.presentation.detection.FileAnalysisViewModel
 import com.birdsong.analyzer.presentation.detection.HomeScreen
+import com.birdsong.analyzer.presentation.history.HistoryScreen
 import com.birdsong.analyzer.presentation.history.HistoryViewModel
 import com.birdsong.analyzer.presentation.location.LocationPickerScreen
 import com.birdsong.analyzer.presentation.location.LocationPickerViewModel
@@ -312,18 +313,20 @@ fun BirdSongNavHost() {
                         onSelectRegion = viewModel::selectRegion,
                         onBack = { navController.popBackStack() },
                         onGoBack = viewModel::goBack,
+                        onBreadcrumb = viewModel::navigateToBreadcrumb,
                     )
                 }
 
                 composable<FileAnalysisRoute> { backStackEntry ->
                     val route = backStackEntry.toRoute<FileAnalysisRoute>()
                     val viewModel: FileAnalysisViewModel = hiltViewModel()
-                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                    val historyViewModel: HistoryViewModel = hiltViewModel()
-                    val analyses by historyViewModel.analyses.collectAsStateWithLifecycle()
+                    val coreState by viewModel.coreState.collectAsStateWithLifecycle()
+                    val progressState by viewModel.progressState.collectAsStateWithLifecycle()
+                    val spectrogramState by viewModel.spectrogramState.collectAsStateWithLifecycle()
+                    val timelineState by viewModel.timelineState.collectAsStateWithLifecycle()
+                    val playbackState by viewModel.playbackUiState.collectAsStateWithLifecycle()
                     val context = LocalContext.current
 
-                    // Load from history if analysisId is provided
                     LaunchedEffect(route.analysisId) {
                         route.analysisId?.let { viewModel.loadFromHistory(it) }
                     }
@@ -342,14 +345,19 @@ fun BirdSongNavHost() {
                     }
 
                     FileAnalysisScreen(
-                        uiState = uiState,
-                        analyses = analyses,
+                        coreState = coreState,
+                        progressState = progressState,
+                        spectrogramState = spectrogramState,
+                        timelineState = timelineState,
+                        playbackState = playbackState,
                         onSelectFile = { filePickerLauncher.launch("audio/*") },
                         onStartAnalysis = viewModel::startAnalysis,
                         onPause = viewModel::pauseAnalysis,
                         onResume = viewModel::resumeAnalysis,
-                        onCancel = viewModel::cancelAnalysis,
-                        onSelectSpecies = viewModel::selectSpecies,
+                        onStop = viewModel::stopAnalysis,
+                        onTogglePlayback = viewModel::togglePlayback,
+                        onSeekPlayback = viewModel::seekPlayback,
+                        onHighlightSpecies = viewModel::highlightSpecies,
                         onSpeciesClick = { sciName, commonName ->
                             navController.navigate(
                                 DetailRoute(
@@ -358,12 +366,27 @@ fun BirdSongNavHost() {
                                 ),
                             )
                         },
-                        onLoadWaveform = viewModel::loadWaveform,
+                        onSave = viewModel::saveAnalysis,
+                        onDiscard = viewModel::discardAnalysis,
+                        onResetFile = viewModel::resetFile,
                         onPickLocation = { navController.navigate(LocationPickerRoute) },
-                        onAnalysisClick = { analysisId ->
-                            viewModel.loadFromHistory(analysisId)
+                        onHistory = { navController.navigate(HistoryRoute) },
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable<HistoryRoute> {
+                    val historyViewModel: HistoryViewModel = hiltViewModel()
+                    val analyses by historyViewModel.analyses.collectAsStateWithLifecycle()
+
+                    HistoryScreen(
+                        analyses = analyses,
+                        onAnalysisClick = { id ->
+                            navController.navigate(FileAnalysisRoute(analysisId = id)) {
+                                popUpTo<HistoryRoute> { inclusive = true }
+                            }
                         },
-                        onDeleteAnalysis = historyViewModel::deleteAnalysis,
+                        onDelete = historyViewModel::deleteAnalysis,
                         onBack = { navController.popBackStack() },
                     )
                 }

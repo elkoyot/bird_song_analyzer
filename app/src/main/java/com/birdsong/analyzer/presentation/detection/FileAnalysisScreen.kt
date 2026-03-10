@@ -1,496 +1,577 @@
 package com.birdsong.analyzer.presentation.detection
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AudioFile
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.birdsong.analyzer.R
-import com.birdsong.analyzer.presentation.theme.BirdSongTheme
+import androidx.compose.ui.unit.sp
+import com.birdsong.analyzer.presentation.theme.HubColors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileAnalysisScreen(
-    uiState: FileAnalysisUiState = FileAnalysisUiState(),
+    coreState: FileAnalysisCoreState = FileAnalysisCoreState(),
+    progressState: AnalysisProgressState = AnalysisProgressState(),
+    spectrogramState: SpectrogramUiState = SpectrogramUiState(),
+    timelineState: TimelineUiState = TimelineUiState(),
+    playbackState: FilePlaybackUiState = FilePlaybackUiState(),
     onSelectFile: () -> Unit = {},
     onStartAnalysis: () -> Unit = {},
     onPause: () -> Unit = {},
     onResume: () -> Unit = {},
-    onCancel: () -> Unit = {},
-    onSelectSpecies: (String?) -> Unit = {},
+    onStop: () -> Unit = {},
+    onTogglePlayback: () -> Unit = {},
+    onSeekPlayback: (Float) -> Unit = {},
+    onHighlightSpecies: (String?) -> Unit = {},
     onSpeciesClick: (scientificName: String, commonName: String) -> Unit = { _, _ -> },
-    onLoadWaveform: () -> Unit = {},
+    onSave: () -> Unit = {},
+    onDiscard: () -> Unit = {},
+    onResetFile: () -> Unit = {},
     onPickLocation: () -> Unit = {},
+    onHistory: () -> Unit = {},
     onBack: () -> Unit = {},
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text(stringResource(R.string.file_analysis_title)) },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
-                }
-            },
-        )
+    val phase = coreState.phase
+    val isAnalyzing = phase == FileAnalysisPhase.ANALYZING
+    val isPaused = phase == FileAnalysisPhase.PAUSED
+    val isDone = phase == FileAnalysisPhase.DONE
+    val isActive = isAnalyzing || isPaused
 
-        // File info + geo (compact row)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (uiState.fileName.isNotEmpty()) {
-                Column(modifier = Modifier.weight(1f, fill = false)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(HubColors.Bg),
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // ── Header ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 18.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Back button
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(HubColors.BgEl)
+                            .border(1.dp, HubColors.Border, RoundedCornerShape(12.dp))
+                            .clickable(onClick = onBack)
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                    ) {
+                        Text(
+                            "\u2190 \u041D\u0430\u0437\u0430\u0434",
+                            color = HubColors.TextSecondary,
+                            fontSize = 13.sp,
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            "\u0410\u043D\u0430\u043B\u0438\u0437 \u0444\u0430\u0439\u043B\u0430",
+                            color = HubColors.TextMuted,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 1.2.sp,
+                        )
+                        Text(
+                            "AVALGA",
+                            color = HubColors.TextPrimary,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    }
+                }
+                // Region button
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(HubColors.BgEl)
+                        .border(
+                            1.dp,
+                            if (coreState.geoConfigured) HubColors.Border
+                            else HubColors.Accent.copy(alpha = 0.4f),
+                            RoundedCornerShape(20.dp),
+                        )
+                        .clickable(onClick = onPickLocation)
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
                     Text(
-                        text = uiState.fileName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
+                        text = "\uD83D\uDCCD ${if (coreState.geoConfigured) coreState.geoLabel else "\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0440\u0435\u0433\u0438\u043E\u043D"}",
+                        color = if (coreState.geoConfigured) HubColors.TextSecondary else HubColors.Accent,
+                        fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    if (uiState.fileDurationSec > 0f) {
+                }
+            }
+
+            // ── Content ──
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                // IDLE: DropZone
+                if (phase == FileAnalysisPhase.IDLE) {
+                    item(key = "dropzone") {
+                        DropZone(onPick = onSelectFile)
+                    }
+                }
+
+                // File card (READY / ANALYZING / PAUSED / DONE)
+                if (phase != FileAnalysisPhase.IDLE && phase != FileAnalysisPhase.ERROR) {
+                    item(key = "filecard") {
+                        FileCard(
+                            fileName = coreState.fileName,
+                            fileSize = coreState.fileSizeLabel,
+                            phase = phase,
+                            progress = progressState.progress,
+                            elapsedSec = progressState.elapsedSec,
+                            speciesCount = timelineState.speciesSummaries.size,
+                            onClose = if (phase == FileAnalysisPhase.READY || isDone) {
+                                { onResetFile() }
+                            } else null,
+                        )
+                    }
+                }
+
+                // Start button (READY)
+                if (phase == FileAnalysisPhase.READY) {
+                    item(key = "start") {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(HubColors.Accent, HubColors.Accent.copy(alpha = 0.8f)),
+                                    ),
+                                )
+                                .clickable(onClick = onStartAnalysis)
+                                .padding(vertical = 14.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = if (coreState.geoConfigured) "\u25B6 \u041D\u0430\u0447\u0430\u0442\u044C \u0430\u043D\u0430\u043B\u0438\u0437"
+                                       else "\uD83D\uDCCD \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0432\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0440\u0435\u0433\u0438\u043E\u043D",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                            )
+                        }
+                    }
+                }
+
+                // Spectrogram (ANALYZING / PAUSED / DONE)
+                if (isActive || isDone) {
+                    item(key = "spectrogram") {
+                        SpectrogramView(
+                            columns = spectrogramState.columns,
+                            markers = if (isDone) spectrogramState.birdMarkers else emptyList(),
+                            highlightedSpecies = spectrogramState.highlightedSpecies,
+                            playhead = playbackState.position.takeIf { isActive || isDone },
+                            isAnalyzing = isAnalyzing,
+                            onSeek = if (isDone) onSeekPlayback else null,
+                        )
+                    }
+                }
+
+                // Control buttons (ANALYZING / PAUSED)
+                if (isActive) {
+                    item(key = "controls") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            if (isAnalyzing) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(HubColors.Yellow.copy(alpha = 0.1f))
+                                        .border(1.dp, HubColors.Yellow.copy(alpha = 0.27f), RoundedCornerShape(12.dp))
+                                        .clickable(onClick = onPause)
+                                        .padding(vertical = 11.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        "\u23F8 \u041F\u0430\u0443\u0437\u0430",
+                                        color = HubColors.Yellow,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                    )
+                                }
+                            }
+                            if (isPaused) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(2f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(
+                                            Brush.linearGradient(
+                                                listOf(HubColors.Accent, HubColors.Accent.copy(alpha = 0.8f)),
+                                            ),
+                                        )
+                                        .clickable(onClick = onResume)
+                                        .padding(vertical = 11.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        "\u25B6 \u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C",
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                    )
+                                }
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(HubColors.Red.copy(alpha = 0.1f))
+                                    .border(1.dp, HubColors.Red.copy(alpha = 0.27f), RoundedCornerShape(12.dp))
+                                    .clickable(onClick = onStop)
+                                    .padding(vertical = 11.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    "\u23F9 \u0421\u0442\u043E\u043F",
+                                    color = HubColors.Red,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Playback controls (DONE)
+                if (isDone) {
+                    item(key = "playback") {
+                        PlaybackControls(
+                            isPlaying = playbackState.isPlaying,
+                            position = playbackState.position,
+                            positionLabel = playbackState.positionLabel,
+                            durationLabel = coreState.fileDurationLabel,
+                            onToggle = onTogglePlayback,
+                            onSeek = onSeekPlayback,
+                        )
+                    }
+                }
+
+                // Bird count label
+                if (isActive && timelineState.speciesSummaries.isNotEmpty()) {
+                    item(key = "count_active") {
+                        Row {
+                            Text(
+                                "\u041D\u0430\u0439\u0434\u0435\u043D\u043E: ",
+                                color = HubColors.TextMuted,
+                                fontSize = 11.sp,
+                            )
+                            Text(
+                                "${timelineState.speciesSummaries.size}",
+                                color = HubColors.Green,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+                if (isDone && timelineState.speciesSummaries.isNotEmpty()) {
+                    item(key = "count_done") {
+                        Row {
+                            Text(
+                                "\u041E\u043F\u0440\u0435\u0434\u0435\u043B\u0435\u043D\u043E: ",
+                                color = HubColors.TextMuted,
+                                fontSize = 11.sp,
+                            )
+                            Text(
+                                "${timelineState.speciesSummaries.size}",
+                                color = HubColors.Green,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                " \u00b7 \u0442\u0430\u043F \u2014 \u043E\u0442\u043C\u0435\u0442\u043A\u0430 \u043D\u0430 \u0441\u043F\u0435\u043A\u0442\u0440\u0435",
+                                color = HubColors.TextMuted,
+                                fontSize = 11.sp,
+                            )
+                        }
+                    }
+                }
+
+                // Searching placeholder
+                if (isActive && timelineState.speciesSummaries.isEmpty()) {
+                    item(key = "searching") {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text("\uD83D\uDD0D", fontSize = 28.sp)
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                "\u0418\u0449\u0443 \u043F\u0442\u0438\u0446 \u0432 \u0430\u0443\u0434\u0438\u043E...",
+                                color = HubColors.TextMuted,
+                                fontSize = 13.sp,
+                            )
+                        }
+                    }
+                }
+
+                // Bird result items
+                if (timelineState.speciesSummaries.isNotEmpty()) {
+                    val birds = timelineState.timelineBirds
+                    val uniqueSpecies = timelineState.speciesSummaries.map { summary ->
+                        val representative = birds.firstOrNull { it.scientificName == summary.scientificName }
+                        representative ?: FileTimelineBirdUi(
+                            id = summary.scientificName,
+                            commonName = summary.commonName,
+                            scientificName = summary.scientificName,
+                            startTimeSec = 0f,
+                            endTimeSec = 0f,
+                            timeRange = "",
+                            v24Confidence = summary.maxV24Confidence,
+                            v30Confidence = summary.maxV30Confidence,
+                        )
+                    }
+                    items(uniqueSpecies, key = { it.scientificName }) { bird ->
+                        FileBirdResultItem(
+                            bird = bird,
+                            isHighlighted = bird.scientificName == spectrogramState.highlightedSpecies,
+                            isDone = isDone,
+                            onClick = {
+                                if (isDone) {
+                                    onHighlightSpecies(bird.scientificName)
+                                } else {
+                                    onSpeciesClick(bird.scientificName, bird.commonName)
+                                }
+                            },
+                        )
+                    }
+                }
+
+                // Error
+                if (phase == FileAnalysisPhase.ERROR) {
+                    item(key = "error") {
                         Text(
-                            text = "${formatDuration(uiState.fileDurationSec)} · ${uiState.fileSizeLabel}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "\u041E\u0448\u0438\u0431\u043A\u0430: ${coreState.errorMessage}",
+                            color = HubColors.Red,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(vertical = 16.dp),
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-            }
 
-            if (uiState.geoConfigured) {
-                AssistChip(
-                    onClick = onPickLocation,
-                    label = { Text(uiState.geoLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    leadingIcon = {
-                        Icon(Icons.Default.LocationOn, contentDescription = null,
-                            modifier = Modifier.height(18.dp))
-                    },
-                )
-            } else {
-                AssistChip(
-                    onClick = onPickLocation,
-                    label = { Text(stringResource(R.string.file_analysis_geo_warning)) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Warning, contentDescription = null,
-                            modifier = Modifier.height(18.dp))
-                    },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        labelColor = MaterialTheme.colorScheme.onErrorContainer,
-                        leadingIconContentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    ),
-                )
-            }
-
-            // V3.0 unavailable notice
-            if (!uiState.v30Available &&
-                uiState.state in listOf(FileAnalysisState.ANALYZING, FileAnalysisState.DONE, FileAnalysisState.PAUSED)
-            ) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.dual_detection_v30_unavailable),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                // Bottom spacer for footer
+                if (isDone) {
+                    item(key = "footer_spacer") {
+                        Spacer(Modifier.height(72.dp))
+                    }
+                }
             }
         }
 
-        // Select file button (only in IDLE or initial)
-        if (uiState.state == FileAnalysisState.IDLE || uiState.state == FileAnalysisState.ERROR) {
-            Button(
-                onClick = onSelectFile,
+        // ── FAB History (IDLE only) ──
+        if (phase == FileAnalysisPhase.IDLE) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 18.dp, bottom = 16.dp)
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(HubColors.BgCard)
+                    .border(1.5.dp, HubColors.Border, CircleShape)
+                    .clickable(onClick = onHistory),
+                contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Default.AudioFile, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.file_analysis_select))
-            }
-        }
-
-        // Load waveform button (history items without preloaded waveform)
-        if (uiState.hasWaveformData && uiState.waveformAmplitudes == null) {
-            OutlinedButton(
-                onClick = onLoadWaveform,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-            ) {
-                Text(stringResource(R.string.file_analysis_show_waveform))
-            }
-        }
-
-        // Waveform
-        if (uiState.waveformAmplitudes != null) {
-            val markers = if (uiState.selectedSpecies != null) {
-                uiState.speciesSummaries
-                    .find { it.scientificName == uiState.selectedSpecies }
-                    ?.segments?.map { seg ->
-                        WaveformMarker(
-                            startSec = seg.startSec,
-                            endSec = seg.endSec,
-                            label = seg.timeRange,
-                        )
-                    } ?: emptyList()
-            } else emptyList()
-
-            WaveformView(
-                amplitudes = uiState.waveformAmplitudes,
-                durationSec = uiState.fileDurationSec,
-                progress = uiState.waveformProgress,
-                progressLabel = uiState.progressLabel,
-                markers = markers,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-            )
-
-            // Detection count for selected species
-            if (uiState.selectedSpecies != null) {
-                val selected = uiState.speciesSummaries
-                    .find { it.scientificName == uiState.selectedSpecies }
-                if (selected != null) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("\uD83D\uDDC2", fontSize = 16.sp)
                     Text(
-                        text = stringResource(
-                            R.string.file_analysis_detections_badge,
-                            selected.detectionCount,
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        "\u0438\u0441\u0442\u043E\u0440\u0438\u044F",
+                        color = HubColors.TextMuted,
+                        fontSize = 7.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.3.sp,
                     )
                 }
             }
         }
 
-        // Controls
-        when (uiState.state) {
-            FileAnalysisState.IDLE -> {
-                if (uiState.fileName.isNotEmpty()) {
-                    Button(
-                        onClick = onStartAnalysis,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                    ) {
-                        Text(stringResource(R.string.file_analysis_start))
-                    }
-                }
-            }
-            FileAnalysisState.ANALYZING, FileAnalysisState.PAUSED -> {
-                Row(
+        // ── Done Footer (Save / Cancel) ──
+        if (isDone) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(HubColors.Bg)
+                    .border(
+                        width = 1.dp,
+                        color = HubColors.Border,
+                        shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp),
+                    )
+                    .padding(horizontal = 18.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        .weight(2f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(HubColors.Accent, HubColors.Accent.copy(alpha = 0.8f)),
+                            ),
+                        )
+                        .clickable(onClick = onSave)
+                        .padding(vertical = 13.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    if (uiState.state == FileAnalysisState.PAUSED) {
-                        Button(
-                            onClick = onResume,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.btn_resume))
-                        }
-                    } else {
-                        OutlinedButton(
-                            onClick = onPause,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.btn_pause))
-                        }
-                    }
-                    OutlinedButton(
-                        onClick = onCancel,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error,
-                        ),
-                    ) {
-                        Text(stringResource(R.string.btn_cancel))
-                    }
-                }
-            }
-            else -> {}
-        }
-
-        // Error
-        if (uiState.state == FileAnalysisState.ERROR) {
-            Text(
-                text = stringResource(R.string.file_analysis_error, uiState.errorMessage),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
-
-        // Species summary header
-        if (uiState.speciesSummaries.isNotEmpty()) {
-            Text(
-                text = stringResource(R.string.file_analysis_species_count, uiState.speciesSummaries.size),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
-
-        // Species summary list
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            if (uiState.speciesSummaries.isEmpty() && uiState.state == FileAnalysisState.IDLE
-                && uiState.fileName.isEmpty()
-            ) {
-                item {
                     Text(
-                        text = stringResource(R.string.file_analysis_idle),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 32.dp, horizontal = 4.dp),
+                        "\uD83D\uDCBE \u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C",
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
                     )
                 }
-            }
-            if (uiState.speciesSummaries.isEmpty() && uiState.state == FileAnalysisState.DONE) {
-                item {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(HubColors.BgEl)
+                        .border(1.dp, HubColors.Border, RoundedCornerShape(14.dp))
+                        .clickable(onClick = onDiscard)
+                        .padding(vertical = 13.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text(
-                        text = stringResource(R.string.detection_no_results),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 32.dp, horizontal = 4.dp),
+                        "\u041E\u0442\u043C\u0435\u043D\u0430",
+                        color = HubColors.TextSecondary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp,
                     )
                 }
-            }
-            items(uiState.speciesSummaries, key = { it.scientificName }) { summary ->
-                SpeciesSummaryCard(
-                    summary = summary,
-                    isSelected = summary.scientificName == uiState.selectedSpecies,
-                    onTap = { onSelectSpecies(summary.scientificName) },
-                    onDetailClick = { onSpeciesClick(summary.scientificName, summary.commonName) },
-                )
             }
         }
     }
 }
 
+// ── Previews ─────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true, showSystemUi = true, name = "Idle")
 @Composable
-private fun SpeciesSummaryCard(
-    summary: FileSpeciesSummary,
-    isSelected: Boolean,
-    onTap: () -> Unit,
-    onDetailClick: () -> Unit,
-) {
-    val containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onTap),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 2.dp else 1.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = summary.commonName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                ConfidenceLabels(summary.maxV24Confidence, summary.maxV30Confidence)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = summary.scientificName,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontStyle = FontStyle.Italic,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = onDetailClick, modifier = Modifier.height(32.dp).width(32.dp)) {
-                    Icon(
-                        Icons.Default.ChevronRight,
-                        contentDescription = stringResource(R.string.cd_details),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun formatDuration(totalSec: Float): String {
-    val sec = totalSec.toInt()
-    return "%d:%02d".format(sec / 60, sec % 60)
-}
-
-// --- Previews ---
-
-private val previewSummaries = listOf(
-    FileSpeciesSummary(
-        scientificName = "Parus major",
-        commonName = "Great Tit",
-        maxV24Confidence = 92,
-        maxV30Confidence = 78,
-        detectionCount = 3,
-        segments = listOf(
-            SpeciesSegmentUi(0f, 3f, "0:00 – 0:03"),
-            SpeciesSegmentUi(15f, 20f, "0:15 – 0:20"),
-            SpeciesSegmentUi(36f, 42f, "0:36 – 0:42"),
+private fun PreviewIdle() {
+    FileAnalysisScreen(
+        coreState = FileAnalysisCoreState(
+            phase = FileAnalysisPhase.IDLE,
+            geoLabel = "Belarus \u00b7 Minsk",
+            geoConfigured = true,
         ),
-    ),
-    FileSpeciesSummary(
-        scientificName = "Fringilla coelebs",
-        commonName = "Chaffinch",
-        maxV24Confidence = 85,
-        maxV30Confidence = null,
-        detectionCount = 1,
-        segments = listOf(SpeciesSegmentUi(21f, 35f, "0:21 – 0:35")),
-    ),
-)
-
-private val previewWaveform = FloatArray(400) { i ->
-    val t = i / 400f
-    (kotlin.math.sin(t * 20f).toFloat() * 0.5f + 0.5f) * 0.8f + 0.1f
+    )
 }
 
-@Preview(showBackground = true, showSystemUi = true, name = "Idle - No File")
+@Preview(showBackground = true, showSystemUi = true, name = "Ready")
 @Composable
-private fun PreviewIdleNoFile() {
-    BirdSongTheme {
-        FileAnalysisScreen()
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true, name = "Idle - File Ready")
-@Composable
-private fun PreviewIdleReady() {
-    BirdSongTheme {
-        FileAnalysisScreen(
-            uiState = FileAnalysisUiState(
-                state = FileAnalysisState.IDLE,
-                fileName = "recording_2026-03-04.ogg",
-                fileDurationSec = 45f,
-                fileSizeLabel = "320 KB",
-                waveformAmplitudes = previewWaveform,
-                geoLabel = "Belarus · Minsk",
-                geoConfigured = true,
-            ),
-        )
-    }
+private fun PreviewReady() {
+    FileAnalysisScreen(
+        coreState = FileAnalysisCoreState(
+            phase = FileAnalysisPhase.READY,
+            fileName = "morning_forest.mp3",
+            fileSizeLabel = "4.2 MB",
+            fileDurationLabel = "4:12",
+            geoLabel = "Belarus \u00b7 Minsk",
+            geoConfigured = true,
+        ),
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true, name = "Analyzing")
 @Composable
 private fun PreviewAnalyzing() {
-    BirdSongTheme {
-        FileAnalysisScreen(
-            uiState = FileAnalysisUiState(
-                state = FileAnalysisState.ANALYZING,
-                fileName = "recording_2026-03-04.ogg",
-                fileDurationSec = 45f,
-                fileSizeLabel = "320 KB",
-                waveformAmplitudes = previewWaveform,
-                waveformProgress = 0.4f,
-                v24Progress = ModelProgress(12, 30),
-                v30Progress = ModelProgress(5, 15),
-                v30Available = true,
-                speciesSummaries = previewSummaries.take(1),
-                geoLabel = "Belarus · Minsk",
-                geoConfigured = true,
+    FileAnalysisScreen(
+        coreState = FileAnalysisCoreState(
+            phase = FileAnalysisPhase.ANALYZING,
+            fileName = "morning_forest.mp3",
+            fileSizeLabel = "4.2 MB",
+            fileDurationLabel = "4:12",
+            geoLabel = "Belarus \u00b7 Minsk",
+            geoConfigured = true,
+        ),
+        progressState = AnalysisProgressState(
+            progress = 0.45f,
+            elapsedSec = 23,
+        ),
+        timelineState = TimelineUiState(
+            speciesSummaries = listOf(
+                FileSpeciesSummary("Oriolus oriolus", "\u0418\u0432\u043E\u043B\u0433\u0430", 94, 78, 2, emptyList()),
             ),
-        )
-    }
+            timelineBirds = listOf(
+                FileTimelineBirdUi("1", "\u0418\u0432\u043E\u043B\u0433\u0430", "Oriolus oriolus", 5f, 8f, "0:05 \u2013 0:08", 94, 78),
+            ),
+        ),
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true, name = "Done")
 @Composable
 private fun PreviewDone() {
-    BirdSongTheme {
-        FileAnalysisScreen(
-            uiState = FileAnalysisUiState(
-                state = FileAnalysisState.DONE,
-                fileName = "recording_2026-03-04.ogg",
-                fileDurationSec = 45f,
-                fileSizeLabel = "320 KB",
-                waveformAmplitudes = previewWaveform,
-                waveformProgress = 1f,
-                v30Available = true,
-                speciesSummaries = previewSummaries,
-                selectedSpecies = "Parus major",
-                geoLabel = "Belarus · Minsk",
-                geoConfigured = true,
+    FileAnalysisScreen(
+        coreState = FileAnalysisCoreState(
+            phase = FileAnalysisPhase.DONE,
+            fileName = "morning_forest.mp3",
+            fileSizeLabel = "4.2 MB",
+            fileDurationLabel = "4:12",
+            fileDurationSec = 252f,
+            geoLabel = "Belarus \u00b7 Minsk",
+            geoConfigured = true,
+        ),
+        progressState = AnalysisProgressState(progress = 1f),
+        spectrogramState = SpectrogramUiState(
+            birdMarkers = listOf(
+                BirdMarker("Oriolus oriolus", 0.12f, 0.94f),
+                BirdMarker("Fringilla coelebs", 0.31f, 0.78f),
+                BirdMarker("Parus major", 0.53f, 0.61f),
             ),
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true, name = "No Geo")
-@Composable
-private fun PreviewNoGeo() {
-    BirdSongTheme {
-        FileAnalysisScreen(
-            uiState = FileAnalysisUiState(
-                state = FileAnalysisState.IDLE,
-                geoConfigured = false,
+        ),
+        timelineState = TimelineUiState(
+            speciesSummaries = listOf(
+                FileSpeciesSummary("Oriolus oriolus", "\u0418\u0432\u043E\u043B\u0433\u0430", 94, 78, 2, emptyList()),
+                FileSpeciesSummary("Fringilla coelebs", "\u0417\u044F\u0431\u043B\u0438\u043A", 78, null, 1, emptyList()),
+                FileSpeciesSummary("Parus major", "\u0411\u043E\u043B\u044C\u0448\u0430\u044F \u0441\u0438\u043D\u0438\u0446\u0430", 61, 55, 3, emptyList()),
             ),
-        )
-    }
+            timelineBirds = listOf(
+                FileTimelineBirdUi("1", "\u0418\u0432\u043E\u043B\u0433\u0430", "Oriolus oriolus", 5f, 8f, "0:05 \u2013 0:08", 94, 78),
+                FileTimelineBirdUi("2", "\u0417\u044F\u0431\u043B\u0438\u043A", "Fringilla coelebs", 78f, 81f, "1:18 \u2013 1:21", 78, null),
+                FileTimelineBirdUi("3", "\u0411\u043E\u043B\u044C\u0448\u0430\u044F \u0441\u0438\u043D\u0438\u0446\u0430", "Parus major", 130f, 135f, "2:10 \u2013 2:15", 61, 55),
+            ),
+        ),
+    )
 }
