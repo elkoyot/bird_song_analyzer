@@ -50,11 +50,13 @@ data class DualDetectedBirdUi(
 
 data class DualDetectionUiState(
     val state: DetectionState = DetectionState.IDLE,
-    val sessionTimer: String = "00:00:00",
+    val sessionTimer: String = "00:00",
     val hasGps: Boolean = false,
     val audioLevel: Float = 0f,
     val birds: List<DualDetectedBirdUi> = emptyList(),
     val v30Available: Boolean = false,
+    val activelyDetectedBirdId: String? = null,
+    val regionLabel: String? = null,
 )
 
 @HiltViewModel
@@ -112,7 +114,16 @@ class DualDetectionViewModel @Inject constructor(
         confirmationCount = AGGREGATOR_CONFIRMATION,
     )
 
+    @Volatile private var clearActiveJob: Job? = null
+
     init {
+        // Collect region label for header display
+        viewModelScope.launch {
+            geoRepository.currentSelectionDisplay.collect { display ->
+                val label = if (display == "\u2014") null else display
+                _uiState.update { it.copy(regionLabel = label) }
+            }
+        }
         metaProfileJob = viewModelScope.launch {
             try {
                 val geo = geoRepository.resolveCurrentGeo() ?: return@launch
@@ -192,7 +203,9 @@ class DualDetectionViewModel @Inject constructor(
         timerJob = null
         levelJob?.cancel()
         levelJob = null
-        _uiState.update { it.copy(state = DetectionState.STOPPED, audioLevel = 0f) }
+        clearActiveJob?.cancel()
+        clearActiveJob = null
+        _uiState.update { it.copy(state = DetectionState.STOPPED, audioLevel = 0f, activelyDetectedBirdId = null) }
 
         birdnetClassifier?.close()
         birdnetClassifier = null
@@ -202,14 +215,40 @@ class DualDetectionViewModel @Inject constructor(
         v30Processor = null
     }
 
-    fun onReset() {
+    fun onSaveSession() {
+        // TODO: persist to ObservationEntity when schema is ready
+        resetAfterSession()
+    }
+
+    fun onDiscardSession() {
+        resetAfterSession()
+    }
+
+    private fun resetAfterSession() {
         birdnetAggregator.reset()
         v30Aggregator.reset()
         v24ChunkNum = 0
         v30ChunkNum = 0
         v24FamilyShadow.clear(); v24AnchorSpecies.clear()
         v30FamilyShadow.clear(); v30AnchorSpecies.clear()
-        _uiState.update { it.copy(birds = emptyList()) }
+        _uiState.update {
+            DualDetectionUiState(
+                v30Available = it.v30Available,
+                regionLabel = it.regionLabel,
+            )
+        }
+    }
+
+    fun onReset() {
+        clearActiveJob?.cancel()
+        clearActiveJob = null
+        birdnetAggregator.reset()
+        v30Aggregator.reset()
+        v24ChunkNum = 0
+        v30ChunkNum = 0
+        v24FamilyShadow.clear(); v24AnchorSpecies.clear()
+        v30FamilyShadow.clear(); v30AnchorSpecies.clear()
+        _uiState.update { it.copy(birds = emptyList(), activelyDetectedBirdId = null) }
     }
 
     private fun startDetection() {
@@ -422,6 +461,7 @@ class DualDetectionViewModel @Inject constructor(
 
         val elapsedMs = System.currentTimeMillis() - sessionStartMs
         val detectedAt = formatMmSs(elapsedMs / 1_000)
+        var newBirdId: String? = null
 
         _uiState.update { s ->
             val birds = s.birds.toMutableList()
@@ -443,8 +483,10 @@ class DualDetectionViewModel @Inject constructor(
                         )
                     }
                 } else {
+                    val id = UUID.randomUUID().toString()
+                    newBirdId = id
                     birds.add(0, DualDetectedBirdUi(
-                        id = UUID.randomUUID().toString(),
+                        id = id,
                         commonName = det.commonName,
                         scientificName = det.scientificName,
                         v24Confidence = if (isBirdNet) conf else null,
@@ -455,6 +497,15 @@ class DualDetectionViewModel @Inject constructor(
             }
 
             s.copy(birds = birds.take(MAX_DETECTIONS))
+        }
+
+        newBirdId?.let { id ->
+            clearActiveJob?.cancel()
+            _uiState.update { it.copy(activelyDetectedBirdId = id) }
+            clearActiveJob = viewModelScope.launch {
+                delay(2_500L)
+                _uiState.update { it.copy(activelyDetectedBirdId = null) }
+            }
         }
     }
 
@@ -575,14 +626,9 @@ class DualDetectionViewModel @Inject constructor(
             while (true) {
                 delay(1_000L)
                 val elapsedMs = System.currentTimeMillis() - sessionStartMs
-                _uiState.update { it.copy(sessionTimer = formatDuration(elapsedMs)) }
+                _uiState.update { it.copy(sessionTimer = formatMmSs(elapsedMs / 1_000)) }
             }
         }
-    }
-
-    private fun formatDuration(elapsedMs: Long): String {
-        val s = elapsedMs / 1_000
-        return "%02d:%02d:%02d".format(s / 3_600, s % 3_600 / 60, s % 60)
     }
 
     private fun formatMmSs(totalSec: Long): String =

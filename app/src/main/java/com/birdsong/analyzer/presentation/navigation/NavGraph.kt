@@ -60,6 +60,7 @@ import androidx.navigation.toRoute
 import com.birdsong.analyzer.R
 import com.birdsong.analyzer.presentation.detail.DetailScreen
 import com.birdsong.analyzer.presentation.detail.DetailUiState
+import com.birdsong.analyzer.presentation.detection.DualDetectedBirdUi
 import com.birdsong.analyzer.presentation.detection.DualDetectionScreen
 import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
 import com.birdsong.analyzer.presentation.detection.FileAnalysisScreen
@@ -236,7 +237,21 @@ fun BirdSongNavHost() {
                         onResume = viewModel::onResume,
                         onStop = viewModel::onStop,
                         onReset = viewModel::onReset,
+                        onSave = viewModel::onSaveSession,
+                        onDiscard = viewModel::onDiscardSession,
                         onBack = { navController.popBackStack() },
+                        onRegionPress = { navController.navigate(LocationPickerRoute) },
+                        onBirdClick = { bird ->
+                            navController.navigate(
+                                DetailRoute(
+                                    commonName = bird.commonName,
+                                    scientificName = bird.scientificName,
+                                    v24Confidence = bird.v24Confidence ?: -1,
+                                    v30Confidence = bird.v30Confidence ?: -1,
+                                ),
+                            )
+                        },
+                        onHistory = { navController.navigate(FileAnalysisRoute()) },
                     )
                 }
 

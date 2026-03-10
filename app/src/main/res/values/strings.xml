@@ -123,6 +123,49 @@
     <string name="file_analysis_show_waveform">Show waveform</string>
     <string name="btn_cancel">Cancel</string>
 
+    <!-- Live Detection (redesign SCR-03) -->
+    <string name="live_screen_subtitle">Живая детекция</string>
+    <string name="live_screen_app_name">AVALGA</string>
+    <string name="live_select_region">Выбрать регион</string>
+    <string name="live_listening">Слушаю…</string>
+    <string name="live_pause_label">⏸ Пауза</string>
+    <string name="live_start_hint">Нажми для старта</string>
+    <string name="live_session_done">Сессия завершена</string>
+    <string name="live_detected_count">Определено: %1$d</string>
+    <string name="live_species_unit">видов</string>
+    <string name="live_tap_hint">тап для деталей</string>
+    <string name="live_region_hint_title">Выберите регион</string>
+    <string name="live_region_hint_desc">Это повысит точность определения птиц</string>
+    <string name="live_region_btn">Выбрать</string>
+    <string name="live_idle_emoji">🎧</string>
+    <string name="live_idle_desc">Нажми кнопку выше и поднеси телефон к источнику звука</string>
+    <string name="live_history_label">история</string>
+    <string name="btn_reset_short">Сброс</string>
+    <string name="btn_save_session">Сохранить</string>
+    <string name="btn_new_session">↺ Новая</string>
+    <string name="live_lure_stub">Скоро</string>
+
+    <!-- Detail Screen (redesign SCR-06) -->
+    <string name="detail_tab_info">Описание</string>
+    <string name="detail_tab_audio">Голос</string>
+    <string name="detail_tab_map">Ареал</string>
+    <string name="detail_accuracy_label">Достоверность</string>
+    <string name="detail_data_soon">Данные появятся в следующем обновлении</string>
+    <string name="detail_audio_soon">Воспроизведение голосов птиц — скоро</string>
+    <string name="detail_map_soon">Карта ареала — скоро</string>
+    <string name="detail_ebird">eBird ↗</string>
+    <string name="detail_inaturalist">iNaturalist ↗</string>
+    <string name="detail_add_to_list">+ В список</string>
+    <string name="detail_saved">✓ Сохранено</string>
+    <string name="detail_placeholder_status">LC</string>
+    <string name="detail_placeholder_rarity">Обычный</string>
+    <string name="detail_song_title">🎵 Песня</string>
+    <string name="detail_song_desc">Основной брачный сигнал</string>
+    <string name="detail_call_title">🔔 Позывка</string>
+    <string name="detail_call_desc">Короткий контактный сигнал</string>
+    <string name="detail_alarm_title">⚠️ Тревога</string>
+    <string name="detail_alarm_desc">Сигнал при опасности</string>
+
     <!-- Accessibility -->
     <string name="cd_back">Back</string>
     <string name="cd_details">Details</string>
