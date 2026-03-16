@@ -55,8 +55,11 @@ data class DualDetectionUiState(
     val audioLevel: Float = 0f,
     val birds: List<DualDetectedBirdUi> = emptyList(),
     val v30Available: Boolean = false,
-    val activelyDetectedBirdId: String? = null,
+    val flashBirdId: String? = null,
+    val newBirdIds: Set<String> = emptySet(),
+    val luringBirdId: String? = null,
     val regionLabel: String? = null,
+    val blipSeq: Int = 0,
 )
 
 @HiltViewModel
@@ -115,6 +118,7 @@ class DualDetectionViewModel @Inject constructor(
     )
 
     @Volatile private var clearActiveJob: Job? = null
+    private var lureJob: Job? = null
 
     init {
         // Collect region label for header display
@@ -205,7 +209,9 @@ class DualDetectionViewModel @Inject constructor(
         levelJob = null
         clearActiveJob?.cancel()
         clearActiveJob = null
-        _uiState.update { it.copy(state = DetectionState.STOPPED, audioLevel = 0f, activelyDetectedBirdId = null) }
+        lureJob?.cancel()
+        lureJob = null
+        _uiState.update { it.copy(state = DetectionState.STOPPED, audioLevel = 0f, flashBirdId = null, luringBirdId = null) }
 
         birdnetClassifier?.close()
         birdnetClassifier = null
@@ -240,6 +246,10 @@ class DualDetectionViewModel @Inject constructor(
     }
 
     fun onReset() {
+        onClearList()
+    }
+
+    fun onClearList() {
         clearActiveJob?.cancel()
         clearActiveJob = null
         birdnetAggregator.reset()
@@ -248,7 +258,37 @@ class DualDetectionViewModel @Inject constructor(
         v30ChunkNum = 0
         v24FamilyShadow.clear(); v24AnchorSpecies.clear()
         v30FamilyShadow.clear(); v30AnchorSpecies.clear()
-        _uiState.update { it.copy(birds = emptyList(), activelyDetectedBirdId = null) }
+        _uiState.update { it.copy(birds = emptyList(), flashBirdId = null, newBirdIds = emptySet()) }
+    }
+
+    fun onRemoveBird(birdId: String) {
+        _uiState.update { s ->
+            s.copy(
+                birds = s.birds.filter { it.id != birdId },
+                newBirdIds = s.newBirdIds - birdId,
+            )
+        }
+    }
+
+    fun onLure(birdId: String) {
+        val current = _uiState.value.luringBirdId
+        if (current == birdId) {
+            // Stop luring
+            lureJob?.cancel()
+            lureJob = null
+            _uiState.update { it.copy(luringBirdId = null) }
+            if (_uiState.value.state == DetectionState.PAUSED) onResume()
+            return
+        }
+        // Start luring — pause detection for 8s
+        if (_uiState.value.state == DetectionState.ANALYZING) onPause()
+        _uiState.update { it.copy(luringBirdId = birdId) }
+        lureJob?.cancel()
+        lureJob = viewModelScope.launch {
+            delay(LURE_DURATION_MS)
+            _uiState.update { it.copy(luringBirdId = null) }
+            if (_uiState.value.state == DetectionState.PAUSED) onResume()
+        }
     }
 
     private fun startDetection() {
@@ -461,16 +501,20 @@ class DualDetectionViewModel @Inject constructor(
 
         val elapsedMs = System.currentTimeMillis() - sessionStartMs
         val detectedAt = formatMmSs(elapsedMs / 1_000)
-        var newBirdId: String? = null
+        var flashId: String? = null
+        var isNewBird = false
 
         _uiState.update { s ->
             val birds = s.birds.toMutableList()
+            val newIds = s.newBirdIds.toMutableSet()
 
             for (det in detections) {
                 val conf = (det.confidence * 100).roundToInt()
                 val idx = birds.indexOfFirst { it.scientificName == det.scientificName }
 
                 if (idx >= 0) {
+                    // Re-detection — flash
+                    flashId = birds[idx].id
                     birds[idx] = if (isBirdNet) {
                         birds[idx].copy(
                             v24Confidence = maxOf(birds[idx].v24Confidence ?: 0, conf),
@@ -484,7 +528,9 @@ class DualDetectionViewModel @Inject constructor(
                     }
                 } else {
                     val id = UUID.randomUUID().toString()
-                    newBirdId = id
+                    flashId = id
+                    isNewBird = true
+                    newIds.add(id)
                     birds.add(0, DualDetectedBirdUi(
                         id = id,
                         commonName = det.commonName,
@@ -496,15 +542,25 @@ class DualDetectionViewModel @Inject constructor(
                 }
             }
 
-            s.copy(birds = birds.take(MAX_DETECTIONS))
+            s.copy(birds = birds.take(MAX_DETECTIONS), newBirdIds = newIds)
         }
 
-        newBirdId?.let { id ->
+        flashId?.let { id ->
             clearActiveJob?.cancel()
-            _uiState.update { it.copy(activelyDetectedBirdId = id) }
+            _uiState.update {
+                it.copy(
+                    flashBirdId = id,
+                    blipSeq = if (isNewBird) it.blipSeq + 1 else it.blipSeq,
+                )
+            }
             clearActiveJob = viewModelScope.launch {
-                delay(2_500L)
-                _uiState.update { it.copy(activelyDetectedBirdId = null) }
+                delay(if (isNewBird) AURORA_DURATION_MS else FLASH_DURATION_MS)
+                _uiState.update { it.copy(flashBirdId = null) }
+                if (isNewBird) {
+                    // Remove from newBirdIds after aurora finishes
+                    delay(AURORA_DURATION_MS - FLASH_DURATION_MS)
+                    _uiState.update { it.copy(newBirdIds = it.newBirdIds - id) }
+                }
             }
         }
     }
@@ -655,5 +711,8 @@ class DualDetectionViewModel @Inject constructor(
         private const val BIRDNET_CHUNK_SEC = 3
         private const val V30_SAMPLE_RATE = 32_000
 
+        private const val FLASH_DURATION_MS = 1_400L
+        private const val AURORA_DURATION_MS = 6_000L
+        private const val LURE_DURATION_MS = 8_000L
     }
 }

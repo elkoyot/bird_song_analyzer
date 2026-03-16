@@ -20,6 +20,8 @@ class GeoRepository @Inject constructor(
 
     suspend fun getByCode(code: String): GeoEntity? = geoDao.getByCode(code)
 
+    suspend fun getChildrenCount(parentCode: String): Int = geoDao.getChildrenCount(parentCode)
+
     suspend fun resolveCurrentGeo(): GeoEntity? {
         val regionCode = prefsRepo.regionCode.first()
         val countryCode = prefsRepo.countryCode.first()

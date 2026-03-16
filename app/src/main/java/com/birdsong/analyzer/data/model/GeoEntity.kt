@@ -32,6 +32,18 @@ data class GeoEntity(
     @ColumnInfo(name = "buffer_deg") val bufferDeg: Float = 2.5f,
     @ColumnInfo(name = "sort_order") val sortOrder: Int = 0,
 ) {
-    fun displayName(): String =
-        if (Locale.getDefault().language == "ru") nameRu else nameEn
+    /**
+     * Display name resolved by type:
+     * - continent/region: stored nameRu/nameEn
+     * - country: resolved from ISO code via [Locale] (nameRu/nameEn stores the code)
+     */
+    fun displayName(): String {
+        if (type == "country") {
+            val userLocale = Locale.getDefault()
+            val countryLocale = Locale("", code)
+            return countryLocale.getDisplayCountry(userLocale)
+                .ifBlank { code }
+        }
+        return if (Locale.getDefault().language == "ru") nameRu else nameEn
+    }
 }

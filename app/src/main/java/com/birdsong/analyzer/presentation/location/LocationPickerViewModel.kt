@@ -16,10 +16,14 @@ import javax.inject.Inject
 
 enum class LocationStep { CONTINENTS, COUNTRIES, REGIONS }
 
+data class BreadcrumbItem(val label: String, val step: LocationStep)
+
 data class LocationPickerUiState(
     val step: LocationStep = LocationStep.CONTINENTS,
     val continents: List<GeoEntity> = emptyList(),
+    val continentCounts: Map<String, Int> = emptyMap(),
     val countries: List<GeoEntity> = emptyList(),
+    val countriesRegionCounts: Map<String, Int> = emptyMap(),
     val regions: List<GeoEntity> = emptyList(),
     val selectedContinentName: String = "",
     val selectedCountryName: String = "",
@@ -27,7 +31,18 @@ data class LocationPickerUiState(
     val currentCountryCode: String? = null,
     val currentRegionCode: String? = null,
     val done: Boolean = false,
-)
+) {
+    val breadcrumbs: List<BreadcrumbItem>
+        get() = buildList {
+            add(BreadcrumbItem("Все регионы", LocationStep.CONTINENTS))
+            if (step == LocationStep.COUNTRIES || step == LocationStep.REGIONS) {
+                add(BreadcrumbItem(selectedContinentName, LocationStep.COUNTRIES))
+            }
+            if (step == LocationStep.REGIONS) {
+                add(BreadcrumbItem(selectedCountryName, LocationStep.REGIONS))
+            }
+        }
+}
 
 @HiltViewModel
 class LocationPickerViewModel @Inject constructor(
@@ -48,9 +63,11 @@ class LocationPickerViewModel @Inject constructor(
             val continents = geoRepository.getContinents()
             val currentCountry = geoRepository.countryCode.first()
             val currentRegion = geoRepository.regionCode.first()
+            val counts = continents.associate { it.code to geoRepository.getChildrenCount(it.code) }
             _uiState.update {
                 it.copy(
                     continents = continents,
+                    continentCounts = counts,
                     currentCountryCode = currentCountry,
                     currentRegionCode = currentRegion,
                 )
@@ -62,10 +79,12 @@ class LocationPickerViewModel @Inject constructor(
         viewModelScope.launch {
             val countries = geoRepository.getChildren(code)
                 .sortedWith(compareBy(collator) { it.displayName() })
+            val regionCounts = countries.associate { it.code to geoRepository.getChildrenCount(it.code) }
             _uiState.update {
                 it.copy(
                     step = LocationStep.COUNTRIES,
                     countries = countries,
+                    countriesRegionCounts = regionCounts,
                     selectedContinentName = name,
                 )
             }
@@ -99,6 +118,18 @@ class LocationPickerViewModel @Inject constructor(
             geoRepository.selectCountry(countryCode)
             geoRepository.selectRegion(code)
             _uiState.update { it.copy(done = true) }
+        }
+    }
+
+    fun navigateToBreadcrumb(step: LocationStep) {
+        when (step) {
+            LocationStep.CONTINENTS -> _uiState.update {
+                it.copy(step = LocationStep.CONTINENTS, countries = emptyList(), regions = emptyList())
+            }
+            LocationStep.COUNTRIES -> _uiState.update {
+                it.copy(step = LocationStep.COUNTRIES, regions = emptyList())
+            }
+            LocationStep.REGIONS -> { /* already there */ }
         }
     }
 

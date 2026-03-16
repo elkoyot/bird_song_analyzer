@@ -14,7 +14,6 @@ import kotlin.math.sqrt
  * 3. Spectral check via Goertzel — skip wind/electronics (energy concentrated outside bird range)
  * 4. Bandpass filter (Butterworth biquad 80 Hz – 15 kHz)
  * 5. Post-filter silence check
- * 6. Peak normalization to [NORM_TARGET]
  */
 enum class PreprocessingMode { FULL, LIGHT, PASSTHROUGH }
 
@@ -120,27 +119,11 @@ class AudioChunkProcessor(
             return null
         }
 
-        // 6. Peak normalization
-        val normalized = if (postPeak in POST_FILTER_SILENCE_THRESHOLD..NORM_TARGET) {
-            val gain = NORM_TARGET / postPeak
-            FloatArray(filtered.size) { i -> (filtered[i] * gain).coerceIn(-1f, 1f) }
-        } else {
-            filtered
-        }
-
-        return finalize(normalized, rms, peak)
+        return finalize(filtered, rms, peak)
     }
 
     private fun processLight(chunk: FloatArray, rms: Float, peak: Float): Result? {
-        // LIGHT mode: only peak normalization (no bandpass/spectral)
-        val normalized = if (peak in POST_FILTER_SILENCE_THRESHOLD..NORM_TARGET) {
-            val gain = NORM_TARGET / peak
-            FloatArray(chunk.size) { i -> (chunk[i] * gain).coerceIn(-1f, 1f) }
-        } else {
-            chunk.copyOf()
-        }
-
-        return finalize(normalized, rms, peak)
+        return finalize(chunk.copyOf(), rms, peak)
     }
 
     private fun finalize(normalized: FloatArray, inRms: Float, inPeak: Float): Result {
@@ -224,7 +207,6 @@ class AudioChunkProcessor(
         const val SPECTRAL_REJECT_RATIO = 0.98
         const val LOW_CUTOFF = 80f
         const val HIGH_CUTOFF = 15_000f
-        const val NORM_TARGET = 0.9f
         const val POST_FILTER_SILENCE_THRESHOLD = 0.001f
     }
 }

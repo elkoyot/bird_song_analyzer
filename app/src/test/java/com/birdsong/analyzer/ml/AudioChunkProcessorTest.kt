@@ -113,38 +113,37 @@ class AudioChunkProcessorTest {
     }
 
     @Test
-    fun `normalizes quiet signal to target peak`() {
+    fun `preserves quiet signal after bandpass`() {
         // Quiet 3 kHz signal with peak ~0.05
         val quiet = sineChunk(3000f, amplitude = 0.05f)
 
         val result = processor.process(quiet)
         assertNotNull(result, "Quiet bird signal should pass")
 
-        // After bandpass + normalization, peak should be close to 0.5
+        // After bandpass, amplitude should be preserved (no normalization)
         var peak = 0f
         for (s in result!!.samples) {
             val a = abs(s)
             if (a > peak) peak = a
         }
-        assertTrue(peak > 0.4f && peak <= 0.55f,
-            "Normalized peak should be ~0.5, got $peak")
+        assertTrue(peak < 0.1f,
+            "Quiet signal should preserve original amplitude, got $peak")
     }
 
     @Test
-    fun `does not over-normalize loud signal`() {
+    fun `preserves loud signal after bandpass`() {
         // Loud 3 kHz signal with peak ~0.8
         val loud = sineChunk(3000f, amplitude = 0.8f)
 
         val result = processor.process(loud)
         assertNotNull(result, "Loud bird signal should pass")
 
-        // Peak > 0.5 should not be normalized further
         var peak = 0f
         for (s in result!!.samples) {
             val a = abs(s)
             if (a > peak) peak = a
         }
-        assertTrue(peak > 0.5f, "Loud signal peak should remain >0.5, got $peak")
+        assertTrue(peak > 0.5f, "Loud signal should be preserved, got $peak")
     }
 
     @Test
@@ -219,7 +218,7 @@ class AudioChunkProcessorTest {
         }
 
         @Test
-        fun `normalizes quiet signal`() {
+        fun `preserves quiet signal amplitude`() {
             val quiet = sineChunk(3000f, amplitude = 0.05f)
 
             val result = passthrough.process(quiet)
@@ -230,12 +229,12 @@ class AudioChunkProcessorTest {
                 val a = abs(s)
                 if (a > peak) peak = a
             }
-            assertTrue(peak in 0.85f..0.95f,
-                "PASSTHROUGH normalizes to NORM_TARGET=0.9, got $peak")
+            assertTrue(peak in 0.04f..0.06f,
+                "PASSTHROUGH should preserve original amplitude, got $peak")
         }
 
         @Test
-        fun `does not over-normalize loud signal`() {
+        fun `preserves loud signal amplitude`() {
             val loud = sineChunk(3000f, amplitude = 0.8f)
 
             val result = passthrough.process(loud)
@@ -246,7 +245,7 @@ class AudioChunkProcessorTest {
                 val a = abs(s)
                 if (a > peak) peak = a
             }
-            assertTrue(peak > 0.7f, "Loud signal should not be attenuated, got $peak")
+            assertTrue(peak in 0.75f..0.85f, "Loud signal should be preserved, got $peak")
         }
 
         @Test

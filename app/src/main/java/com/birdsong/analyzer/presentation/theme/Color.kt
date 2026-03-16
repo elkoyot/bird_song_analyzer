@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 // ── Hub / App-wide dark palette (matches prototype) ──────────────────────────
 object HubColors {
     val Bg         = Color(0xFF050C18)
-    val BgCard     = Color(0xFF0A1524)
+    val BgCard     = Color(0xFF0D1926)
     val BgEl       = Color(0xFF0F1E32)
     val BgEl2      = Color(0xFF162842)
     val Accent     = Color(0xFFE8A020)
@@ -13,11 +13,15 @@ object HubColors {
     val Blue       = Color(0xFF4BA3C7)
     val Purple     = Color(0xFF9B7FE8)
     val Red        = Color(0xFFE05050)
+    val RedHot     = Color(0xFFE8504A)
+    val RedDark    = Color(0xFFC0392B)
     val Yellow     = Color(0xFFE8C020)
     val TextPrimary   = Color(0xFFEEF2F0)
-    val TextSecondary = Color(0xFF6A8E85)
-    val TextMuted     = Color(0xFF243D50)
-    val Border     = Color(0xFF0F2035)
+    val TextSecondary = Color(0xFF7A9E94)
+    val TextMuted     = Color(0xFF2E4A5C)
+    val Border     = Color(0xFF13283E)
+    val NavBg      = Color(0xFF060E1C)
+    val NavBorder  = Color(0xFF0C1A2E)
 }
 
 // Nature-inspired palette
