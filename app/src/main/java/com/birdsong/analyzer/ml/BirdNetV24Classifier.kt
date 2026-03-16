@@ -10,6 +10,7 @@ class BirdNetV24Classifier(
     audioModel: ByteBuffer,
     metaModel: ByteBuffer,
     private val labels: List<Pair<String, String>>,
+    private val modelMap: ModelMap? = null,
     private val confidenceThreshold: Float = DEFAULT_THRESHOLD,
     private val topK: Int = DEFAULT_TOP_K,
     tfliteThreads: Int = DEFAULT_NUM_THREADS,
@@ -19,6 +20,7 @@ class BirdNetV24Classifier(
     override val modelId: String = MODEL_ID
     override val sampleRate: Int = 48_000
     override val chunkDurationSeconds: Int = 3
+    override val supportedTaxonClasses: Set<String> = setOf("Aves")
 
     @Volatile
     override var metaProfile: MetaProfile? = null
@@ -30,6 +32,7 @@ class BirdNetV24Classifier(
     override suspend fun classify(
         audioChunk: FloatArray,
         location: LocationMeta?,
+        enabledClasses: Set<String>,
     ): List<BirdDetection> = withContext(Dispatchers.Default) {
         require(audioChunk.size == samplesPerChunk) {
             "Expected $samplesPerChunk samples, got ${audioChunk.size}"
@@ -46,7 +49,7 @@ class BirdNetV24Classifier(
             location != null -> applyMetaModel(location, scores)
         }
 
-        buildDetections(scores)
+        buildDetections(scores, enabledClasses)
     }
 
     private fun runAudioModel(audioChunk: FloatArray): FloatArray {
@@ -93,8 +96,8 @@ class BirdNetV24Classifier(
 
     private fun sigmoid(x: Float): Float = (1.0f / (1.0f + exp(-x)))
 
-    private fun buildDetections(scores: FloatArray): List<BirdDetection> =
-        buildDetections(scores, labels, confidenceThreshold, topK)
+    private fun buildDetections(scores: FloatArray, enabledClasses: Set<String>): List<BirdDetection> =
+        buildDetections(scores, labels, modelMap, confidenceThreshold, topK, enabledClasses)
 
     override fun close() {
         audioInterpreter.close()
@@ -106,28 +109,49 @@ class BirdNetV24Classifier(
         const val ASSET_BASE = "birdnet/v24"
         const val AUDIO_MODEL_PATH = "$ASSET_BASE/audio-model-fp16.tflite"
         const val META_MODEL_PATH = "$ASSET_BASE/meta-model.tflite"
+        const val MODEL_MAP_PATH = "$ASSET_BASE/model_map.csv"
         const val DEFAULT_NUM_THREADS = 2
-        const val DEFAULT_THRESHOLD = 0.1f
+        const val DEFAULT_THRESHOLD = 0.05f
         const val DEFAULT_TOP_K = 10
         const val DEFAULT_META_ALPHA = 0.10f
 
         internal fun buildDetections(
             scores: FloatArray,
             labels: List<Pair<String, String>>,
+            modelMap: ModelMap?,
             confidenceThreshold: Float,
             topK: Int,
+            enabledClasses: Set<String> = emptySet(),
         ): List<BirdDetection> =
             scores.indices
-                .filter { scores[it] >= confidenceThreshold }
+                .filter { i ->
+                    if (scores[i] < confidenceThreshold) return@filter false
+                    if (modelMap != null) {
+                        // Skip labels not in reference (noise, unknown)
+                        val sciName = modelMap.getScientificName(i) ?: return@filter false
+                        // Filter by enabled taxon classes
+                        if (enabledClasses.isNotEmpty()) {
+                            val taxon = modelMap.getTaxonClass(i)
+                            taxon in enabledClasses
+                        } else true
+                    } else {
+                        // Fallback: legacy NON_BIRD_LABELS filter
+                        val (sci, common) = labels[i]
+                        sci !in BirdClassifier.NON_BIRD_LABELS && common !in BirdClassifier.NON_BIRD_LABELS
+                    }
+                }
                 .sortedByDescending { scores[it] }
                 .take(topK)
                 .map { i ->
-                    val (scientificName, commonName) = labels[i]
+                    val (modelLabel, commonName) = labels[i]
+                    val resolvedName = modelMap?.getScientificName(i) ?: modelLabel
+                    val taxonClass = modelMap?.getTaxonClass(i) ?: ""
                     BirdDetection(
-                        scientificName = scientificName,
+                        scientificName = resolvedName,
                         commonName = commonName,
                         confidence = scores[i],
                         labelIndex = i,
+                        taxonClass = taxonClass,
                     )
                 }
     }

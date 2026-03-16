@@ -59,7 +59,7 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.birdsong.analyzer.R
 import com.birdsong.analyzer.presentation.detail.DetailScreen
-import com.birdsong.analyzer.presentation.detail.DetailUiState
+import com.birdsong.analyzer.presentation.detail.DetailViewModel
 import com.birdsong.analyzer.presentation.detection.DualDetectedBirdUi
 import com.birdsong.analyzer.presentation.detection.DualDetectionScreen
 import com.birdsong.analyzer.presentation.detection.DualDetectionViewModel
@@ -238,6 +238,8 @@ fun BirdSongNavHost() {
                         onResume = viewModel::onResume,
                         onStop = viewModel::onStop,
                         onReset = viewModel::onReset,
+                        onRemoveBird = viewModel::onRemoveBird,
+                        onLure = viewModel::onLure,
                         onSave = viewModel::onSaveSession,
                         onDiscard = viewModel::onDiscardSession,
                         onBack = { navController.popBackStack() },
@@ -391,17 +393,11 @@ fun BirdSongNavHost() {
                     )
                 }
 
-                composable<DetailRoute> { backStackEntry ->
-                    val route = backStackEntry.toRoute<DetailRoute>()
+                composable<DetailRoute> {
+                    val viewModel: DetailViewModel = hiltViewModel()
+                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                     DetailScreen(
-                        uiState = DetailUiState(
-                            commonName = route.commonName,
-                            scientificName = route.scientificName,
-                            confidence = maxOf(
-                                if (route.v24Confidence >= 0) route.v24Confidence else 0,
-                                if (route.v30Confidence >= 0) route.v30Confidence else 0,
-                            ),
-                        ),
+                        uiState = uiState,
                         onBack = { navController.popBackStack() },
                     )
                 }

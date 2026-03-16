@@ -95,5 +95,5 @@ class BirdNetV24ClassifierUnitTest {
         threshold: Float = BirdNetV24Classifier.DEFAULT_THRESHOLD,
         topK: Int = BirdNetV24Classifier.DEFAULT_TOP_K,
     ): List<BirdDetection> =
-        BirdNetV24Classifier.buildDetections(scores, testLabels, threshold, topK)
+        BirdNetV24Classifier.buildDetections(scores, testLabels, null, threshold, topK)
 }

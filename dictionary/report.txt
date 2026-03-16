@@ -1,0 +1,76 @@
+============================================================
+Building reference.db
+============================================================
+Summary: 11248 species, 44 orders, 256 families
+  Cleaned dirty name_lat: 11
+  Russian names from summary: 10772
+Synonyms: 31133 entries
+Species names (en): 11248 entries
+Species-country links: 130773 entries from 250 countries
+Geo: 276 entities, 2 models, 7 geo-model links, 86 translations
+Non-bird species added from V3.0: 252
+
+Model Map V2.4: 6522 labels total
+  Resolved: 6455 (223 via synonym)
+  Missing from reference: 67
+    - Acanthis cabaret
+    - Acanthis hornemanni
+    - Acris gryllus
+    - Acrocephalus baeticatus
+    - Allonemobius walkeri
+    - Alouatta pigra
+    - Amblycorypha alexanderi
+    - Anaxyrus canorus
+    - Anaxyrus cognatus
+    - Anaxyrus houstonensis
+    - Anaxyrus microscaphus
+    - Anaxyrus quercicus
+    - Anaxyrus speciosus
+    - Anaxyrus terrestris
+    - Anaxyrus woodhousii
+    - Asthenes sclateri
+    - Atlanticus testaceus
+    - Calendulauda alopex
+    - Caprimulgus nigriscapularis
+    - Cecropis striolata
+    ... and 47 more
+
+Model Map V3.0: 1225 labels total
+  Resolved: 1221 (2 via synonym)
+  Missing from reference: 4
+    - Acanthis cabaret (Aves)
+    - Acanthis hornemanni (Aves)
+    - Acrocephalus baeticatus (Aves)
+    - Eremophila alpestris (Aves)
+Synonyms inserted: 30430, skipped (species not found): 0
+Species-country: inserted 130690, skipped 83
+
+=== DB Stats ===
+taxon_order:     56
+taxon_family:    259
+species:         11500
+species_name:    22272
+taxonomy_synonym:30430
+species_country: 130690
+translation:     718
+geo_entity:      276
+ml_model:        2
+geo_model:       7
+
+Database size: 15.94 MB
+Model map V2.4: /mnt/c/projects/bird/project/bird_song_analyzer/app/src/main/assets/birdnet/v24/model_map.csv (6522 entries)
+Model map V3.0: /mnt/c/projects/bird/project/bird_song_analyzer/app/src/main/assets/birdnet/v30/model_map.csv (1225 entries)
+
+=== Species without Russian name ===
+Total: 728
+  - Alopochen kervazoi
+  - Alopochen mauritiana
+  - Melanitta stejnegeri
+  - Penelope bridgesi
+  - Pipile grayi
+  - Guttera edouardi
+  - Guttera verreauxi
+  - Lagopus scotica
+  - Lophura pyronota
+  - Lophura rufa
+  ... and 718 more

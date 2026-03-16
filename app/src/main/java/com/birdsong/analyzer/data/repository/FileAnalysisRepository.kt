@@ -3,7 +3,7 @@ package com.birdsong.analyzer.data.repository
 import androidx.room.withTransaction
 import com.birdsong.analyzer.data.local.FileAnalysisDao
 import com.birdsong.analyzer.data.local.FileAnalysisSummary
-import com.birdsong.analyzer.data.local.AppDatabase
+import com.birdsong.analyzer.data.local.UserDatabase
 import com.birdsong.analyzer.data.model.FileAnalysisEntity
 import com.birdsong.analyzer.data.model.FileDetectionEntity
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +12,7 @@ import javax.inject.Singleton
 
 @Singleton
 class FileAnalysisRepository @Inject constructor(
-    private val database: AppDatabase,
+    private val database: UserDatabase,
     private val dao: FileAnalysisDao,
 ) {
 

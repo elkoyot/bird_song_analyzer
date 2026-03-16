@@ -53,12 +53,40 @@ data class DetailUiState(
     val longitude: Double? = null,
     val isPlaying: Boolean = false,
     val playbackProgress: Float = 0f,
+    // Species reference data
+    val orderName: String? = null,
+    val familyName: String? = null,
+    val genus: String? = null,
+    val taxonClass: String? = null,
+    val iucnStatus: String? = null,
 )
 
 private fun confColor(pct: Int) = when {
     pct >= 75 -> HubColors.Green
     pct >= 35 -> HubColors.Yellow
     else -> HubColors.Red
+}
+
+private fun iucnColor(status: String) = when (status) {
+    "LC" -> HubColors.Green
+    "NT" -> HubColors.Yellow
+    "VU" -> Color(0xFFE8A020)
+    "EN" -> Color(0xFFE07030)
+    "CR" -> HubColors.Red
+    "EW", "EX" -> Color(0xFF888888)
+    else -> HubColors.TextMuted
+}
+
+private fun iucnLabel(status: String) = when (status) {
+    "LC" -> "Least Concern"
+    "NT" -> "Near Threatened"
+    "VU" -> "Vulnerable"
+    "EN" -> "Endangered"
+    "CR" -> "Critically Endangered"
+    "EW" -> "Extinct in the Wild"
+    "EX" -> "Extinct"
+    "DD" -> "Data Deficient"
+    else -> status
 }
 
 @Composable
@@ -120,7 +148,7 @@ fun DetailScreen(
                 NameBlock(uiState, col, tab, onTabChange = { tab = it })
                 Spacer(Modifier.height(14.dp))
                 when (tab) {
-                    "info" -> InfoTab()
+                    "info" -> InfoTab(uiState)
                     "audio" -> AudioTab()
                     "map" -> MapTab()
                 }
@@ -190,8 +218,12 @@ private fun NameBlock(
                 )
             }
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                StatusTag(stringResource(R.string.detail_placeholder_status), HubColors.Green)
-                StatusTag(stringResource(R.string.detail_placeholder_rarity), col)
+                uiState.iucnStatus?.let { status ->
+                    StatusTag(status, iucnColor(status))
+                }
+                uiState.taxonClass?.let { taxon ->
+                    StatusTag(taxon, HubColors.Blue)
+                }
             }
         }
         if (uiState.confidence > 0) {
@@ -240,18 +272,51 @@ private fun NameBlock(
 }
 
 @Composable
-private fun InfoTab() {
+private fun InfoTab(uiState: DetailUiState) {
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
-                .background(HubColors.BgCard, RoundedCornerShape(16.dp))
-                .border(1.dp, HubColors.Border, RoundedCornerShape(16.dp))
-                .padding(16.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.detail_data_soon),
-                color = HubColors.TextSecondary, fontSize = 14.sp, lineHeight = 24.sp,
-            )
+        val hasData = uiState.orderName != null || uiState.familyName != null
+        if (hasData) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .background(HubColors.BgCard, RoundedCornerShape(16.dp))
+                    .border(1.dp, HubColors.Border, RoundedCornerShape(16.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                uiState.orderName?.let { InfoRow("\uD83D\uDCCB", stringResource(R.string.detail_label_order), it) }
+                uiState.familyName?.let { InfoRow("\uD83D\uDC26", stringResource(R.string.detail_label_family), it) }
+                uiState.genus?.let { InfoRow("\uD83C\uDF3F", stringResource(R.string.detail_label_genus), it) }
+                uiState.iucnStatus?.let { status ->
+                    InfoRow("\uD83D\uDEE1\uFE0F", "IUCN", iucnLabel(status))
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                    .background(HubColors.BgCard, RoundedCornerShape(16.dp))
+                    .border(1.dp, HubColors.Border, RoundedCornerShape(16.dp))
+                    .padding(16.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.detail_data_soon),
+                    color = HubColors.TextSecondary, fontSize = 14.sp, lineHeight = 24.sp,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(icon: String, label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(icon, fontSize = 16.sp)
+        Column {
+            Text(text = label, color = HubColors.TextMuted, fontSize = 11.sp)
+            Text(text = value, color = HubColors.TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
         }
     }
 }

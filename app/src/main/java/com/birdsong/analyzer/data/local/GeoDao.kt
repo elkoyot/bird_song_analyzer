@@ -1,11 +1,8 @@
 package com.birdsong.analyzer.data.local
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.birdsong.analyzer.data.model.GeoEntity
-import com.birdsong.analyzer.data.model.GeoModelEntity
 import com.birdsong.analyzer.data.model.MlModelEntity
 
 @Dao
@@ -36,15 +33,9 @@ interface GeoDao {
     )
     suspend fun getModelsForGeo(geoCode: String): List<MlModelEntity>
 
+    @Query("SELECT COUNT(*) FROM geo_entity WHERE parent_code = :parentCode")
+    suspend fun getChildrenCount(parentCode: String): Int
+
     @Query("SELECT COUNT(*) FROM geo_entity")
     suspend fun count(): Int
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGeoEntities(entities: List<GeoEntity>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertModels(models: List<MlModelEntity>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGeoModels(geoModels: List<GeoModelEntity>)
 }

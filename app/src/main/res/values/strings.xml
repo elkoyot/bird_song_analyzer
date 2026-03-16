@@ -128,7 +128,7 @@
     <string name="live_screen_app_name">AVALGA</string>
     <string name="live_select_region">Выбрать регион</string>
     <string name="live_listening">Слушаю…</string>
-    <string name="live_pause_label">⏸ Пауза</string>
+    <string name="live_pause_label">Пауза</string>
     <string name="live_start_hint">Нажми для старта</string>
     <string name="live_session_done">Сессия завершена</string>
     <string name="live_detected_count">Определено: %1$d</string>
@@ -138,12 +138,18 @@
     <string name="live_region_hint_desc">Это повысит точность определения птиц</string>
     <string name="live_region_btn">Выбрать</string>
     <string name="live_idle_emoji">🎧</string>
-    <string name="live_idle_desc">Нажми кнопку выше и поднеси телефон к источнику звука</string>
+    <string name="live_idle_desc">После старта здесь появятся\nобнаруженные птицы</string>
     <string name="live_history_label">история</string>
     <string name="btn_reset_short">Сброс</string>
     <string name="btn_save_session">Сохранить</string>
     <string name="btn_new_session">↺ Новая</string>
     <string name="live_lure_stub">Скоро</string>
+    <string name="live_hold_to_stop">удерживай для остановки</string>
+    <string name="live_hold_release_cancel">освободи для отмены</string>
+    <string name="live_new_count">\u2726 %1$d новых</string>
+    <string name="live_lure_active">\u23F8 позывка</string>
+    <string name="live_new_species">\u2726 НОВЫЙ</string>
+    <string name="live_now_badge">\u25CF СЕЙЧАС</string>
 
     <!-- Detail Screen (redesign SCR-06) -->
     <string name="detail_tab_info">Описание</string>
@@ -157,8 +163,9 @@
     <string name="detail_inaturalist">iNaturalist ↗</string>
     <string name="detail_add_to_list">+ В список</string>
     <string name="detail_saved">✓ Сохранено</string>
-    <string name="detail_placeholder_status">LC</string>
-    <string name="detail_placeholder_rarity">Обычный</string>
+    <string name="detail_label_order">Отряд</string>
+    <string name="detail_label_family">Семейство</string>
+    <string name="detail_label_genus">Род</string>
     <string name="detail_song_title">🎵 Песня</string>
     <string name="detail_song_desc">Основной брачный сигнал</string>
     <string name="detail_call_title">🔔 Позывка</string>

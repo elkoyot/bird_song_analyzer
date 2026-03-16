@@ -14,7 +14,7 @@ import java.nio.FloatBuffer
  * Input:  [1, 160000] float32 (5s @ 32 kHz)
  * Output: [1, 1225]   float32 logits → sigmoid
  *
- * Non-bird filtering: classNames[i] != "Aves" → skip.
+ * Taxon filtering via [modelMap]: only labels with taxonClass in [enabledClasses] pass.
  * Geo-filter: species with V2.4 MetaProfile maxScore < [GEO_MIN_SCORE] are penalized.
  * No built-in meta-model — geo-filtering reuses V2.4's MetaProfile via [birdnetLabelIndex].
  */
@@ -23,6 +23,7 @@ class BirdNetV30Classifier(
     private val labels: List<Pair<String, String>>,
     private val classNames: List<String>,
     private val birdnetLabelIndex: IntArray,  // V3.0 idx → V2.4 idx (-1 = no match)
+    private val modelMap: ModelMap? = null,
     private val confidenceThreshold: Float = DEFAULT_THRESHOLD,
     private val topK: Int = DEFAULT_TOP_K,
 ) : BirdClassifier {
@@ -31,6 +32,9 @@ class BirdNetV30Classifier(
     override val sampleRate: Int = 32_000
     override val chunkDurationSeconds: Int = 5
     // samplesPerChunk = 160_000 via default getter
+
+    override val supportedTaxonClasses: Set<String> =
+        classNames.toSet().filter { it.isNotBlank() }.toSet()
 
     @Volatile
     override var metaProfile: MetaProfile? = null
@@ -48,6 +52,7 @@ class BirdNetV30Classifier(
     override suspend fun classify(
         audioChunk: FloatArray,
         location: LocationMeta?,
+        enabledClasses: Set<String>,
     ): List<BirdDetection> = withContext(Dispatchers.Default) {
         require(audioChunk.size == samplesPerChunk) {
             "Expected $samplesPerChunk samples, got ${audioChunk.size}"
@@ -59,7 +64,7 @@ class BirdNetV30Classifier(
         // Apply geo-filter via V2.4 MetaProfile
         applyGeoFilter(scores)
 
-        buildDetections(scores)
+        buildDetections(scores, enabledClasses)
     }
 
     private fun runModel(audioChunk: FloatArray): FloatArray {
@@ -97,20 +102,35 @@ class BirdNetV30Classifier(
         }
     }
 
-    private fun buildDetections(scores: FloatArray): List<BirdDetection> =
+    private fun buildDetections(scores: FloatArray, enabledClasses: Set<String>): List<BirdDetection> =
         scores.indices
             .filter { i ->
-                scores[i] >= confidenceThreshold && classNames[i] == "Aves"
+                if (scores[i] < confidenceThreshold) return@filter false
+                if (modelMap != null) {
+                    val sciName = modelMap.getScientificName(i) ?: return@filter false
+                    if (enabledClasses.isNotEmpty()) {
+                        modelMap.getTaxonClass(i) in enabledClasses
+                    } else {
+                        // Default: only Aves (backward compatible)
+                        modelMap.getTaxonClass(i) == "Aves"
+                    }
+                } else {
+                    // Fallback: use classNames from labels
+                    classNames[i] == "Aves"
+                }
             }
             .sortedByDescending { scores[it] }
             .take(topK)
             .map { i ->
-                val (scientificName, commonName) = labels[i]
+                val (modelLabel, commonName) = labels[i]
+                val resolvedName = modelMap?.getScientificName(i) ?: modelLabel
+                val taxonClass = modelMap?.getTaxonClass(i) ?: classNames.getOrElse(i) { "" }
                 BirdDetection(
-                    scientificName = scientificName,
+                    scientificName = resolvedName,
                     commonName = commonName,
                     confidence = scores[i],
                     labelIndex = i,
+                    taxonClass = taxonClass,
                 )
             }
 
@@ -122,7 +142,8 @@ class BirdNetV30Classifier(
         private const val TAG = "BirdNetV30"
         const val MODEL_ID = "BirdNET-V3.0-EUNA"
         const val MODEL_FILENAME = "birdnet_v30_euna.onnx"
-        const val DEFAULT_THRESHOLD = 0.1f
+        const val MODEL_MAP_PATH = "birdnet/v30/model_map.csv"
+        const val DEFAULT_THRESHOLD = 0.05f
         const val DEFAULT_TOP_K = 10
         private const val GEO_MIN_SCORE = 0.03f
         private const val GEO_PENALTY = 0.1f

@@ -8,6 +8,7 @@ import com.birdsong.analyzer.ml.BirdNetV24Classifier
 import com.birdsong.analyzer.ml.FamilyTaxonomy
 import com.birdsong.analyzer.ml.LabelParser
 import com.birdsong.analyzer.ml.MetaProfileBuilder
+import com.birdsong.analyzer.ml.ModelMap
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,11 +50,18 @@ object MlModule {
 
     @Provides
     @Singleton
+    @Named("v24ModelMap")
+    fun provideV24ModelMap(@ApplicationContext context: Context): ModelMap =
+        ModelMap.fromAsset(context, BirdNetV24Classifier.MODEL_MAP_PATH)
+
+    @Provides
+    @Singleton
     fun provideBirdClassifier(
         @Named("birdnetAudioModel") audioModel: MappedByteBuffer,
         @Named("birdnetMetaModel") metaModel: MappedByteBuffer,
         @Named("birdnetLabels") labels: List<Pair<String, String>>,
-    ): BirdClassifier = BirdNetV24Classifier(audioModel, metaModel, labels)
+        @Named("v24ModelMap") modelMap: ModelMap,
+    ): BirdClassifier = BirdNetV24Classifier(audioModel, metaModel, labels, modelMap)
 
     @Provides
     @Singleton

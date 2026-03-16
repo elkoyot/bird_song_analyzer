@@ -21,15 +21,19 @@ class ClassifierFactory @Inject constructor(
     @Named("birdnetAudioModel") private val birdnetAudioModel: MappedByteBuffer,
     @Named("birdnetMetaModel") private val birdnetMetaModel: MappedByteBuffer,
     @Named("birdnetLabels") private val birdnetLabels: List<Pair<String, String>>,
+    @Named("v24ModelMap") private val v24ModelMap: ModelMap,
 ) {
     // V3.0 labels loaded lazily on first createBirdNetV30() call
     private var v30Labels: BirdNetV30LabelLoader.V30Labels? = null
+    // V3.0 model map loaded lazily alongside labels
+    private var v30ModelMap: ModelMap? = null
 
     fun createBirdNet(): BirdClassifier {
         return BirdNetV24Classifier(
             audioModel = birdnetAudioModel,
             metaModel = birdnetMetaModel,
             labels = birdnetLabels,
+            modelMap = v24ModelMap,
         )
     }
 
@@ -39,12 +43,14 @@ class ClassifierFactory @Inject constructor(
         require(modelFile.exists()) { "BirdNET V3.0 model not found at ${modelFile.absolutePath}" }
 
         val birdnetIndex = buildBirdnetLabelIndex(labels.labels)
+        val mMap = loadV30ModelMap()
 
         return BirdNetV30Classifier(
             modelPath = modelFile.absolutePath,
             labels = labels.labels,
             classNames = labels.classNames,
             birdnetLabelIndex = birdnetIndex,
+            modelMap = mMap,
         )
     }
 
@@ -109,6 +115,14 @@ class ClassifierFactory @Inject constructor(
             val loaded = BirdNetV30LabelLoader.load(context, birdnetLabels)
             v30Labels = loaded
             Log.i(TAG, "V3.0 labels loaded: ${loaded.labels.size} species")
+            loaded
+        }
+    }
+
+    private fun loadV30ModelMap(): ModelMap {
+        return v30ModelMap ?: run {
+            val loaded = ModelMap.fromAsset(context, BirdNetV30Classifier.MODEL_MAP_PATH)
+            v30ModelMap = loaded
             loaded
         }
     }
